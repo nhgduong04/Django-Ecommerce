@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - EShopper{% endblock %}
+
+{% block content %}
+<!-- Page Header Start -->
+<div class="container-fluid bg-secondary mb-5">
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 150px">
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">Register</h1>
+        <div class="d-inline-flex">
+            <p class="m-0"><a href="{% url 'home' %}">Home</a></p>
+            <p class="m-0 px-2">-</p>
+            <p class="m-0">Register</p>
+        </div>
+    </div>
+</div>
+<!-- Page Header End -->
+
+<!-- Register Form Start -->
+<div class="container-fluid pt-5">
+    <div class="row px-xl-5 justify-content-center">
+        <div class="col-lg-6 mb-5">
+            <div class="card border-0 shadow-sm p-4">
+                <div class="card-body">
+                    <h4 class="font-weight-bold mb-4 text-center">Create an Account</h4>
+
+                    {# Messages are now handled globally via toast notifications in base.html #}
+
+                    <form method="POST" action="{% url 'register' %}">
+                        {% csrf_token %}
+
+                        <!-- Display non-field errors: lỗi logic toàn form không thuộc riêng field nào -->
+                        <!-- dùng non field errors khi dùng clean để validate dữ liệu 2 trường -->
+                        <!-- UserCreationForm đã validate riêng các field nên sẽ không render lỗi ở đây -->
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+
+                        <!-- Django trả về BoundField: -->
+                        <!-- BoundField chứa:
+                            HTML input
+                            label
+                            errors
+                            help_text
+                            value hiện tại
+                         -->
+                        {% for field in form %}
+                        <div class="form-group mb-3">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}
+                            <small class="form-text text-muted">{{ field.help_text|safe }}</small>
+                            {% endif %}
+                            {% if field.errors %}
+                            <div class="text-danger mt-1 small">
+                                {{ field.errors|striptags }} <!-- striptags để loại bỏ thẻ HTML từ lỗi -->
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+
+                        <div>
+                            <button class="btn btn-primary btn-block py-3 font-weight-bold" type="submit">Register</button>
+                        </div>
+                    </form>
+                    <div class="text-center mt-4">
+                        <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Register Form End -->
+
+{% endblock %}
+

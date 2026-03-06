@@ -1,0 +1,381 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}EShopper - Bootstrap Shop Template{% endblock %}</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="Free HTML Templates" name="keywords">
+    <meta content="Free HTML Templates" name="description">
+
+    <!-- Favicon -->
+    <link href="{% static 'img/favicon.ico' %}" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="{% static 'lib/owlcarousel/assets/owl.carousel.min.css' %}" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+
+    <style>
+        .product-img {
+            display: flex;
+            align-items: center;
+            aspect-ratio: 1 / 1;
+            overflow: hidden;
+        }
+
+        .product-img img {
+            height: 100%;
+            width: 100%;
+            object-fit: cover;
+        }
+
+        /* ===== Toast Notification System ===== */
+        .toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 11000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast-notification {
+            display: flex;
+            align-items: center;
+            min-width: 300px;
+            max-width: 440px;
+            padding: 14px 18px;
+            border-radius: 6px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1a1a1a;
+            box-shadow: 0 4px 16px rgba(0,0,0,.12);
+            pointer-events: auto;
+            transform: translateX(120%);
+            opacity: 0;
+            transition: transform .4s cubic-bezier(.22,1,.36,1), opacity .4s ease;
+        }
+
+        .toast-notification.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast-notification.hide {
+            transform: translateX(120%);
+            opacity: 0;
+        }
+
+        .toast-notification .toast-icon {
+            flex-shrink: 0;
+            width: 22px;
+            height: 22px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+        }
+
+        .toast-notification .toast-message {
+            flex: 1;
+        }
+
+        .toast-notification .toast-close {
+            flex-shrink: 0;
+            background: none;
+            border: none;
+            font-size: 18px;
+            margin-left: 14px;
+            cursor: pointer;
+            opacity: .5;
+            transition: opacity .2s;
+            color: inherit;
+            padding: 0 4px;
+            line-height: 1;
+        }
+
+        .toast-notification .toast-close:hover {
+            opacity: 1;
+        }
+
+        /* Type variants */
+        .toast-success  { background: #4caf50; color: #fff; }
+        .toast-info     { background: #5bc0de; color: #fff; }
+        .toast-warning  { background: #f0ad4e; color: #1a1a1a; }
+        .toast-danger,
+        .toast-error    { background: #e74c3c; color: #fff; }
+        .toast-default  { background: #f5f5f5; color: #1a1a1a; border: 1px solid #ddd; }
+
+        .toast-warning .toast-close { color: #1a1a1a; }
+        .toast-default .toast-close { color: #1a1a1a; }
+    </style>
+
+</head>
+
+<body>
+    <!-- Topbar Start -->
+    <div class="container-fluid">
+        <div class="row align-items-center py-3 px-xl-5">
+            <div class="col-lg-3 d-none d-lg-block">
+                <a href="{% url 'home' %}" class="text-decoration-none">
+                    <h1 class="m-0 display-5 font-weight-semi-bold"><span
+                            class="text-primary font-weight-bold border px-3 mr-1">E</span>Shopper</h1>
+                </a>
+            </div>
+            <div class="col-lg-6 col-6 text-left">
+                <form action="{% url 'products' %}" onsubmit="return this.keyword.value.trim() !== ''">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search for products" name="keyword">
+                        <div class="input-group-append">
+                            <span class="input-group-text bg-transparent text-primary"
+                                onclick="if(this.closest('form').keyword.value.trim() !== '') this.closest('form').submit()"
+                                style="cursor: pointer;">
+                                <i class="fa fa-search"></i>
+                            </span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-lg-3 col-6 text-right">
+                <a href="" class="btn border">
+                    <i class="fas fa-heart text-primary"></i>
+                    <span class="badge">0</span>
+                </a>
+                <a href="{% url 'cart' %}" class="btn border">
+                    <i class="fas fa-shopping-cart text-primary"></i>
+                    <span class="badge" id="cart-badge">{{ cart_count }}</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    <!-- Topbar End -->
+
+
+    <!-- Navbar Start -->
+    <div class="container-fluid mb-5">
+        <div class="row border-top px-xl-5">
+            <div class="col-lg-3 d-none d-lg-block">
+                <a class="btn shadow-none d-flex align-items-center justify-content-between bg-primary text-white w-100"
+                    data-toggle="collapse" href="#navbar-vertical"
+                    style="height: 65px; margin-top: -1px; padding: 0 30px;">
+                    <h6 class="m-0">Categories</h6>
+                    <i class="fa fa-angle-down text-dark"></i>
+                </a>
+                <nav class="collapse show navbar navbar-vertical navbar-light align-items-start p-0 border border-top-0 border-bottom-0"
+                    id="navbar-vertical">
+                    <div class="navbar-nav w-100 overflow-hidden">
+                        {% for category in categories %}
+                        <a href="{{ category.get_absolute_url }}" class="nav-item nav-link">{{ category.name }}</a>
+                        {% endfor %}
+                    </div>
+                </nav>
+            </div>
+            <div class="col-lg-9">
+                <nav class="navbar navbar-expand-lg bg-light navbar-light py-3 py-lg-0 px-0">
+                    <a href="" class="text-decoration-none d-block d-lg-none">
+                        <h1 class="m-0 display-5 font-weight-semi-bold"><span
+                                class="text-primary font-weight-bold border px-3 mr-1">E</span>Shopper</h1>
+                    </a>
+                    <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
+                        <div class="navbar-nav mr-auto py-0">
+                            <a href="/" class="nav-item nav-link active">Home</a>
+                            <a href="{% url 'products' %}" class="nav-item nav-link">Shop</a>
+                            <a href="contact.html" class="nav-item nav-link">Contact</a>
+                        </div>
+                        {% if user.is_authenticated %}
+                        <a href="{% url 'profile' %}" class="nav-item nav-link font-weight-bold text-primary">Hi, {{ user.username }}</a>
+                        <a href="{% url 'logout' %}" class="nav-item nav-link">Logout</a>
+                        {% else %}
+                        <a href="{% url 'login' %}" class="nav-item nav-link">Login</a>
+                        <a href="{% url 'register' %}" class="nav-item nav-link">Register</a>
+                        {% endif %}
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </div>
+    <!-- Navbar End -->
+
+    {% block content %}
+    {% endblock %}
+
+    <!-- Footer Start -->
+    <div class="container-fluid bg-secondary text-dark mt-5 pt-5">
+        <div class="row px-xl-5 pt-5">
+            <div class="col-lg-4 col-md-12 mb-5 pr-3 pr-xl-5">
+                <a href="" class="text-decoration-none">
+                    <h1 class="mb-4 display-5 font-weight-semi-bold"><span
+                            class="text-primary font-weight-bold border border-white px-3 mr-1">E</span>Shopper</h1>
+                </a>
+                <p>Dolore erat dolor sit lorem vero amet. Sed sit lorem magna, ipsum no sit erat lorem et magna ipsum
+                    dolore amet erat.</p>
+                <p class="mb-2"><i class="fa fa-map-marker-alt text-primary mr-3"></i>123 Street, New York, USA</p>
+                <p class="mb-2"><i class="fa fa-envelope text-primary mr-3"></i>info@example.com</p>
+                <p class="mb-0"><i class="fa fa-phone-alt text-primary mr-3"></i>+012 345 67890</p>
+            </div>
+            <div class="col-lg-8 col-md-12">
+                <div class="row">
+                    <div class="col-md-4 mb-5">
+                        <h5 class="font-weight-bold text-dark mb-4">Quick Links</h5>
+                        <div class="d-flex flex-column justify-content-start">
+                            <a class="text-dark mb-2" href="index.html"><i class="fa fa-angle-right mr-2"></i>Home</a>
+                            <a class="text-dark mb-2" href="shop.html"><i class="fa fa-angle-right mr-2"></i>Our
+                                Shop</a>
+                            <a class="text-dark mb-2" href="detail.html"><i class="fa fa-angle-right mr-2"></i>Shop
+                                Detail</a>
+                            <a class="text-dark mb-2" href="cart.html"><i class="fa fa-angle-right mr-2"></i>Shopping
+                                Cart</a>
+                            <a class="text-dark mb-2" href="checkout.html"><i
+                                    class="fa fa-angle-right mr-2"></i>Checkout</a>
+                            <a class="text-dark" href="contact.html"><i class="fa fa-angle-right mr-2"></i>Contact
+                                Us</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-5">
+                        <h5 class="font-weight-bold text-dark mb-4">Quick Links</h5>
+                        <div class="d-flex flex-column justify-content-start">
+                            <a class="text-dark mb-2" href="index.html"><i class="fa fa-angle-right mr-2"></i>Home</a>
+                            <a class="text-dark mb-2" href="shop.html"><i class="fa fa-angle-right mr-2"></i>Our
+                                Shop</a>
+                            <a class="text-dark mb-2" href="detail.html"><i class="fa fa-angle-right mr-2"></i>Shop
+                                Detail</a>
+                            <a class="text-dark mb-2" href="cart.html"><i class="fa fa-angle-right mr-2"></i>Shopping
+                                Cart</a>
+                            <a class="text-dark mb-2" href="checkout.html"><i
+                                    class="fa fa-angle-right mr-2"></i>Checkout</a>
+                            <a class="text-dark" href="contact.html"><i class="fa fa-angle-right mr-2"></i>Contact
+                                Us</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-5">
+                        <h5 class="font-weight-bold text-dark mb-4">Newsletter</h5>
+                        <form action="">
+                            <div class="form-group">
+                                <input type="text" class="form-control border-0 py-4" placeholder="Your Name"
+                                    required="required" />
+                            </div>
+                            <div class="form-group">
+                                <input type="email" class="form-control border-0 py-4" placeholder="Your Email"
+                                    required="required" />
+                            </div>
+                            <div>
+                                <button class="btn btn-primary btn-block border-0 py-3" type="submit">Subscribe
+                                    Now</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row border-top border-light mx-xl-5 py-4">
+            <div class="col-md-6 px-xl-0">
+                <p class="mb-md-0 text-center text-md-left text-dark">
+                    &copy; <a class="text-dark font-weight-semi-bold" href="#">Your Site Name</a>. All Rights Reserved.
+                    Designed
+                    by
+                    <a class="text-dark font-weight-semi-bold" href="https://htmlcodex.com">HTML Codex</a><br>
+                    Distributed By <a href="https://themewagon.com" target="_blank">ThemeWagon</a>
+                </p>
+            </div>
+            <div class="col-md-6 px-xl-0 text-center text-md-right">
+                <img class="img-fluid" src="{% static 'img/payments.png' %}" alt="">
+            </div>
+        </div>
+    </div>
+    <!-- Footer End -->
+
+
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-primary back-to-top"><i class="fa fa-angle-double-up"></i></a>
+
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'lib/easing/easing.min.js' %}"></script>
+    <script src="{% static 'lib/owlcarousel/owl.carousel.min.js' %}"></script>
+
+    <!-- Contact Javascript File -->
+    <script src="{% static 'mail/jqBootstrapValidation.min.js' %}"></script>
+    <script src="{% static 'mail/contact.js' %}"></script>
+
+    <!-- Template Javascript -->
+    <script src="{% static 'js/main.js' %}"></script>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+    function showToast(message, type, duration) {
+        type = type || 'default';
+        duration = duration || 4000;
+        var container = document.getElementById('toast-container');
+        if (!container) return;
+
+        var iconMap = {
+            success: '<i class="fas fa-check-circle"></i>',
+            info:    '<i class="fas fa-info-circle"></i>',
+            warning: '<i class="fas fa-exclamation-circle"></i>',
+            danger:  '<i class="fas fa-exclamation-triangle"></i>',
+            error:   '<i class="fas fa-exclamation-triangle"></i>',
+            default: '<i class="fas fa-cog"></i>'
+        };
+
+        var toast = document.createElement('div');
+        toast.className = 'toast-notification toast-' + type;
+        toast.innerHTML =
+            '<span class="toast-icon">' + (iconMap[type] || iconMap['default']) + '</span>' +
+            '<span class="toast-message">' + message + '</span>' +
+            '<button class="toast-close" aria-label="Close">&times;</button>';
+
+        container.appendChild(toast);
+
+        // Trigger reflow then animate in
+        toast.offsetHeight;
+        toast.classList.add('show');
+
+        function dismiss() {
+            toast.classList.remove('show');
+            toast.classList.add('hide');
+            setTimeout(function() { toast.remove(); }, 400);
+        }
+
+        toast.querySelector('.toast-close').addEventListener('click', dismiss);
+        if (duration > 0) setTimeout(dismiss, duration);
+    }
+    </script>
+
+    {% if messages %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        {% for message in messages %}
+        showToast(
+            '{{ message|escapejs }}',
+            '{% if message.tags == "error" %}danger{% elif message.tags %}{{ message.tags }}{% else %}info{% endif %}'
+        );
+        {% endfor %}
+    });
+    </script>
+    {% endif %}
+</body>
+
+</html>

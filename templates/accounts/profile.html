@@ -1,0 +1,11 @@
+{% extends 'accounts/profile_base.html' %}
+
+{% block profile_content %}
+<h5 class="text-uppercase mb-4">Thông tin tài khoản</h5>
+<p class="text-dark mb-2"><strong style="color: #000;">Họ tên:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+<p class="text-dark mb-2"><strong style="color: #000;">Email:</strong> {{ user.email }}</p>
+
+<div class="mt-4">
+    <a href="{% url 'logout' %}" class="btn btn-sm btn-primary">Đăng xuất</a>
+</div>
+{% endblock %}

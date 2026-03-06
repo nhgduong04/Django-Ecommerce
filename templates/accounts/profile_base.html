@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}Account - EShopper{% endblock %}
+
+{% block content %}
+<!-- Page Header Start -->
+<div class="container-fluid bg-secondary mb-5">
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 150px">
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">Tài khoản</h1>
+        <div class="d-inline-flex">
+            <p class="m-0"><a href="{% url 'home' %}">Trang chủ</a></p>
+            <p class="m-0 px-2">-</p>
+            <p class="m-0">Tài khoản</p>
+        </div>
+    </div>
+</div>
+<!-- Page Header End -->
+
+<style>
+    .profile-sidebar ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .profile-sidebar ul li {
+        margin-bottom: 10px;
+    }
+
+    .profile-sidebar .nav-link {
+        color: #333;
+        padding: 5px 0;
+        text-decoration: none;
+        display: block;
+        font-size: 15px;
+        transition: color 0.3s;
+    }
+
+    .profile-sidebar .nav-link.active {
+        color: #D19C97 !important;
+        font-weight: 600;
+    }
+
+    .profile-sidebar .nav-link:hover {
+        color: #D19C97 !important;
+    }
+
+    .profile-content h5 {
+        font-weight: 500;
+        font-size: 18px;
+    }
+</style>
+
+<!-- Profile Start -->
+<div class="container-fluid py-5">
+    <div class="row px-xl-5">
+        <!-- Sidebar -->
+        <div class="col-lg-3 col-md-4 profile-sidebar mb-4">
+            <h5 class="text-uppercase mb-2">Trang tài khoản</h5>
+            <p class="mb-4 text-dark">Xin chào, <strong style="color: #000;">{{ user.first_name }} {{ user.last_name }}
+                    !</strong></p>
+
+            <ul>
+                <li>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}"
+                        href="{% url 'profile' %}">Thông tin tài khoản</a>
+                </li>
+                <li>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'orders' %}active{% endif %}"
+                        href="{% url 'orders' %}">Đơn hàng của bạn</a>
+                </li>
+                <li>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'change_password' %}active{% endif %}"
+                        href="{% url 'change_password' %}">Đổi mật khẩu</a>
+                </li>
+                <li>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'addresses' %}active{% endif %}"
+                        href="{% url 'addresses' %}">Sổ địa chỉ (0)</a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Content -->
+        <div class="col-lg-9 col-md-8 profile-content" style="border-left: 1px solid #eee;">
+            <div class="pl-md-4">
+                {% block profile_content %}
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Profile End -->
+{% endblock %}

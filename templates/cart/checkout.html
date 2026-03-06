@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+{% block title %}Checkout{% endblock %}
+{% block content %}
+
+<style>
+    .checkout-product-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+
+    .checkout-product-info {
+        display: flex;
+        align-items: center;
+    }
+
+    .checkout-product-img-container {
+        position: relative;
+        width: 65px;
+        height: 65px;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        background-color: #fff;
+    }
+
+    .checkout-product-img-container img {
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 8px;
+        object-fit: cover;
+    }
+
+    .checkout-product-quantity {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background-color: var(--primary);
+        color: white;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: bold;
+    }
+
+    .checkout-product-details p,
+    .checkout-product-details small {
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .checkout-product-name {
+        font-size: 15px;
+        color: #333;
+    }
+
+    .checkout-product-variant {
+        font-size: 13px;
+        color: #888;
+    }
+
+    .checkout-product-price {
+        font-size: 15px;
+        color: #666;
+        font-weight: 500;
+    }
+</style>
+
+
+<!-- Page Header Start -->
+<div class="container-fluid bg-secondary mb-5">
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">Checkout</h1>
+        <div class="d-inline-flex">
+            <p class="m-0"><a href="">Home</a></p>
+            <p class="m-0 px-2">-</p>
+            <p class="m-0">Checkout</p>
+        </div>
+    </div>
+</div>
+<!-- Page Header End -->
+
+
+<!-- Checkout Start -->
+<div class="container-fluid pt-5">
+    <form method="post" action="{% url 'checkout' %}">
+        {% csrf_token %}
+        {% if coupon_code %}
+        <input type="hidden" name="coupon_code" value="{{ coupon_code }}">
+        {% endif %}
+    <div class="row px-xl-5">
+        <div class="col-lg-8">
+            <div class="mb-4">
+                <h4 class="font-weight-semi-bold mb-4">Thông tin nhận hàng</h4>
+                <div class="row">
+                    <div class="col-md-12 form-group">
+                        <label>Email</label>
+                        <input class="form-control" type="email" name="email" placeholder="Email" required>
+                    </div>
+                    <div class="col-md-12 form-group">
+                        <label>Họ và tên</label>
+                        <input class="form-control" type="text" name="full_name" placeholder="Họ và tên" required>
+                    </div>
+                    <div class="col-md-12 form-group">
+                        <label>Số điện thoại (tùy chọn)</label>
+                        <input class="form-control" type="tel" name="phone" placeholder="Số điện thoại">
+                    </div>
+                    <div class="col-md-12 form-group">
+                        <label>Địa chỉ (tùy chọn)</label>
+                        <input class="form-control" type="text" name="address" placeholder="Địa chỉ">
+                    </div>
+                    <div class="col-md-12 form-group">
+                        <label>Tỉnh thành</label>
+                        <select class="custom-select" id="province" name="province">
+                            <option value="">---</option>
+                        </select>
+                    </div>
+                    <div class="col-md-12 form-group">
+                        <label>Quận huyện (tùy chọn)</label>
+                        <select class="custom-select" id="district" name="district" disabled>
+                            <option value="">---</option>
+                        </select>
+                    </div>
+                    <div class="col-md-12 form-group">
+                        <label>Phường xã (tùy chọn)</label>
+                        <select class="custom-select" id="ward" name="ward" disabled>
+                            <option value="">---</option>
+                        </select>
+                    </div>
+                    <div class="col-md-12 form-group">
+                        <label>Ghi chú (tùy chọn)</label>
+                        <textarea class="form-control" name="note" rows="3"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card border-secondary mb-5">
+                <div class="card-header bg-secondary border-0">
+                    <h4 class="font-weight-semi-bold m-0">Order Total</h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="font-weight-medium mb-3">Products</h5>
+
+                    {% for cart_item in cart_items %}
+                    <div class="checkout-product-item">
+                        <div class="checkout-product-info">
+                            <div class="checkout-product-img-container">
+                                <img src="{{ cart_item.product.image.url }}" alt="{{ cart_item.product.name }}">
+                                <span class="checkout-product-quantity">{{ cart_item.quantity }}</span>
+                            </div>
+                            <div class="checkout-product-details">
+                                <p class="checkout-product-name">{{ cart_item.product.name }}</p>
+                                {% if cart_item.variations.all %}
+                                <small class="checkout-product-variant">
+                                    {% for v in cart_item.variations.all %}{{ v.variation_value }}{% if not forloop.last %} / {% endif %}{% endfor %}
+                                </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <p class="checkout-product-price">{{ cart_item.product.price|floatformat:0|intcomma }}đ</p>
+                    </div>
+                    {% endfor %}
+
+                    <hr class="mt-0">
+                    <div class="d-flex justify-content-between mb-3 pt-1">
+                        <h6 class="font-weight-medium">Subtotal</h6>
+                        <h6 class="font-weight-medium">{{ total|floatformat:0|intcomma }}đ</h6>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <h6 class="font-weight-medium">Shipping</h6>
+                        <h6 class="font-weight-medium">0đ</h6>
+                    </div>
+                </div>
+                <div class="card-footer border-secondary bg-transparent">
+                    <div class="d-flex justify-content-between mt-2">
+                        <h5 class="font-weight-bold">Total</h5>
+                        <h5 class="font-weight-bold">{{ total|floatformat:0|intcomma }}đ</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="card border-secondary mb-5">
+                <div class="card-header bg-secondary border-0">
+                    <h4 class="font-weight-semi-bold m-0">Payment</h4>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <div class="custom-control custom-radio">
+                            <input type="radio" class="custom-control-input" name="payment" id="paypal" value="paypal">
+                            <label class="custom-control-label" for="paypal">Paypal</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="custom-control custom-radio">
+                            <input type="radio" class="custom-control-input" name="payment" id="directcheck" value="direct_check">
+                            <label class="custom-control-label" for="directcheck">Direct Check</label>
+                        </div>
+                    </div>
+                    <div class="">
+                        <div class="custom-control custom-radio">
+                            <input type="radio" class="custom-control-input" name="payment" id="banktransfer" value="bank_transfer" checked>
+                            <label class="custom-control-label" for="banktransfer">Bank Transfer</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer border-secondary bg-transparent">
+                    <button type="submit" class="btn btn-lg btn-block btn-primary font-weight-bold my-3 py-3">Place Order</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </form>
+</div>
+<!-- Checkout End -->
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const provinceSelect = document.getElementById("province");
+        const districtSelect = document.getElementById("district");
+        const wardSelect = document.getElementById("ward");
+
+        // Fetch provinces
+        fetch('https://provinces.open-api.vn/api/p/')
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(province => {
+                    const option = document.createElement("option");
+                    option.value = province.code;
+                    option.text = province.name;
+                    provinceSelect.add(option);
+                });
+            })
+            .catch(error => console.error('Error fetching provinces:', error));
+
+        // Fetch districts when province changes
+        provinceSelect.addEventListener("change", function () {
+            districtSelect.innerHTML = '<option value="">---</option>';
+            wardSelect.innerHTML = '<option value="">---</option>';
+            districtSelect.disabled = true;
+            wardSelect.disabled = true;
+
+            const provinceCode = this.value;
+            if (provinceCode) {
+                fetch(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.districts.forEach(district => {
+                            const option = document.createElement("option");
+                            option.value = district.code;
+                            option.text = district.name;
+                            districtSelect.add(option);
+                        });
+                        districtSelect.disabled = false;
+                    })
+                    .catch(error => console.error('Error fetching districts:', error));
+            }
+        });
+
+        // Fetch wards when district changes
+        districtSelect.addEventListener("change", function () {
+            wardSelect.innerHTML = '<option value="">---</option>';
+            wardSelect.disabled = true;
+
+            const districtCode = this.value;
+            if (districtCode) {
+                fetch(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.wards.forEach(ward => {
+                            const option = document.createElement("option");
+                            option.value = ward.code;
+                            option.text = ward.name;
+                            wardSelect.add(option);
+                        });
+                        wardSelect.disabled = false;
+                    })
+                    .catch(error => console.error('Error fetching wards:', error));
+            }
+        });
+
+        // Enable disabled selects before submit so their values are sent
+        const checkoutForm = document.querySelector('form[action*="checkout"]');
+        if (checkoutForm) {
+            checkoutForm.addEventListener('submit', function () {
+                districtSelect.disabled = false;
+                wardSelect.disabled = false;
+            });
+        }
+    });
+</script>
+{% endblock %}

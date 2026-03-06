@@ -1,0 +1,23 @@
+{% extends 'accounts/profile_base.html' %}
+
+{% block profile_content %}
+<h5 class="text-uppercase mb-4">Đơn hàng của bạn</h5>
+<div class="table-responsive">
+    <table class="table">
+        <thead style="border-bottom: 1px solid #eee;">
+            <tr>
+                <th class="border-0 font-weight-bold text-dark px-2">Đơn hàng</th>
+                <th class="border-0 font-weight-bold text-dark px-2">Ngày</th>
+                <th class="border-0 font-weight-bold text-dark px-2">Địa chỉ</th>
+                <th class="border-0 font-weight-bold text-dark px-2">Giá trị đơn hàng</th>
+                <th class="border-0 font-weight-bold text-dark px-2">TT thanh toán</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr style="border-bottom: 1px solid #eee;">
+                <td colspan="5" class="border-0 text-left py-4 px-2 text-dark">Không có đơn hàng nào.</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}

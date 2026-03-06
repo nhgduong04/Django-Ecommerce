@@ -1,0 +1,461 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}{{ product.name }}{% endblock %}
+{% block content %}
+<style>
+    /* Swatch Styles */
+    .swatch-input {
+        display: none;
+    }
+
+    .size-swatch {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        line-height: 38px;
+        text-align: center;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        background-color: #fff;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease-in-out;
+        margin-bottom: 0;
+        color: #6C757D;
+    }
+
+    .swatch-input:checked+.size-swatch {
+        background-color: #D19C97;
+        color: #fff;
+        border-color: #D19C97;
+    }
+
+    .color-swatch {
+        display: inline-block;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 1px solid #dee2e6;
+        transition: all 0.2s ease-in-out;
+        margin-bottom: 0;
+        position: relative;
+    }
+
+    .swatch-input:checked+.color-swatch {
+        border-color: #D19C97;
+        transform: scale(1.1);
+        box-shadow: 0 0 0 2px #fff inset, 0 0 0 3px #D19C97;
+    }
+</style>
+<!-- Page Header Start -->
+<div class="container-fluid bg-secondary mb-5">
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">Shop Detail</h1>
+        <div class="d-inline-flex">
+            <p class="m-0"><a href="/">Home</a></p>
+            <p class="m-0 px-2">-</p>
+            <p class="m-0">Shop Detail</p>
+        </div>
+    </div>
+</div>
+<!-- Page Header End -->
+
+
+<!-- Shop Detail Start -->
+<div class="container-fluid py-5">
+    <div class="row px-xl-5">
+        <div class="col-lg-5 pb-5">
+            <div id="product-carousel" class="carousel slide" data-ride="carousel">
+                <div class="carousel-inner border">
+                    <div class="carousel-item active">
+                        <img class="w-100 h-100" src="{{ product.image.url }}" alt="{{ product.name }}">
+                    </div>
+                </div>
+                <a class="carousel-control-prev" href="#product-carousel" data-slide="prev">
+                    <i class="fa fa-2x fa-angle-left text-dark"></i>
+                </a>
+                <a class="carousel-control-next" href="#product-carousel" data-slide="next">
+                    <i class="fa fa-2x fa-angle-right text-dark"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-7 pb-5">
+            <h3 class="font-weight-semi-bold">{{ product.name }}</h3>
+            <h3 class="font-weight-semi-bold mb-4" id="product-price">{{ product.price|floatformat:0|intcomma }}đ</h3>
+            <p class="mb-4">{{ product.description }}</p>
+            <form id="add-to-cart-form" action="{% url 'add_to_cart' product.id %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="variant_id" id="selected-variant-id" value="">
+
+                {% if product.variations.sizes %}
+                <div class="d-flex mb-3 align-items-center">
+                    <p class="text-dark font-weight-medium mb-0 mr-3">Sizes:</p>
+                    <div class="d-flex flex-wrap">
+                        {% for variation in product.variations.sizes %}
+                        <div class="swatch-option mr-2 mb-2">
+                            <input type="radio" class="swatch-input" id="size-{{ variation.variation_value }}"
+                                name="size" value="{{ variation.variation_value }}">
+                            <label class="size-swatch" for="size-{{ variation.variation_value }}">
+                                {{ variation.variation_value }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if product.variations.colors %}
+                <div class="d-flex mb-4 align-items-center">
+                    <p class="text-dark font-weight-medium mb-0 mr-3">Colors:</p>
+                    <div class="d-flex flex-wrap">
+                        {% for variation in product.variations.colors %}
+                        <div class="swatch-option mr-2 mb-2">
+                            <input type="radio" class="swatch-input" id="color-{{ variation.variation_value }}"
+                                name="color" value="{{ variation.variation_value }}">
+                            <label class="color-swatch" for="color-{{ variation.variation_value }}"
+                                style="background-color: {{ variation.variation_value | lower }};"
+                                title="{{ variation.variation_value }}"></label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <div id="in-stock-controls">
+                    <div class="d-flex align-items-center mb-4 pt-2">
+                        <div class="d-flex align-items-center mr-3 bg-secondary"
+                            style="width: 130px; justify-content: space-between;">
+                            <button type="button" class="btn btn-primary custom-btn-minus" style="border-radius: 0;">
+                                <i class="fa fa-minus"></i>
+                            </button>
+                            <span id="custom-qty-display" class="font-weight-bold"
+                                style="font-size: 1.1rem; user-select: none;">1</span>
+                            <input type="hidden" name="quantity" id="custom-hidden-quantity" value="1">
+                            <button type="button" class="btn btn-primary custom-btn-plus" style="border-radius: 0;">
+                                <i class="fa fa-plus"></i>
+                            </button>
+                        </div>
+                        <button type="submit" class="btn btn-primary px-3">
+                            <i class="fa fa-shopping-cart mr-1"></i> Thêm vào giỏ
+                        </button>
+                    </div>
+                </div>
+            </form>
+            {% comment %} <button id="buy-now-btn" class="btn btn-primary px-3" style="width: 50%;"><i
+                    class="fa fa-check mr-1"></i> Mua ngay</button> {% endcomment %}
+            <div id="out-of-stock-badge" style="display: none;">
+                <button type="button" class="btn btn-outline-dark px-5 py-2" style="font-weight: 600; cursor: default;"
+                    disabled>HẾT HÀNG</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Shop Detail End -->
+
+
+<!-- Products Start -->
+<div class="container-fluid py-5">
+    <div class="text-center mb-4">
+        <h2 class="section-title px-5"><span class="px-2">You May Also Like</span></h2>
+    </div>
+    <div class="row px-xl-5">
+        <div class="col">
+            <div class="owl-carousel related-carousel">
+                <div class="card product-item border-0">
+                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
+                        <img class="img-fluid w-100" src="img/product-1.jpg" alt="">
+                    </div>
+                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
+                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
+                        <div class="d-flex justify-content-center">
+                            <h6>$123.00</h6>
+                            <h6 class="text-muted ml-2"><del>$123.00</del></h6>
+                        </div>
+                    </div>
+                    <div class="card-footer d-flex justify-content-between bg-light border">
+                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View
+                            Detail</a>
+                        <a href="" class="btn btn-sm text-dark p-0"><i
+                                class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
+                    </div>
+                </div>
+                <div class="card product-item border-0">
+                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
+                        <img class="img-fluid w-100" src="img/product-2.jpg" alt="">
+                    </div>
+                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
+                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
+                        <div class="d-flex justify-content-center">
+                            <h6>$123.00</h6>
+                            <h6 class="text-muted ml-2"><del>$123.00</del></h6>
+                        </div>
+                    </div>
+                    <div class="card-footer d-flex justify-content-between bg-light border">
+                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View
+                            Detail</a>
+                        <a href="" class="btn btn-sm text-dark p-0"><i
+                                class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
+                    </div>
+                </div>
+                <div class="card product-item border-0">
+                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
+                        <img class="img-fluid w-100" src="img/product-3.jpg" alt="">
+                    </div>
+                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
+                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
+                        <div class="d-flex justify-content-center">
+                            <h6>$123.00</h6>
+                            <h6 class="text-muted ml-2"><del>$123.00</del></h6>
+                        </div>
+                    </div>
+                    <div class="card-footer d-flex justify-content-between bg-light border">
+                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View
+                            Detail</a>
+                        <a href="" class="btn btn-sm text-dark p-0"><i
+                                class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
+                    </div>
+                </div>
+                <div class="card product-item border-0">
+                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
+                        <img class="img-fluid w-100" src="img/product-4.jpg" alt="">
+                    </div>
+                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
+                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
+                        <div class="d-flex justify-content-center">
+                            <h6>$123.00</h6>
+                            <h6 class="text-muted ml-2"><del>$123.00</del></h6>
+                        </div>
+                    </div>
+                    <div class="card-footer d-flex justify-content-between bg-light border">
+                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View
+                            Detail</a>
+                        <a href="" class="btn btn-sm text-dark p-0"><i
+                                class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
+                    </div>
+                </div>
+                <div class="card product-item border-0">
+                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
+                        <img class="img-fluid w-100" src="img/product-5.jpg" alt="">
+                    </div>
+                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
+                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
+                        <div class="d-flex justify-content-center">
+                            <h6>$123.00</h6>
+                            <h6 class="text-muted ml-2"><del>$123.00</del></h6>
+                        </div>
+                    </div>
+                    <div class="card-footer d-flex justify-content-between bg-light border">
+                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View
+                            Detail</a>
+                        <a href="" class="btn btn-sm text-dark p-0"><i
+                                class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Products End -->
+
+<script>
+    // ----- Lấy cookie CSRF token cho AJAX -----
+    function getCookie(name) {
+        if (!document.cookie) return null;
+        const cookies = document.cookie.split(';')
+            .map(c => c.trim())
+            .filter(c => c.startsWith(name + '='));
+        if (cookies.length === 0) return null;
+        return decodeURIComponent(cookies[0].split('=')[1]);
+    }
+
+    // ----- Biến thể và tương tác -----
+    document.addEventListener("DOMContentLoaded", function () {
+        const variantsData = [
+            {% for variant in product.variants.all %}
+            {
+                id: {{ variant.id }},
+                price: {{ variant.get_price | floatformat:0}},
+                stock: {{ variant.stock }},
+                options: {
+                    {% for v in variant.variations.all %}
+                    "{{ v.variation_category }}": "{{ v.variation_value }}",
+                    {% endfor %}
+                }
+            },
+            {% endfor %}
+        ];
+
+    const btnMinus = document.querySelector(".custom-btn-minus");
+    const btnPlus = document.querySelector(".custom-btn-plus");
+    const qtyDisplay = document.getElementById("custom-qty-display"); // Hiển thị số lượng cho người dùng
+    const hiddenInput = document.getElementById("custom-hidden-quantity"); // Input ẩn để gửi form
+    const form = document.getElementById("add-to-cart-form");
+    const variantIdInput = document.getElementById('selected-variant-id');
+    const priceDisplay = document.getElementById('product-price');
+
+    // Determine how many option categories exist (e.g., size, color)
+    const optionNames = new Set();
+    document.querySelectorAll('.swatch-input').forEach(input => {
+        optionNames.add(input.name);
+    });
+
+    // Track the currently selected variant's stock
+    let currentMaxStock = null;
+
+    function resetQuantity() {
+        if (hiddenInput) hiddenInput.value = '1';
+        if (qtyDisplay) qtyDisplay.textContent = '1';
+    }
+
+    function updateSelectedVariant() {
+        const selectedOptions = {};
+        document.querySelectorAll('.swatch-input:checked').forEach(input => {
+            selectedOptions[input.name] = input.value;
+        });
+
+        let matchedVariant = null;
+        if (Object.keys(selectedOptions).length > 0 && Object.keys(selectedOptions).length === optionNames.size) {
+            // User has fully selected all required options
+            /*
+                Object.entries: chuyển đổi một đối tượng thành mảng các cặp [key, value], hữu ích để lặp qua đối tượng bằng for...of
+                ví dụ: {size: "M", color: "Red"} sẽ thành [["size", "M"], ["color", "Red"]]
+            */
+            matchedVariant = variantsData.find(v => {
+                for (const [key, val] of Object.entries(selectedOptions)) {
+                    if (v.options[key] !== val) return false;
+                }
+                return true;
+            });
+        } else if (optionNames.size === 0 && variantsData.length > 0) {
+            // Auto-select the default variant if there are NO options
+            matchedVariant = variantsData[0];
+        }
+
+        // Update max stock and reset quantity when variant changes
+        const newStock = matchedVariant ? matchedVariant.stock : null; // if matchedVariant: newStock = matchedVariant.stock else newStock = null
+        if (newStock !== currentMaxStock) {
+            currentMaxStock = newStock;
+            resetQuantity();
+        }
+
+        const inStockControls = document.getElementById('in-stock-controls');
+        {% comment %} const buyNowBtn = document.getElementById('buy-now-btn'); {% endcomment %}
+        const outOfStockBadge = document.getElementById('out-of-stock-badge');
+
+        if (matchedVariant) {
+            if (variantIdInput) variantIdInput.value = matchedVariant.id;
+            if (priceDisplay) priceDisplay.textContent = new Intl.NumberFormat('vi-VN').format(matchedVariant.price) + 'đ';
+
+            if (matchedVariant.stock <= 0) {
+                // Out of stock: hide controls, show badge
+                if (inStockControls) inStockControls.style.display = 'none';
+                {% comment %} if (buyNowBtn) buyNowBtn.style.display = 'none'; {% endcomment %}
+                if (outOfStockBadge) outOfStockBadge.style.display = 'block';
+            } else {
+                // In stock: show controls, hide badge
+                if (inStockControls) inStockControls.style.display = '';
+                {% comment %} if (buyNowBtn) buyNowBtn.style.display = ''; {% endcomment %}
+                if (outOfStockBadge) outOfStockBadge.style.display = 'none';
+            }
+        } else {
+            if (variantIdInput) variantIdInput.value = "";
+            // No variant matched yet: show controls, hide badge
+            if (inStockControls) inStockControls.style.display = '';
+            {% comment %} if (buyNowBtn) buyNowBtn.style.display = ''; {% endcomment %}
+            if (outOfStockBadge) outOfStockBadge.style.display = 'none';
+        }
+    }
+
+    // Trigger variant calculation when any swatch is clicked
+    document.querySelectorAll('.swatch-input').forEach(input => {
+        input.addEventListener('change', updateSelectedVariant);
+    });
+
+    // Initialize state on page load
+    updateSelectedVariant();
+
+    if (btnMinus && btnPlus && qtyDisplay && hiddenInput) {
+        btnMinus.addEventListener("click", function () {
+            let currentVal = parseInt(hiddenInput.value, 10) || 1;
+            if (currentVal > 1) {
+                currentVal--;
+                hiddenInput.value = String(currentVal);
+                qtyDisplay.textContent = String(currentVal);
+            }
+        });
+
+        btnPlus.addEventListener("click", function () {
+            let currentVal = parseInt(hiddenInput.value, 10) || 1;
+            if (currentMaxStock !== null && currentVal >= currentMaxStock) {
+                showToast('Bạn chỉ có thể mua tối đa ' + currentMaxStock + ' sản phẩm', 'warning');
+                return;
+            }
+            currentVal++;
+            hiddenInput.value = String(currentVal);
+            qtyDisplay.textContent = String(currentVal);
+        });
+    }
+
+    if (form) {
+        form.addEventListener("submit", async function (e) {
+            // Keep normal POST behavior if Fetch is unavailable
+            if (!window.fetch) return;
+            e.preventDefault();
+
+            // Hard stop: options exist but no variant resolved
+            if (optionNames.size > 0 && (!variantIdInput || !variantIdInput.value)) {
+                const selectedCount = document.querySelectorAll('.swatch-input:checked').length;
+                if (selectedCount < optionNames.size) {
+                    showToast('Vui lòng chọn đầy đủ biến thể trước khi thêm vào giỏ.', 'warning');
+                } else {
+                    showToast('Không tồn tại biến thể phù hợp với lựa chọn của bạn. Vui lòng thử lại.', 'danger');
+                }
+                return;
+            }
+
+            const url = form.getAttribute('action'); // url = "{% url 'add_to_cart' product.id %}"
+            const formData = new FormData(form);
+            const csrftoken = getCookie('csrftoken');
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        ...(csrftoken ? { 'X-CSRFToken': csrftoken } : {})
+                    },
+                    body: formData,
+                    credentials: 'same-origin'
+                });
+
+                const data = await response.json().catch(() => null);
+                if (!data) {
+                    showToast('Có lỗi xảy ra.', 'danger');
+                    return;
+                }
+
+                if (response.ok && data.success) {
+                    const cartBadge = document.getElementById('cart-badge');
+                    if (cartBadge) cartBadge.innerText = data.cart_quantity;
+                    showToast('Đã thêm sản phẩm vào giỏ hàng thành công!', 'success');
+                    return;
+                }
+
+                if (response.status === 409 && data.error === 'out_of_stock') {
+                    showToast('Sản phẩm đã hết hàng hoặc vượt quá tồn kho.', 'warning');
+                    return;
+                }
+
+                showToast(data.message || data.error || 'Không thể thêm vào giỏ hàng.', 'danger');
+            } catch (err) {
+                console.error(err);
+                showToast('Không thể kết nối server.', 'danger');
+            }
+        });
+    }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Giỏ hàng{% endblock %}
+{% block content %}
+<!-- Page Header Start -->
+<div class="container-fluid bg-secondary mb-5">
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">Shopping Cart</h1>
+        <div class="d-inline-flex">
+            <p class="m-0"><a href="">Home</a></p>
+            <p class="m-0 px-2">-</p>
+            <p class="m-0">Shopping Cart</p>
+        </div>
+    </div>
+</div>
+<!-- Page Header End -->
+
+
+<!-- Cart Start -->
+<div class="container-fluid pt-5">
+    {% if cart_items %}
+    <div class="row px-xl-5">
+        <div class="col-lg-8 table-responsive mb-5">
+            <table class="table table-bordered text-center mb-0">
+                <thead class="bg-secondary text-dark">
+                    <tr>
+                        <th>Products</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                        <th>Remove</th>
+                    </tr>
+                </thead>
+                <tbody class="align-middle">
+                    {% for cart_item in cart_items %}
+                    <tr id="row-{{ cart_item.id }}">
+                        <td class="align-middle">
+                            <a href="{% url 'product_detail' cart_item.product.slug %}">
+                                <img src="{{ cart_item.product.image.url }}" alt="" style="width: 50px;">
+                                {{ cart_item.product.name }}
+                            </a>
+                            {% if cart_item.variations.all %}
+                            <div class="small text-muted">
+                                {% for v in cart_item.variations.all %}
+                                {{ v.variation_category|title }}: {{ v.variation_value }}{% if not forloop.last %} | {% endif %}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td class="align-middle">
+                            {% if cart_item.variant %}
+                                {{ cart_item.variant.get_price|floatformat:0|intcomma }}đ
+                            {% else %}
+                                {{ cart_item.product.price|floatformat:0|intcomma }}đ
+                            {% endif %}
+                        </td>
+                        <td class="align-middle">
+                            <div class="input-group quantity mx-auto" style="width: 100px;">
+                                <div class="input-group-btn">
+                                    <button type="button" class="btn btn-sm btn-primary btn-minus"
+                                        onclick="updateCart({{ cart_item.id }}, 'remove')">
+                                        <i class="fa fa-minus"></i>
+                                    </button>
+                                </div>
+                                <input type="text" id="quantity-{{ cart_item.id }}"
+                                    class="form-control form-control-sm bg-secondary text-center"
+                                    value="{{ cart_item.quantity }}">
+                                <div class="input-group-btn">
+                                    <button type="button" class="btn btn-sm btn-primary btn-plus"
+                                        onclick="updateCart({{ cart_item.id }}, 'add')">
+                                        <i class="fa fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="align-middle" id="sub-total-{{ cart_item.id }}">
+                            {{ cart_item.sub_total|floatformat:0|intcomma }}đ
+                        </td>
+                        <td class="align-middle">
+                            <button onclick="updateCart({{ cart_item.id }}, 'delete')" class="btn btn-sm btn-primary">
+                                <i class="fa fa-times"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="col-lg-4">
+            <form class="mb-5" action="">
+                <div class="input-group">
+                    <input type="text" class="form-control p-4" placeholder="Coupon Code">
+                    <div class="input-group-append">
+                        <button class="btn btn-primary">Apply Coupon</button>
+                    </div>
+                </div>
+            </form>
+            <div class="card border-secondary mb-5">
+                <div class="card-header bg-secondary border-0">
+                    <h4 class="font-weight-semi-bold m-0">Cart Summary</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3 pt-1">
+                        <h6 class="font-weight-medium">Subtotal</h6>
+                        <h6 class="font-weight-medium" id="cart-summary-subtotal">{{ total|floatformat:0|intcomma }}đ
+                        </h6>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <h6 class="font-weight-medium">Shipping</h6>
+                        <h6 class="font-weight-medium">$0</h6>
+                    </div>
+                </div>
+                <div class="card-footer border-secondary bg-transparent">
+                    <div class="d-flex justify-content-between mt-2">
+                        <h5 class="font-weight-bold">Total</h5>
+                        <h5 class="font-weight-bold" id="cart-total">{{ total|floatformat:0|intcomma }}đ</h5>
+                    </div>
+                    <a href="{% url 'checkout' %}" class="btn btn-block btn-primary my-3 py-3">Proceed To Checkout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row px-xl-5 text-center">
+        <div class="col-lg-12">
+            <img src="{% static 'img/cart_empty.webp' %}" alt="Empty Cart" class="img-fluid mb-4" style="width: 295px;">
+            <h3>“Hổng” có gì trong giỏ hết</h3>
+            <p>Về trang cửa hàng để chọn mua sản phẩm bạn nhé!!</p>
+            <a href="{% url 'home' %}" class="btn btn-primary py-2 px-4">Mua sắm ngay</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+<!-- Cart End -->
+
+<script>
+    function getCookie(name) {
+        if (!document.cookie) {
+            return null;
+        }
+        const xsrfCookies = document.cookie.split(';') // cắt cookie thành từng phần
+            .map(c => c.trim()) // loại bỏ khoảng trắng
+            .filter(c => c.startsWith(name + '=')); // tìm cookie có tên bắt đầu bằng tên truyền vào
+
+        if (xsrfCookies.length === 0) {
+            return null;
+        }
+        return decodeURIComponent(xsrfCookies[0].split('=')[1]); // trả về giá trị của csrftoken sau dấu '='
+    }
+
+    function updateCart(cartItemId, action) {
+        const url = "{% url 'update_cart' %}";
+        const csrftoken = getCookie('csrftoken');
+
+        // Gửi yêu cầu AJAX đến server
+        // Sử dụng Fetch API để gửi yêu cầu POST
+        // fetch là công cụ gửi HTTP request bầng JS 
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json', // Định dạng dữ liệu gửi đi là JSON
+                'X-CSRFToken': csrftoken, // Thêm token CSRF vào header để bảo vệ khỏi tấn công CSRF
+            },
+            body: JSON.stringify({ // Chuyển dữ liệu thành chuỗi JSON để gửi đi
+                'cart_item_id': cartItemId,
+                'action': action
+            })
+        })
+            .then(async (response) => {
+                const data = await response.json().catch(() => null);
+                return { ok: response.ok, status: response.status, data };
+            })
+            /*
+                ví dụ: Server trả về
+                {
+                    "success": true,
+                    "quantity": 2,
+                    "sub_total": 200000,
+                    "total": 500000
+                }
+            */
+            .then(({ ok, status, data }) => {
+                if (!data) {
+                    console.error('Invalid JSON response');
+                    return;
+                }
+
+                if (ok && data.success) {
+                    if (data.quantity > 0) {
+                        // Update quantity input
+                        const quantityInput = document.getElementById(`quantity-${cartItemId}`); // HTML DOM 
+                        if (quantityInput) quantityInput.value = data.quantity;
+
+                        // Update item subtotal
+                        const subTotalElement = document.getElementById(`sub-total-${cartItemId}`);
+                        if (subTotalElement) subTotalElement.innerText = parseFloat(data.sub_total).toLocaleString('en-US') + 'đ';
+                    } else {
+                        // Remove row
+                        const row = document.getElementById(`row-${cartItemId}`);
+                        if (row) row.remove();
+                    }
+
+                    // Update totals
+                    const cartTotal = document.getElementById('cart-total');
+                    if (cartTotal) cartTotal.innerText = parseFloat(data.total).toLocaleString('en-US') + 'đ';
+
+                    const summarySubtotal = document.getElementById('cart-summary-subtotal');
+                    if (summarySubtotal) summarySubtotal.innerText = parseFloat(data.total).toLocaleString('en-US') + 'đ';
+
+                    // Update cart badge
+                    const cartBadge = document.getElementById('cart-badge');
+                    if (cartBadge) cartBadge.innerText = data.cart_quantity;
+
+                } else {
+                    if (status === 409 && data.error === 'out_of_stock') {
+                        showToast('Sản phẩm đã hết hàng hoặc vượt quá tồn kho.', 'warning');
+                        return;
+                    }
+                    console.error('Error updating cart:', data.error || data);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+</script>
+{% endblock %}
