@@ -22,6 +22,7 @@ from .services import (
     resolve_variant_from_request,
     session_cart_total_quantity,
     set_session_cart,
+    get_cart_summary
 )
 
 # Create your views here.
@@ -41,7 +42,6 @@ def add_to_cart(request, product_id: int):
 
     Returns JSON for AJAX callers; otherwise redirects to cart.
     """
-
     quantity = request.POST.get("quantity")
     variant_id = request.POST.get("variant_id")
 
@@ -104,68 +104,34 @@ def add_to_cart(request, product_id: int):
     return redirect("cart")
 
 
-@dataclass(frozen=True)
-class SessionCartItem:
-    id: int
-    variant: ProductVariant
-    quantity: int
+# @dataclass(frozen=True)
+# class SessionCartItem:
+#     id: int
+#     variant: ProductVariant
+#     quantity: int
 
-    @property
-    def product(self):
-        return self.variant.product
+#     @property
+#     def product(self):
+#         return self.variant.product
 
-    @property
-    def variations(self):
-        return self.variant.variations
+#     @property
+#     def variations(self):
+#         return self.variant.variations
 
-    def sub_total(self):
-        return self.variant.get_price() * self.quantity
+#     def sub_total(self):
+#         return self.variant.get_price() * self.quantity
 
 
 def cart(request):
-    total = 0
-    quantity = 0
-
-    if request.user.is_authenticated:
-        cart_items = (
-            CartItem.objects.filter(user=request.user, is_active=True)
-            .select_related("variant__product")
-            .prefetch_related("variant__variations")
-        )
-    else:
-        session_cart = get_session_cart(request)
-        variant_ids = [int(k) for k in session_cart.keys() if str(k).isdigit()]
-        variants = (
-            ProductVariant.objects.filter(pk__in=variant_ids, is_active=True)
-            .select_related("product")
-            .prefetch_related("variations")
-        )
-        variants_by_id = {v.pk: v for v in variants}
-
-        items: List[SessionCartItem] = []
-        for key, qty in session_cart.items():
-            try:
-                variant_id = int(key) 
-                qty_int = int(qty)
-            except (TypeError, ValueError):
-                continue
-            variant = variants_by_id.get(variant_id)
-            if not variant or qty_int <= 0:
-                continue
-            items.append(SessionCartItem(id=variant_id, variant=variant, quantity=qty_int))
-        cart_items = items
-
-    for cart_item in cart_items:
-        total += cart_item.sub_total()
-        quantity += int(cart_item.quantity)
+    cart = get_cart_summary(request=request, user=request.user)
 
     return render(
         request,
         "cart/cart.html",
         {
-            "cart_items": cart_items,
-            "total": total,
-            "quantity": quantity,
+            "cart_items": cart.items,
+            "total": cart.total,
+            "quantity": cart.quantity,
         },
     )
 
@@ -297,56 +263,14 @@ def update_cart(request):
 
 @login_required(login_url='login')
 def checkout(request):
-    cart_items = (
-        CartItem.objects.filter(user=request.user, is_active=True)
-        .select_related("variant__product")
-        .prefetch_related("variant__variations")
-    )
-
-    total = 0
-    quantity = 0
-    for cart_item in cart_items:
-        total += cart_item.sub_total()
-        quantity += int(cart_item.quantity)
-
-    if not cart_items.exists():
+    '''Fetch cart items and calculate total'''
+    cart = get_cart_summary(request=request, user=request.user)
+    if not cart.items:
         return redirect('cart')
 
-    if request.method == 'POST':
-
-        # Check if this is a place-order submission (has shipping info)
-        full_name = request.POST.get('full_name', '').strip()
-        if full_name:
-            # Collect shipping info
-            email = request.POST.get('email', '').strip()
-            phone = request.POST.get('phone', '').strip()
-            address = request.POST.get('address', '').strip()
-            province = request.POST.get('province', '').strip()
-            district = request.POST.get('district', '').strip()
-            ward = request.POST.get('ward', '').strip()
-            note = request.POST.get('note', '').strip()
-            payment = request.POST.get('payment', '').strip()
-
-            # TODO: Create Order model and save order with shipping info, cart items, and payment method
-            # For now, store in session so it can be used later
-            request.session['order_info'] = {
-                'full_name': full_name,
-                'email': email,
-                'phone': phone,
-                'address': address,
-                'province': province,
-                'district': district,
-                'ward': ward,
-                'note': note,
-                'payment': payment,
-                'total': float(total),
-            }
-            # Redirect to a confirmation or payment page when ready
-            # return redirect('order_confirmation')
-
     context = {
-        'cart_items': cart_items,
-        'total': total,
-        'quantity': quantity,
+        'cart_items': cart.items,
+        'total': cart.total,
+        'quantity': cart.quantity,
     }
     return render(request, 'cart/checkout.html', context)

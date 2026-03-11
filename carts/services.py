@@ -8,6 +8,7 @@ from django.db import transaction
 from django.db.models import Count, Sum
 
 from products.models import Product, ProductVariant, Variation
+from .dtos import CartSummaryDTO, SessionCartItemDTO
 
 from .models import CartItem
 
@@ -255,3 +256,41 @@ def merge_session_cart_into_user_cart(*, request, user: User) -> Dict[str, int]:
 
     clear_session_cart(request)
     return {"merged_items": merged_items, "skipped_items": skipped_items}
+
+def get_cart_summary(user=None, request=None) -> CartSummaryDTO:
+    if user and user.is_authenticated:
+        cart_items = list(
+            CartItem.objects.filter(user=user, is_active=True)
+            .select_related("variant__product")
+            .prefetch_related("variant__variations")
+        )
+    else:
+        session_cart = get_session_cart(request)
+        variant_ids = [int(k) for k in session_cart.keys() if str(k).isdigit()]
+        variants = (
+            ProductVariant.objects.filter(pk__in=variant_ids, is_active=True)
+            .select_related("product")
+            .prefetch_related("variations")
+        )
+        variants_by_id = {v.pk: v for v in variants}
+        # items = [
+        #     SessionCartItemDTO(id=int(k), variant=variants_by_id[int(k)], quantity=int(q))
+        #     for k, q in session_cart.items()
+        #     if str(k).isdigit() and int(k) in variants_by_id and int(q) > 0
+        # ]
+        items: list[SessionCartItemDTO] = []
+        for key, qty in session_cart.items():
+            try:
+                variant_id = int(key) 
+                qty_int = int(qty)
+            except (TypeError, ValueError):
+                continue
+            variant = variants_by_id.get(variant_id)
+            if not variant or qty_int <= 0:
+                continue
+            items.append(SessionCartItemDTO(id=variant_id, variant=variant, quantity=qty_int))
+        cart_items = items
+
+    total = sum(cart_item.sub_total() for cart_item in cart_items)
+    quantity = sum(int(cart_item.quantity) for cart_item in cart_items)
+    return CartSummaryDTO(items=cart_items, total=total, quantity=quantity)

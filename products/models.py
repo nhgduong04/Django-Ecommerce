@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Case, When, Value, IntegerField
 from django.urls import reverse
 
 # Create your models here.
@@ -39,7 +40,13 @@ class VariationManager(models.Manager):
         return self.filter(variation_category='color', is_active=True)
 
     def sizes(self):
-        return self.filter(variation_category='size', is_active=True)
+        SIZE_ORDER = ['S', 'M', 'L', 'XL', 'XXL']
+        ordering = Case(
+            *[When(variation_value=size, then=Value(i)) for i, size in enumerate(SIZE_ORDER)],
+            default=Value(len(SIZE_ORDER)),
+            output_field=IntegerField(),
+        )
+        return self.filter(variation_category='size', is_active=True).annotate(size_order=ordering).order_by('size_order')
     
 Variation_category_choice = (
     ('color', 'color'), # (field_value, human_readable_name)

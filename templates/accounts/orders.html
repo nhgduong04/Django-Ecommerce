@@ -1,23 +1,254 @@
 {% extends 'accounts/profile_base.html' %}
 
 {% block profile_content %}
-<h5 class="text-uppercase mb-4">Đơn hàng của bạn</h5>
-<div class="table-responsive">
-    <table class="table">
-        <thead style="border-bottom: 1px solid #eee;">
-            <tr>
-                <th class="border-0 font-weight-bold text-dark px-2">Đơn hàng</th>
-                <th class="border-0 font-weight-bold text-dark px-2">Ngày</th>
-                <th class="border-0 font-weight-bold text-dark px-2">Địa chỉ</th>
-                <th class="border-0 font-weight-bold text-dark px-2">Giá trị đơn hàng</th>
-                <th class="border-0 font-weight-bold text-dark px-2">TT thanh toán</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr style="border-bottom: 1px solid #eee;">
-                <td colspan="5" class="border-0 text-left py-4 px-2 text-dark">Không có đơn hàng nào.</td>
-            </tr>
-        </tbody>
-    </table>
+<style>
+    .order-card {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        margin-bottom: 24px;
+        background-color: #fff;
+    }
+
+    .order-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid #dee2e6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .order-header-info p {
+        margin-bottom: 0;
+        color: #6c757d;
+        font-size: 14px;
+    }
+
+    .order-header-info h6 {
+        margin-bottom: 4px;
+        font-weight: 600;
+        color: #212529;
+    }
+
+    .order-body {
+        padding: 20px;
+    }
+
+    .order-meta {
+        margin-bottom: 20px;
+    }
+
+    .order-meta-item {
+        display: flex;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .order-meta-label {
+        width: 140px;
+        color: #6c757d;
+    }
+
+    .order-meta-value {
+        color: #212529;
+        font-weight: 500;
+    }
+
+    .status-on-way {
+        color: #fd7e14;
+    }
+
+    .status-shipped {
+        color: #28a745;
+    }
+
+    .order-product-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        border-top: 1px solid #dee2e6;
+        padding-top: 20px;
+    }
+
+    @media (max-width: 768px) {
+        .order-product-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .order-product-item {
+        display: flex;
+        align-items: center;
+    }
+
+    .order-product-img {
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+        background-color: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        flex-shrink: 0;
+        border: 1px solid #dee2e6;
+    }
+
+    .order-product-img img {
+        max-width: 80%;
+        max-height: 80%;
+        object-fit: contain;
+    }
+
+    .order-product-info h6 {
+        font-size: 14px;
+        margin-bottom: 4px;
+        color: #212529;
+        font-weight: 600;
+    }
+
+    .order-product-info p {
+        font-size: 13px;
+        color: #6c757d;
+        margin-bottom: 2px;
+    }
+
+    .order-tabs {
+        display: flex;
+        gap: 0;
+        margin-bottom: 24px;
+        background-color: #f1f3f5;
+        border-radius: 6px;
+        padding: 4px;
+        display: inline-flex;
+    }
+
+    .order-tab {
+        padding: 8px 30px;
+        color: #6c757d;
+        font-size: 14px;
+        text-decoration: none;
+        border-radius: 4px;
+        transition: all 0.2s;
+        font-weight: 500;
+    }
+
+    .order-tab.active {
+        background-color: #fff;
+        color: #212529;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .order-tab:hover:not(.active) {
+        text-decoration: none;
+        color: #495057;
+    }
+
+    .btn-order-action {
+        color: #495057;
+        background-color: #fff;
+        border: 1px solid #ced4da;
+        border-radius: 20px;
+        transition: all 0.2s;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-order-action:hover {
+        background-color: #f8f9fa;
+        color: #212529;
+        border-color: #adb5bd;
+    }
+</style>
+
+<div class="order-tabs">
+    <a href="#" class="order-tab active">Current</a>
+    <a href="#" class="order-tab">Unpaid</a>
+    <a href="#" class="order-tab">All orders</a>
 </div>
+
+<!-- Order 1 -->
+<div class="order-card">
+    <div class="order-header">
+        <div class="order-header-info">
+            <h6>Order #: 73262</h6>
+            <p>4 Products | By Alex John | 13:45, Nov 10, 2025</p>
+        </div>
+        <div>
+            <button class="btn btn-order-action btn-sm px-3"><i class="fas fa-download mr-2"></i>
+                Download invoice
+            </button>
+            <button class="btn btn-order-action btn-sm ml-2 px-2"><i class="fas fa-ellipsis-v px-1"></i></button>
+        </div>
+    </div>
+    <div class="order-body">
+        <div class="order-meta">
+            <div class="order-meta-item">
+                <div class="order-meta-label">Status:</div>
+                <div class="order-meta-value status-on-way font-weight-bold">
+                    On the way
+                </div>
+            </div>
+            <div class="order-meta-item">
+                <div class="order-meta-label">Date of delivery:</div>
+                <div class="order-meta-value">Fri, 13 Nov, 2025</div>
+            </div>
+            <div class="order-meta-item">
+                <div class="order-meta-label">Delivered to:</div>
+                <div class="order-meta-value">Great street, New York Brooklyn 5A, PO: 212891</div>
+            </div>
+            <div class="order-meta-item">
+                <div class="order-meta-label">Total:</div>
+                <div class="order-meta-value font-weight-bold">USD 340.00</div>
+            </div>
+        </div>
+
+        <div class="order-product-grid">
+            <div class="order-product-item">
+                <div class="order-product-img">
+                    <img src="https://via.placeholder.com/60?text=Cup" alt="Product">
+                </div>
+                <div class="order-product-info">
+                    <h6>Great product name goes here</h6>
+                    <p>Quantity: 1x = USD 340</p>
+                    <p>Color: Silver<br>Size: Large</p>
+                </div>
+            </div>
+            <div class="order-product-item">
+                <div class="order-product-img">
+                    <img src="https://via.placeholder.com/60?text=Lamp" alt="Product">
+                </div>
+                <div class="order-product-info">
+                    <h6>Table lamp for office or bedroom</h6>
+                    <p>Quantity: 1x = USD 76</p>
+                    <p>Color: Silver<br>Size: Large</p>
+                </div>
+            </div>
+            <div class="order-product-item">
+                <div class="order-product-img">
+                    <img src="https://via.placeholder.com/60?text=Pot" alt="Product">
+                </div>
+                <div class="order-product-info">
+                    <h6>Great product name goes here</h6>
+                    <p>Quantity: 2x = USD 87</p>
+                    <p>Color: Silver<br>Size: Large</p>
+                </div>
+            </div>
+            <div class="order-product-item">
+                <div class="order-product-img">
+                    <img src="https://via.placeholder.com/60?text=Mug" alt="Product">
+                </div>
+                <div class="order-product-info">
+                    <h6>Great cup white minimalist style</h6>
+                    <p>Quantity: 1x = USD 340</p>
+                    <p>Color: Silver<br>Size: Large</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}

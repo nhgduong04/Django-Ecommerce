@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-%5at8)r@*fkt)nm^fxcs-2z$5b=#wohe)t2%dpb6vej8@d0-*7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.ngrok-free.dev']
 
 
 # Application definition
@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'accounts',
     'products',
     'carts.apps.CartsConfig',
+    'orders'
 ]
 
 MIDDLEWARE = [
@@ -167,3 +168,23 @@ EMAIL_HOST_PASSWORD = 'dyed uevg lttu emsd'
 # EMAIL_HOST_USER = os.environ.get('User_Email')
 # EMAIL_HOST_PASSWORD = os.environ.get('User_Password')
 EMAIL_USE_TLS = True
+
+# Fix 1 — Cho phép cookie gửi qua cross-site redirect
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE   = True   # Bắt buộc phải True khi SameSite=None
+
+# Fix 2 — Tương tự cho CSRF cookie
+CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SECURE   = True
+
+# Fix 3 — Ngrok terminate SSL rồi forward HTTP về localhost.
+# Django cần biết request gốc là HTTPS để chấp nhận Secure cookie.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# ── MoMo Payment Configuration ──────────────────────────────
+MOMO_PARTNER_CODE = 'MOMO'
+MOMO_ACCESS_KEY   = 'F8BBA842ECF85'
+MOMO_SECRET_KEY   = 'K951B6PE1waDMi640xX08PD3vg6EkVlz' # để lý HMACSHA256 -> không được để lộ ra client
+MOMO_API_ENDPOINT = 'https://test-payment.momo.vn/v2/gateway/api/create'
+MOMO_REDIRECT_URL = 'https://dreamier-alana-cokelike.ngrok-free.dev/orders/payment/momo/return/'
+MOMO_IPN_URL      = 'https://dreamier-alana-cokelike.ngrok-free.dev/orders/payment/momo/ipn/'

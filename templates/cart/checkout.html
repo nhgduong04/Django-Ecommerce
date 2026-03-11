@@ -74,6 +74,112 @@
         color: #666;
         font-weight: 500;
     }
+
+    /* Payment Methods - Horizontal Layout */
+    .payment-methods-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .payment-method-card {
+        flex: 1;
+        min-width: 120px;
+        border: 2px solid #dee2e6;
+        border-radius: 10px;
+        padding: 16px 12px;
+        cursor: pointer;
+        position: relative;
+        transition: all 0.25s ease;
+        text-align: center;
+        background: #fff;
+        margin: 0;
+    }
+
+    .payment-method-card:hover {
+        border-color: var(--primary);
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .payment-method-card input[type="radio"] {
+        display: none;
+    }
+
+    .payment-method-card input[type="radio"]:checked~.payment-method-content {
+        color: var(--primary);
+    }
+
+    .payment-method-card input[type="radio"]:checked~.payment-check-mark {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    .payment-method-card:has(input[type="radio"]:checked) {
+        border-color: var(--primary);
+        background: rgba(var(--primary-rgb, 210, 105, 30), 0.04);
+        box-shadow: 0 2px 12px rgba(var(--primary-rgb, 210, 105, 30), 0.12);
+    }
+
+    .payment-method-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .payment-method-icon {
+        font-size: 28px;
+        color: #555;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #f5f5f5;
+        transition: all 0.25s ease;
+    }
+
+    .payment-method-card:has(input[type="radio"]:checked) .payment-method-icon {
+        color: var(--primary);
+        background: rgba(var(--primary-rgb, 210, 105, 30), 0.1);
+    }
+
+    .payment-method-img {
+        background: transparent !important;
+        padding: 0;
+    }
+
+    .payment-method-img img {
+        width: 44px;
+        height: 44px;
+        object-fit: contain;
+        border-radius: 8px;
+    }
+
+    .payment-method-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .payment-check-mark {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        opacity: 0;
+        transform: scale(0.5);
+        transition: all 0.25s ease;
+    }
 </style>
 
 
@@ -93,132 +199,151 @@
 
 <!-- Checkout Start -->
 <div class="container-fluid pt-5">
-    <form method="post" action="{% url 'checkout' %}">
+    <form method="post" action="{% url 'place_order' %}">
         {% csrf_token %}
         {% if coupon_code %}
         <input type="hidden" name="coupon_code" value="{{ coupon_code }}">
         {% endif %}
-    <div class="row px-xl-5">
-        <div class="col-lg-8">
-            <div class="mb-4">
-                <h4 class="font-weight-semi-bold mb-4">Thông tin nhận hàng</h4>
-                <div class="row">
-                    <div class="col-md-12 form-group">
-                        <label>Email</label>
-                        <input class="form-control" type="email" name="email" placeholder="Email" required>
+        <div class="row px-xl-5">
+            <div class="col-lg-8">
+                <div class="mb-4">
+                    <h4 class="font-weight-semi-bold mb-4">Thông tin nhận hàng</h4>
+                    <div class="row">
+                        <div class="col-md-12 form-group">
+                            <label>Email</label>
+                            <input class="form-control" type="email" name="email" placeholder="Email" required>
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <label>Họ và tên</label>
+                            <input class="form-control" type="text" name="full_name" placeholder="Họ và tên" required>
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <label>Số điện thoại (tùy chọn)</label>
+                            <input class="form-control" type="tel" name="phone" placeholder="Số điện thoại">
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <label>Địa chỉ (tùy chọn)</label>
+                            <input class="form-control" type="text" name="address" placeholder="Địa chỉ">
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <label>Tỉnh thành</label>
+                            <select class="custom-select" id="province" name="province">
+                                <option value="">---</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <label>Quận huyện (tùy chọn)</label>
+                            <select class="custom-select" id="district" name="district" disabled>
+                                <option value="">---</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <label>Phường xã (tùy chọn)</label>
+                            <select class="custom-select" id="ward" name="ward" disabled>
+                                <option value="">---</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <label>Ghi chú (tùy chọn)</label>
+                            <textarea class="form-control" name="order_note" rows="3"></textarea>
+                        </div>
                     </div>
-                    <div class="col-md-12 form-group">
-                        <label>Họ và tên</label>
-                        <input class="form-control" type="text" name="full_name" placeholder="Họ và tên" required>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card border-secondary mb-5">
+                    <div class="card-header bg-secondary border-0">
+                        <h4 class="font-weight-semi-bold m-0">Order Total</h4>
                     </div>
-                    <div class="col-md-12 form-group">
-                        <label>Số điện thoại (tùy chọn)</label>
-                        <input class="form-control" type="tel" name="phone" placeholder="Số điện thoại">
+                    <div class="card-body">
+                        <h5 class="font-weight-medium mb-3">Products</h5>
+
+                        {% for cart_item in cart_items %}
+                        <div class="checkout-product-item">
+                            <div class="checkout-product-info">
+                                <div class="checkout-product-img-container">
+                                    <img src="{{ cart_item.product.image.url }}" alt="{{ cart_item.product.name }}">
+                                    <span class="checkout-product-quantity">{{ cart_item.quantity }}</span>
+                                </div>
+                                <div class="checkout-product-details">
+                                    <p class="checkout-product-name">{{ cart_item.product.name }}</p>
+                                    {% if cart_item.variations.all %}
+                                    <small class="checkout-product-variant">
+                                        {% for v in cart_item.variations.all %}{{ v.variation_value }}{% if not forloop.last %} / {% endif %}{% endfor %}
+                                    </small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <p class="checkout-product-price">{{ cart_item.product.price|floatformat:0|intcomma }}đ</p>
+                        </div>
+                        {% endfor %}
+
+                        <hr class="mt-0">
+                        <div class="d-flex justify-content-between mb-3 pt-1">
+                            <h6 class="font-weight-medium">Subtotal</h6>
+                            <h6 class="font-weight-medium">{{ total|floatformat:0|intcomma }}đ</h6>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <h6 class="font-weight-medium">Shipping</h6>
+                            <h6 class="font-weight-medium">0đ</h6>
+                        </div>
                     </div>
-                    <div class="col-md-12 form-group">
-                        <label>Địa chỉ (tùy chọn)</label>
-                        <input class="form-control" type="text" name="address" placeholder="Địa chỉ">
+                    <div class="card-footer border-secondary bg-transparent">
+                        <div class="d-flex justify-content-between mt-2">
+                            <h5 class="font-weight-bold">Total</h5>
+                            <h5 class="font-weight-bold">{{ total|floatformat:0|intcomma }}đ</h5>
+                        </div>
                     </div>
-                    <div class="col-md-12 form-group">
-                        <label>Tỉnh thành</label>
-                        <select class="custom-select" id="province" name="province">
-                            <option value="">---</option>
-                        </select>
+                </div>
+                <div class="card border-secondary mb-5">
+                    <div class="card-header bg-secondary border-0">
+                        <h4 class="font-weight-semi-bold m-0">Phương thức thanh toán</h4>
                     </div>
-                    <div class="col-md-12 form-group">
-                        <label>Quận huyện (tùy chọn)</label>
-                        <select class="custom-select" id="district" name="district" disabled>
-                            <option value="">---</option>
-                        </select>
+                    <div class="card-body">
+                        <div class="payment-methods-row">
+                            <!-- COD -->
+                            <label class="payment-method-card" for="cod">
+                                <input type="radio" name="payment" id="cod" value="cod">
+                                <div class="payment-method-content">
+                                    <div class="payment-method-icon">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                    </div>
+                                    <span class="payment-method-label">COD</span>
+                                </div>
+                                <div class="payment-check-mark"><i class="fas fa-check"></i></div>
+                            </label>
+                            <!-- Chuyển khoản -->
+                            {% comment %} <label class="payment-method-card" for="banktransfer">
+                                <input type="radio" name="payment" id="banktransfer" value="bank_transfer" checked>
+                                <div class="payment-method-content">
+                                    <div class="payment-method-icon">
+                                        <i class="fas fa-university"></i>
+                                    </div>
+                                    <span class="payment-method-label">Chuyển khoản</span>
+                                </div>
+                                <div class="payment-check-mark"><i class="fas fa-check"></i></div>
+                            </label> {% endcomment %}
+                            <!-- MoMo -->
+                            <label class="payment-method-card" for="momo">
+                                <input type="radio" name="payment" id="momo" value="momo">
+                                <div class="payment-method-content">
+                                    <div class="payment-method-icon payment-method-img">
+                                        <img src="{% static 'img/MOMO-Logo-App.png' %}" alt="MoMo">
+                                    </div>
+                                    <span class="payment-method-label">MoMo</span>
+                                </div>
+                                <div class="payment-check-mark"><i class="fas fa-check"></i></div>
+                            </label>
+                        </div>
                     </div>
-                    <div class="col-md-12 form-group">
-                        <label>Phường xã (tùy chọn)</label>
-                        <select class="custom-select" id="ward" name="ward" disabled>
-                            <option value="">---</option>
-                        </select>
-                    </div>
-                    <div class="col-md-12 form-group">
-                        <label>Ghi chú (tùy chọn)</label>
-                        <textarea class="form-control" name="note" rows="3"></textarea>
+                    <div class="card-footer border-secondary bg-transparent">
+                        <button type="submit" class="btn btn-lg btn-block btn-primary font-weight-bold my-3 py-3">
+                            Đặt hàng
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-lg-4">
-            <div class="card border-secondary mb-5">
-                <div class="card-header bg-secondary border-0">
-                    <h4 class="font-weight-semi-bold m-0">Order Total</h4>
-                </div>
-                <div class="card-body">
-                    <h5 class="font-weight-medium mb-3">Products</h5>
-
-                    {% for cart_item in cart_items %}
-                    <div class="checkout-product-item">
-                        <div class="checkout-product-info">
-                            <div class="checkout-product-img-container">
-                                <img src="{{ cart_item.product.image.url }}" alt="{{ cart_item.product.name }}">
-                                <span class="checkout-product-quantity">{{ cart_item.quantity }}</span>
-                            </div>
-                            <div class="checkout-product-details">
-                                <p class="checkout-product-name">{{ cart_item.product.name }}</p>
-                                {% if cart_item.variations.all %}
-                                <small class="checkout-product-variant">
-                                    {% for v in cart_item.variations.all %}{{ v.variation_value }}{% if not forloop.last %} / {% endif %}{% endfor %}
-                                </small>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <p class="checkout-product-price">{{ cart_item.product.price|floatformat:0|intcomma }}đ</p>
-                    </div>
-                    {% endfor %}
-
-                    <hr class="mt-0">
-                    <div class="d-flex justify-content-between mb-3 pt-1">
-                        <h6 class="font-weight-medium">Subtotal</h6>
-                        <h6 class="font-weight-medium">{{ total|floatformat:0|intcomma }}đ</h6>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <h6 class="font-weight-medium">Shipping</h6>
-                        <h6 class="font-weight-medium">0đ</h6>
-                    </div>
-                </div>
-                <div class="card-footer border-secondary bg-transparent">
-                    <div class="d-flex justify-content-between mt-2">
-                        <h5 class="font-weight-bold">Total</h5>
-                        <h5 class="font-weight-bold">{{ total|floatformat:0|intcomma }}đ</h5>
-                    </div>
-                </div>
-            </div>
-            <div class="card border-secondary mb-5">
-                <div class="card-header bg-secondary border-0">
-                    <h4 class="font-weight-semi-bold m-0">Payment</h4>
-                </div>
-                <div class="card-body">
-                    <div class="form-group">
-                        <div class="custom-control custom-radio">
-                            <input type="radio" class="custom-control-input" name="payment" id="paypal" value="paypal">
-                            <label class="custom-control-label" for="paypal">Paypal</label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="custom-control custom-radio">
-                            <input type="radio" class="custom-control-input" name="payment" id="directcheck" value="direct_check">
-                            <label class="custom-control-label" for="directcheck">Direct Check</label>
-                        </div>
-                    </div>
-                    <div class="">
-                        <div class="custom-control custom-radio">
-                            <input type="radio" class="custom-control-input" name="payment" id="banktransfer" value="bank_transfer" checked>
-                            <label class="custom-control-label" for="banktransfer">Bank Transfer</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer border-secondary bg-transparent">
-                    <button type="submit" class="btn btn-lg btn-block btn-primary font-weight-bold my-3 py-3">Place Order</button>
-                </div>
-            </div>
-        </div>
-    </div>
     </form>
 </div>
 <!-- Checkout End -->
@@ -235,7 +360,8 @@
             .then(data => {
                 data.forEach(province => {
                     const option = document.createElement("option");
-                    option.value = province.code;
+                    option.value = province.name;
+                    option.dataset.code = province.code;
                     option.text = province.name;
                     provinceSelect.add(option);
                 });
@@ -249,14 +375,16 @@
             districtSelect.disabled = true;
             wardSelect.disabled = true;
 
-            const provinceCode = this.value;
+            const selectedOption = this.options[this.selectedIndex];
+            const provinceCode = selectedOption?.dataset?.code || '';
             if (provinceCode) {
-                fetch(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`)
+                fetch(`https://provinces.open-api.vn/api/p/${encodeURIComponent(provinceCode)}?depth=2`)
                     .then(response => response.json())
                     .then(data => {
                         data.districts.forEach(district => {
                             const option = document.createElement("option");
-                            option.value = district.code;
+                            option.value = district.name;
+                            option.dataset.code = district.code;
                             option.text = district.name;
                             districtSelect.add(option);
                         });
@@ -271,14 +399,15 @@
             wardSelect.innerHTML = '<option value="">---</option>';
             wardSelect.disabled = true;
 
-            const districtCode = this.value;
+            const selectedOption = this.options[this.selectedIndex];
+            const districtCode = selectedOption?.dataset?.code || '';
             if (districtCode) {
-                fetch(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`)
+                fetch(`https://provinces.open-api.vn/api/d/${encodeURIComponent(districtCode)}?depth=2`)
                     .then(response => response.json())
                     .then(data => {
                         data.wards.forEach(ward => {
                             const option = document.createElement("option");
-                            option.value = ward.code;
+                            option.value = ward.name;
                             option.text = ward.name;
                             wardSelect.add(option);
                         });
