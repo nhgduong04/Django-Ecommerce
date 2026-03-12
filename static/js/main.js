@@ -108,6 +108,97 @@
 
         input.val(newVal);
     });
+
+
+    // ===== Search Autocomplete =====
+    (function () {
+        var $input    = $('#search-input');
+        var $dropdown = $('#search-dropdown');
+        var timer     = null;
+        var activeIdx = -1;
+        var xhr       = null;
+
+        function formatPrice(val) {
+            return parseInt(val).toLocaleString('vi-VN') + '₫';
+        }
+
+        function renderDropdown(data, query) {
+            var items = data.suggestions;
+            if (!items.length) {
+                $dropdown.html('<div class="search-no-results">No products found</div>').slideDown(150);
+                return;
+            }
+            var html = '';
+            $.each(items, function (i, item) {
+                var imgTag = item.image_url
+                    ? '<img src="' + $('<span>').text(item.image_url).html() + '" alt="">'
+                    : '<img src="" alt="" style="visibility:hidden">';
+                html += '<a class="search-item" href="' + $('<span>').text(item.detail_url).html() + '">' +
+                    imgTag +
+                    '<div class="search-item-info">' +
+                        '<div class="search-item-name">' + $('<span>').text(item.name).html() + '</div>' +
+                        '<div class="search-item-meta">' + $('<span>').text(item.category).html() + ' &middot; ' + formatPrice(item.price) + '</div>' +
+                    '</div></a>';
+            });
+            html += '<a class="search-view-all" href="/all-products/?keyword=' + encodeURIComponent(query) + '">View all results</a>';
+            $dropdown.html(html).slideDown(150);
+            activeIdx = -1;
+        }
+
+        $input.on('input', function () {
+            var query = $(this).val().trim();
+            if (query.length < 2) {
+                $dropdown.slideUp(100);
+                if (xhr) xhr.abort();
+                return;
+            }
+            clearTimeout(timer);
+            timer = setTimeout(function () {
+                if (xhr) xhr.abort();
+                xhr = $.ajax({
+                    url: '/api/search-suggestions/',
+                    data: { q: query },
+                    dataType: 'json',
+                    success: function (data) {
+                        renderDropdown(data, query);
+                    }
+                });
+            }, 300);
+        });
+
+        // Keyboard navigation
+        $input.on('keydown', function (e) {
+            var $items = $dropdown.find('.search-item');
+            if (!$items.length || $dropdown.is(':hidden')) return;
+
+            if (e.keyCode === 40) { // down
+                e.preventDefault();
+                activeIdx = Math.min(activeIdx + 1, $items.length - 1);
+                $items.removeClass('active').eq(activeIdx).addClass('active');
+            } else if (e.keyCode === 38) { // up
+                e.preventDefault();
+                activeIdx = Math.max(activeIdx - 1, 0);
+                $items.removeClass('active').eq(activeIdx).addClass('active');
+            } else if (e.keyCode === 13 && activeIdx >= 0) { // enter
+                e.preventDefault();
+                window.location.href = $items.eq(activeIdx).attr('href');
+            }
+        });
+
+        // Close dropdown on click outside
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('.search-wrapper').length) {
+                $dropdown.slideUp(100);
+            }
+        });
+
+        // Re-show on focus if input has content
+        $input.on('focus', function () {
+            if ($dropdown.children().length && $(this).val().trim().length >= 2) {
+                $dropdown.slideDown(150);
+            }
+        });
+    })();
     
 })(jQuery);
 

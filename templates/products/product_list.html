@@ -3,6 +3,37 @@
 {% load humanize %}
 {% block title %}{% if category %}{{ category.name }}{% else %}Tất cả sản phẩm{% endif %}{% endblock %}
 {% block content %}
+<style>
+    /* Dual range slider thumb styles */
+    #price-min, #price-max {
+        pointer-events: none;
+        z-index: 2;
+    }
+    #price-min::-webkit-slider-thumb,
+    #price-max::-webkit-slider-thumb {
+        pointer-events: all;
+        -webkit-appearance: none;
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--primary);
+        border: 2px solid #fff;
+        box-shadow: 0 1px 4px rgba(0,0,0,.2);
+        cursor: pointer;
+    }
+    #price-min::-moz-range-thumb,
+    #price-max::-moz-range-thumb {
+        pointer-events: all;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--primary);
+        border: 2px solid #fff;
+        box-shadow: 0 1px 4px rgba(0,0,0,.2);
+        cursor: pointer;
+    }
+</style>
 <!-- Page Header Start -->
 <div class="container-fluid bg-secondary mb-5">
     <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
@@ -26,114 +57,50 @@
             <!-- Price Start -->
             <div class="border-bottom mb-4 pb-4">
                 <h5 class="font-weight-semi-bold mb-4">Filter by price</h5>
-                <form>
-                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-                        <input type="checkbox" class="custom-control-input" checked id="price-all">
-                        <label class="custom-control-label" for="price-all">All Price</label>
-                        <span class="badge border font-weight-normal">1000</span>
+                <div class="price-range-slider">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span id="price-min-label" class="font-weight-bold">0đ</span>
+                        <span id="price-max-label" class="font-weight-bold">2,000,000đ</span>
                     </div>
-                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-                        <input type="checkbox" class="custom-control-input" id="price-1">
-                        <label class="custom-control-label" for="price-1">$0 - $100</label>
-                        <span class="badge border font-weight-normal">150</span>
+                    <div class="price-slider-track" style="position:relative;height:6px;background:#ddd;border-radius:3px;margin:16px 0;">
+                        <div id="price-slider-range" style="position:absolute;height:100%;background:var(--primary);border-radius:3px;"></div>
+                        <input type="range" id="price-min" min="0" max="2000000" value="0" step="10000"
+                            style="position:absolute;width:100%;top:-6px;pointer-events:none;-webkit-appearance:none;appearance:none;background:none;height:18px;">
+                        <input type="range" id="price-max" min="0" max="2000000" value="2000000" step="10000"
+                            style="position:absolute;width:100%;top:-6px;pointer-events:none;-webkit-appearance:none;appearance:none;background:none;height:18px;">
                     </div>
-                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-                        <input type="checkbox" class="custom-control-input" id="price-2">
-                        <label class="custom-control-label" for="price-2">$100 - $200</label>
-                        <span class="badge border font-weight-normal">295</span>
+                    <div class="d-flex justify-content-between mt-3">
+                        <button id="price-filter-btn" class="btn btn-primary btn-sm px-4">Filter</button>
                     </div>
-                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-                        <input type="checkbox" class="custom-control-input" id="price-3">
-                        <label class="custom-control-label" for="price-3">$200 - $300</label>
-                        <span class="badge border font-weight-normal">246</span>
-                    </div>
-                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-                        <input type="checkbox" class="custom-control-input" id="price-4">
-                        <label class="custom-control-label" for="price-4">$300 - $400</label>
-                        <span class="badge border font-weight-normal">145</span>
-                    </div>
-                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between">
-                        <input type="checkbox" class="custom-control-input" id="price-5">
-                        <label class="custom-control-label" for="price-5">$400 - $500</label>
-                        <span class="badge border font-weight-normal">168</span>
-                    </div>
-                </form>
+                </div>
             </div>
             <!-- Price End -->
 
             <!-- Color Start -->
             <div class="border-bottom mb-4 pb-4">
                 <h5 class="font-weight-semi-bold mb-4">Filter by color</h5>
-                <form>
-                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-                        <input type="checkbox" class="custom-control-input" checked id="color-all">
-                        <label class="custom-control-label" for="price-all">All Color</label>
-                        <span class="badge border font-weight-normal">1000</span>
-                    </div>
-                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-                        <input type="checkbox" class="custom-control-input" id="color-1">
-                        <label class="custom-control-label" for="color-1">Black</label>
-                        <span class="badge border font-weight-normal">150</span>
-                    </div>
-                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-                        <input type="checkbox" class="custom-control-input" id="color-2">
-                        <label class="custom-control-label" for="color-2">White</label>
-                        <span class="badge border font-weight-normal">295</span>
-                    </div>
-                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-                        <input type="checkbox" class="custom-control-input" id="color-3">
-                        <label class="custom-control-label" for="color-3">Red</label>
-                        <span class="badge border font-weight-normal">246</span>
-                    </div>
-                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-                        <input type="checkbox" class="custom-control-input" id="color-4">
-                        <label class="custom-control-label" for="color-4">Blue</label>
-                        <span class="badge border font-weight-normal">145</span>
-                    </div>
-                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between">
-                        <input type="checkbox" class="custom-control-input" id="color-5">
-                        <label class="custom-control-label" for="color-5">Green</label>
-                        <span class="badge border font-weight-normal">168</span>
-                    </div>
-                </form>
+                {% for color in all_colors %}
+                <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                    <input type="checkbox" class="custom-control-input filter-color" id="color-{{ forloop.counter }}" value="{{ color }}" {% if color in selected_colors %}checked{% endif %}>
+                    <label class="custom-control-label" for="color-{{ forloop.counter }}">{{ color }}</label>
+                </div>
+                {% empty %}
+                <p class="text-muted">No colors available</p>
+                {% endfor %}
             </div>
             <!-- Color End -->
 
             <!-- Size Start -->
             <div class="mb-5">
                 <h5 class="font-weight-semi-bold mb-4">Filter by size</h5>
-                <form>
-                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-                        <input type="checkbox" class="custom-control-input" checked id="size-all">
-                        <label class="custom-control-label" for="size-all">All Size</label>
-                        <span class="badge border font-weight-normal">1000</span>
-                    </div>
-                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-                        <input type="checkbox" class="custom-control-input" id="size-1">
-                        <label class="custom-control-label" for="size-1">XS</label>
-                        <span class="badge border font-weight-normal">150</span>
-                    </div>
-                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-                        <input type="checkbox" class="custom-control-input" id="size-2">
-                        <label class="custom-control-label" for="size-2">S</label>
-                        <span class="badge border font-weight-normal">295</span>
-                    </div>
-                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-                        <input type="checkbox" class="custom-control-input" id="size-3">
-                        <label class="custom-control-label" for="size-3">M</label>
-                        <span class="badge border font-weight-normal">246</span>
-                    </div>
-                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-                        <input type="checkbox" class="custom-control-input" id="size-4">
-                        <label class="custom-control-label" for="size-4">L</label>
-                        <span class="badge border font-weight-normal">145</span>
-                    </div>
-                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between">
-                        <input type="checkbox" class="custom-control-input" id="size-5">
-                        <label class="custom-control-label" for="size-5">XL</label>
-                        <span class="badge border font-weight-normal">168</span>
-                    </div>
-                </form>
+                {% for size in all_sizes %}
+                <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                    <input type="checkbox" class="custom-control-input filter-size" id="size-{{ forloop.counter }}" value="{{ size }}" {% if size in selected_sizes %}checked{% endif %}>
+                    <label class="custom-control-label" for="size-{{ forloop.counter }}">{{ size }}</label>
+                </div>
+                {% empty %}
+                <p class="text-muted">No sizes available</p>
+                {% endfor %}
             </div>
             <!-- Size End -->
         </div>
@@ -145,17 +112,14 @@
             <div class="row pb-3">
                 <div class="col-12 pb-1">
                     <div class="d-flex align-items-center justify-content-between mb-4">
-                        <form action="{% url 'products' %}">
-                            <div class="input-group">
-                                <input type="text" class="form-control" placeholder="Search by name" name="keyword">
-                                <div class="input-group-append">
-                                    <span class="input-group-text bg-transparent text-primary"
-                                        onclick="this.closest('form').submit()" style="cursor: pointer;">
-                                        <i class="fa fa-search"></i>
-                                    </span>
-                                </div>
+                        <div class="input-group" style="max-width:300px">
+                            <input type="text" class="form-control" placeholder="Search by name" id="search-keyword" value="{{ keyword|default:'' }}">
+                            <div class="input-group-append">
+                                <span class="input-group-text bg-transparent text-primary" id="search-btn" style="cursor: pointer;">
+                                    <i class="fa fa-search"></i>
+                                </span>
                             </div>
-                        </form>
+                        </div>
                         <div class="dropdown ml-4">
                             <button class="btn border dropdown-toggle" type="button" id="triggerId"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -170,60 +134,54 @@
                     </div>
                 </div>
 
-                {% for product in products %}
-                <div class="col-lg-4 col-md-6 col-sm-12 pb-1">
-                    <div class="card product-item border-0 mb-4">
-                        <div
-                            class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                            <img class="img-fluid w-100" src="{{ product.image.url }}" alt="{{ product.name }}">
-                        </div>
-                        <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                            <h6 class="text-truncate mb-3">{{ product.name }}</h6>
-                            <div class="d-flex justify-content-center">
-                                <h6>{{ product.price|floatformat:0|intcomma }}đ</h6>
+                <div id="product-grid" class="col-12">
+                    <div class="row">
+                    {% for product in products %}
+                    <div class="col-lg-4 col-md-6 col-sm-12 pb-1">
+                        <div class="card product-item border-0 mb-4">
+                            <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
+                                <img class="img-fluid w-100" src="{{ product.image.url }}" alt="{{ product.name }}">
+                            </div>
+                            <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
+                                <h6 class="text-truncate mb-3">{{ product.name }}</h6>
+                                <div class="d-flex justify-content-center">
+                                    <h6>{{ product.price|floatformat:0|intcomma }}đ</h6>
+                                </div>
+                            </div>
+                            <div class="card-footer d-flex justify-content-between bg-light border">
+                                <a href="{% url 'product_detail' product.slug %}" class="btn btn-sm text-dark p-0"><i
+                                        class="fas fa-eye text-primary mr-1"></i>View Detail</a>
+                                <a href="{% url 'product_detail' product.slug %}" class="btn btn-sm text-dark p-0"><i
+                                class="fas fa-shopping-cart text-primary mr-1"></i>Select options</a>
                             </div>
                         </div>
-                        <div class="card-footer d-flex justify-content-between bg-light border">
-                            <a href="{% url 'product_detail' product.slug %}" class="btn btn-sm text-dark p-0"><i
-                                    class="fas fa-eye text-primary mr-1"></i>View Detail</a>
-                            <a href="{% url 'product_detail' product.slug %}" class="btn btn-sm text-dark p-0"><i
-                            class="fas fa-shopping-cart text-primary mr-1"></i>Select options</a>
-                        </div>
+                    </div>
+                    {% endfor %}
                     </div>
                 </div>
-                {% endfor %}
+
                 <!-- Pagination Start -->
-                <div class="col-12 pb-1">
+                <div class="col-12 pb-1" id="pagination-container">
                     <nav aria-label="Page navigation">
                         <ul class="pagination justify-content-center mb-3">
                             {% if products.has_previous %}
                             <li class="page-item">
-                                <a class="page-link"
-                                    href="?page={{ products.previous_page_number }}{% if keyword %}&keyword={{ keyword }}{% endif %}"
-                                    aria-label="Previous">
+                                <a class="page-link page-nav" href="#" data-page="{{ products.previous_page_number }}" aria-label="Previous">
                                     <span aria-hidden="true">&laquo;</span>
-                                    <span class="sr-only">Previous</span>
                                 </a>
                             </li>
                             {% endif %}
                             {% for num in products.paginator.page_range %}
                             {% if products.number == num %}
-                            <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                            <li class="page-item active"><a class="page-link page-nav" href="#" data-page="{{ num }}">{{ num }}</a></li>
                             {% else %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ num }}{% if keyword %}&keyword={{ keyword }}{% endif %}">
-                                    {{ num}}
-                                </a>
-                            </li>
+                            <li class="page-item"><a class="page-link page-nav" href="#" data-page="{{ num }}">{{ num }}</a></li>
                             {% endif %}
                             {% endfor %}
                             {% if products.has_next %}
                             <li class="page-item">
-                                <a class="page-link"
-                                    href="?page={{ products.next_page_number }}{% if keyword %}&keyword={{ keyword }}{% endif %}"
-                                    aria-label="Next">
+                                <a class="page-link page-nav" href="#" data-page="{{ products.next_page_number }}" aria-label="Next">
                                     <span aria-hidden="true">&raquo;</span>
-                                    <span class="sr-only">Next</span>
                                 </a>
                             </li>
                             {% endif %}
@@ -236,5 +194,211 @@
         <!-- Shop Product End -->
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ===== Price Slider =====
+    var minSlider = document.getElementById('price-min');
+    var maxSlider = document.getElementById('price-max');
+    var minLabel = document.getElementById('price-min-label');
+    var maxLabel = document.getElementById('price-max-label');
+    var range = document.getElementById('price-slider-range');
+    var sliderMax = 2000000;
+
+    function formatPrice(val) {
+        return parseInt(val).toLocaleString('vi-VN') + 'đ';
+    }
+
+    function updateSliderUI() {
+        var minVal = parseInt(minSlider.value);
+        var maxVal = parseInt(maxSlider.value);
+        if (minVal > maxVal) {
+            var tmp = minVal;
+            minSlider.value = maxVal;
+            maxSlider.value = tmp;
+            minVal = parseInt(minSlider.value);
+            maxVal = parseInt(maxSlider.value);
+        }
+        minLabel.textContent = formatPrice(minVal);
+        maxLabel.textContent = formatPrice(maxVal);
+        // tỉ lệ phần trăm để vẽ thanh màu
+        var percentMin = (minVal / sliderMax) * 100;
+        var percentMax = (maxVal / sliderMax) * 100;
+        range.style.left = percentMin + '%';
+        range.style.width = (percentMax - percentMin) + '%';
+    }
+    minSlider.addEventListener('input', updateSliderUI);
+    maxSlider.addEventListener('input', updateSliderUI);
+
+    // ===== Gather current filters from UI =====
+    function getFilters() {
+        var params = new URLSearchParams();
+        // Keyword
+        var kw = document.getElementById('search-keyword').value.trim();
+        if (kw) params.set('keyword', kw);
+        // Price
+        var minVal = parseInt(minSlider.value);
+        var maxVal = parseInt(maxSlider.value);
+        if (minVal > maxVal) { var t = minVal; minVal = maxVal; maxVal = t; }
+        if (minVal > 0) params.set('min_price', minVal);
+        if (maxVal < sliderMax) params.set('max_price', maxVal);
+        // Colors
+        document.querySelectorAll('.filter-color:checked').forEach(function(cb) {
+            params.append('color', cb.value);
+        });
+        // Sizes
+        document.querySelectorAll('.filter-size:checked').forEach(function(cb) {
+            params.append('size', cb.value);
+        });
+        return params;
+    }
+
+    // ===== Format number with commas (vi-VN) =====
+    function intcomma(val) {
+        return parseInt(val).toLocaleString('vi-VN');
+    }
+
+    // ===== Render product grid from JSON =====
+    function renderProducts(data) {
+        var grid = document.getElementById('product-grid');
+        var html = '<div class="row">';
+        if (data.products.length === 0) {
+            html += '<div class="col-12 text-center py-5"><h5 class="text-muted">No products found</h5></div>';
+        } else {
+            data.products.forEach(function(p) {
+                html += '<div class="col-lg-4 col-md-6 col-sm-12 pb-1">' +
+                    '<div class="card product-item border-0 mb-4">' +
+                    '<div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">' +
+                    '<img class="img-fluid w-100" src="' + p.image_url + '" alt="' + p.name + '">' +
+                    '</div>' +
+                    '<div class="card-body border-left border-right text-center p-0 pt-4 pb-3">' +
+                    '<h6 class="text-truncate mb-3">' + p.name + '</h6>' +
+                    '<div class="d-flex justify-content-center"><h6>' + intcomma(p.price) + 'đ</h6></div>' +
+                    '</div>' +
+                    '<div class="card-footer d-flex justify-content-between bg-light border">' +
+                    '<a href="' + p.detail_url + '" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>' +
+                    '<a href="' + p.detail_url + '" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Select options</a>' +
+                    '</div></div></div>';
+            });
+        }
+        html += '</div>';
+        grid.innerHTML = html;
+    }
+
+    // ===== Render pagination from JSON =====
+    function renderPagination(data) {
+        var container = document.getElementById('pagination-container');
+        if (data.num_pages <= 1) { container.innerHTML = ''; return; }
+        var html = '<nav aria-label="Page navigation"><ul class="pagination justify-content-center mb-3">';
+        if (data.has_previous) {
+            html += '<li class="page-item"><a class="page-link page-nav" href="#" data-page="' + data.previous_page_number + '" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>';
+        }
+        data.page_range.forEach(function(num) {
+            var active = (num === data.page) ? ' active' : '';
+            html += '<li class="page-item' + active + '"><a class="page-link page-nav" href="#" data-page="' + num + '">' + num + '</a></li>';
+        });
+        if (data.has_next) {
+            html += '<li class="page-item"><a class="page-link page-nav" href="#" data-page="' + data.next_page_number + '" aria-label="Next"><span aria-hidden="true">&raquo;</span></a></li>';
+        }
+        html += '</ul></nav>';
+        container.innerHTML = html;
+        bindPaginationEvents();
+    }
+
+    // ===== AJAX fetch =====
+    var fetchController = null;
+    function fetchProducts(params, pushState) {
+        if (fetchController) fetchController.abort();
+        fetchController = new AbortController(); // API của JS để hủy request cũ nếu có
+
+        var qs = params.toString();
+        var basePath = window.location.pathname;
+        var url = basePath + (qs ? '?' + qs : '');
+
+        // Push browser history so back/forward works
+        if (pushState !== false) {
+            history.pushState(null, '', url);
+        }
+
+        fetch(url, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            signal: fetchController.signal
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            renderProducts(data);
+            renderPagination(data);
+        })
+        .catch(function(err) {
+            if (err.name !== 'AbortError') console.error(err);
+        });
+    }
+
+    // ===== Trigger filter (resets to page 1) =====
+    function applyFilters() {
+        var params = getFilters();
+        fetchProducts(params);
+    }
+
+    // ===== Event: Price filter button =====
+    document.getElementById('price-filter-btn').addEventListener('click', applyFilters);
+
+    // ===== Event: Color / Size checkboxes =====
+    document.querySelectorAll('.filter-color, .filter-size').forEach(function(cb) {
+        cb.addEventListener('change', applyFilters);
+    });
+
+    // ===== Event: Search =====
+    document.getElementById('search-btn').addEventListener('click', applyFilters);
+    document.getElementById('search-keyword').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); applyFilters(); }
+    });
+
+    // ===== Event: Pagination (delegated) =====
+    function bindPaginationEvents() {
+        document.querySelectorAll('.page-nav').forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                var page = this.getAttribute('data-page');
+                var params = getFilters();
+                params.set('page', page);
+                fetchProducts(params);
+            });
+        });
+    }
+    bindPaginationEvents();
+
+    // ===== Browser back/forward =====
+    window.addEventListener('popstate', function() {
+        syncUIFromURL();
+        var params = new URLSearchParams(window.location.search);
+        fetchProducts(params, false);
+    });
+
+    // ===== Sync UI controls from URL params =====
+    function syncUIFromURL() {
+        var params = new URLSearchParams(window.location.search);
+        // Keyword
+        document.getElementById('search-keyword').value = params.get('keyword') || '';
+        // Price sliders
+        minSlider.value = params.get('min_price') || 0;
+        maxSlider.value = params.get('max_price') || sliderMax;
+        updateSliderUI();
+        // Colors
+        var selColors = params.getAll('color');
+        document.querySelectorAll('.filter-color').forEach(function(cb) {
+            cb.checked = selColors.includes(cb.value);
+        });
+        // Sizes
+        var selSizes = params.getAll('size');
+        document.querySelectorAll('.filter-size').forEach(function(cb) {
+            cb.checked = selSizes.includes(cb.value);
+        });
+    }
+
+    // ===== Init from URL on page load =====
+    syncUIFromURL();
+});
+</script>
 <!-- Shop End -->
 {% endblock %}

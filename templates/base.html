@@ -124,6 +124,78 @@
 
         .toast-warning .toast-close { color: #1a1a1a; }
         .toast-default .toast-close { color: #1a1a1a; }
+
+        /* ===== Search Autocomplete ===== */
+        .search-wrapper { position: relative; }
+        .search-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,.1);
+            z-index: 10000;
+            max-height: 420px;
+            overflow-y: auto;
+        }
+        .search-dropdown .search-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            text-decoration: none;
+            color: #333;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background .15s;
+        }
+        .search-dropdown .search-item:hover,
+        .search-dropdown .search-item.active {
+            background: #f5f5f5;
+            text-decoration: none;
+            color: #333;
+        }
+        .search-dropdown .search-item img {
+            width: 44px;
+            height: 44px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .search-dropdown .search-item-info { flex: 1; min-width: 0; }
+        .search-dropdown .search-item-name {
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .search-dropdown .search-item-meta {
+            font-size: 12px;
+            color: #888;
+        }
+        .search-dropdown .search-no-results {
+            padding: 14px;
+            text-align: center;
+            color: #888;
+            font-size: 14px;
+        }
+        .search-dropdown .search-view-all {
+            display: block;
+            text-align: center;
+            padding: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #D19C97;
+            border-top: 1px solid #eee;
+        }
+        .search-dropdown .search-view-all:hover {
+            background: #fafafa;
+            text-decoration: none;
+        }
     </style>
 
 </head>
@@ -139,18 +211,21 @@
                 </a>
             </div>
             <div class="col-lg-6 col-6 text-left">
-                <form action="{% url 'products' %}" onsubmit="return this.keyword.value.trim() !== ''">
-                    <div class="input-group">
-                        <input type="text" class="form-control" placeholder="Search for products" name="keyword">
-                        <div class="input-group-append">
-                            <span class="input-group-text bg-transparent text-primary"
-                                onclick="if(this.closest('form').keyword.value.trim() !== '') this.closest('form').submit()"
-                                style="cursor: pointer;">
-                                <i class="fa fa-search"></i>
-                            </span>
+                <div class="search-wrapper">
+                    <form action="{% url 'products' %}" onsubmit="return this.keyword.value.trim() !== ''" autocomplete="off">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Search for products" name="keyword" id="search-input">
+                            <div class="input-group-append">
+                                <span class="input-group-text bg-transparent text-primary"
+                                    onclick="if(this.closest('form').keyword.value.trim() !== '') this.closest('form').submit()"
+                                    style="cursor: pointer;">
+                                    <i class="fa fa-search"></i>
+                                </span>
+                            </div>
                         </div>
-                    </div>
-                </form>
+                    </form>
+                    <div class="search-dropdown" id="search-dropdown"></div>
+                </div>
             </div>
             <div class="col-lg-3 col-6 text-right">
                 <a href="" class="btn border">

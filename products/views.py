@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
-from .models import Product, Category
+from django.http import JsonResponse
+from django.db.models import Q
+from .models import Product, Category, Variation
 
 # Create your views here.
 def home(request):
@@ -14,24 +16,196 @@ def category_list(request, slug):
         .select_related('category')
         .order_by('-created_at')
     )
-    return render(request, 'products/product_list.html', {'products': products, 'category': category})
+
+    keyword = request.GET.get('keyword', '').strip()
+    if keyword:
+        products = products.filter(name__icontains=keyword)
+
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    if min_price:
+        products = products.filter(price__gte=min_price)
+    if max_price:
+        products = products.filter(price__lte=max_price)
+
+    colors = request.GET.getlist('color')
+    sizes = request.GET.getlist('size')
+    if colors:
+        products = products.filter(
+            variants__variations__variation_category='color',
+            variants__variations__variation_value__in=colors,
+            variants__is_active=True,
+        )
+    if sizes:
+        products = products.filter(
+            variants__variations__variation_category='size',
+            variants__variations__variation_value__in=sizes,
+            variants__is_active=True,
+        )
+
+    products = products.distinct()
+
+    paginator = Paginator(products, 9)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        product_list = []
+        for p in page_obj:
+            product_list.append({
+                'name': p.name,
+                'slug': p.slug,
+                'price': str(p.price),
+                'image_url': p.image.url if p.image else '',
+                'detail_url': f'/product/{p.slug}/',
+            })
+        return JsonResponse({
+            'products': product_list,
+            'page': page_obj.number,
+            'num_pages': paginator.num_pages,
+            'has_previous': page_obj.has_previous(),
+            'has_next': page_obj.has_next(),
+            'previous_page_number': page_obj.previous_page_number() if page_obj.has_previous() else None,
+            'next_page_number': page_obj.next_page_number() if page_obj.has_next() else None,
+            'page_range': list(paginator.page_range),
+        })
+
+    # Distinct colors/sizes scoped to this category's products
+    category_products = Product.objects.filter(category=category)
+    all_colors = (
+        Variation.objects.filter(
+            variation_category='color', is_active=True,
+            product__in=category_products
+        )
+        .values_list('variation_value', flat=True)
+        .distinct()
+        .order_by('variation_value')
+    )
+    all_sizes = (
+        Variation.objects.sizes()
+        .filter(product__in=category_products)
+        .values_list('variation_value', flat=True)
+        .distinct()
+    )
+
+    context = {
+        'products': page_obj,
+        'category': category,
+        'keyword': keyword,
+        'min_price': min_price or 0,
+        'max_price': max_price or 2000000,
+        'all_colors': list(all_colors),
+        'all_sizes': list(all_sizes),
+        'selected_colors': colors,
+        'selected_sizes': sizes,
+    }
+    return render(request, 'products/product_list.html', context)
 
 def products_list(request):
     products = Product.objects.all().order_by('-created_at')
-    keyword = request.GET.get('keyword')
+    keyword = request.GET.get('keyword', '').strip()
     if keyword:
         products = products.filter(name__icontains=keyword)
     
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    if min_price:
+        products = products.filter(price__gte=min_price)
+    if max_price:
+        products = products.filter(price__lte=max_price)
+
+    # Color and size filters (multiple values supported)
+    colors = request.GET.getlist('color')
+    sizes = request.GET.getlist('size')
+    if colors:
+        products = products.filter(
+            variants__variations__variation_category='color',
+            variants__variations__variation_value__in=colors,
+            variants__is_active=True,
+        )
+    if sizes:
+        products = products.filter(
+            variants__variations__variation_category='size',
+            variants__variations__variation_value__in=sizes,
+            variants__is_active=True,
+        )
+
+    products = products.distinct()
+
     paginator = Paginator(products, 9)
     page_number = request.GET.get('page')
-    products = paginator.get_page(page_number) # get_page() will return the page object
+    page_obj = paginator.get_page(page_number)
+
+    # AJAX request -> return JSON
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        product_list = []
+        for p in page_obj:
+            product_list.append({
+                'name': p.name,
+                'slug': p.slug,
+                'price': str(p.price),
+                'image_url': p.image.url if p.image else '',
+                'detail_url': p.get_absolute_url() if hasattr(p, 'get_absolute_url') else f'/product/{p.slug}/',
+            })
+        return JsonResponse({
+            'products': product_list,
+            'page': page_obj.number,
+            'num_pages': paginator.num_pages,
+            'has_previous': page_obj.has_previous(),
+            'has_next': page_obj.has_next(),
+            'previous_page_number': page_obj.previous_page_number() if page_obj.has_previous() else None,
+            'next_page_number': page_obj.next_page_number() if page_obj.has_next() else None,
+            'page_range': list(paginator.page_range),
+        })
+
+    # Distinct colors and sizes from active variations
+    all_colors = (
+        Variation.objects.filter(variation_category='color', is_active=True)
+        .values_list('variation_value', flat=True)
+        .distinct()
+        .order_by('variation_value')
+    )
+    all_sizes = Variation.objects.sizes().values_list('variation_value', flat=True).distinct()
 
     context = {
-        'products': products,
+        'products': page_obj,
         'keyword': keyword,
+        'min_price': min_price or 0,
+        'max_price': max_price or 2000000,
+        'all_colors': list(all_colors),
+        'all_sizes': list(all_sizes),
+        'selected_colors': colors,
+        'selected_sizes': sizes,
     }
     return render(request, 'products/product_list.html', context)
 
 def product_detail(request, slug):
     product = get_object_or_404(Product, slug=slug)
     return render(request, 'products/product_detail.html', {'product': product})
+
+
+def search_suggestions(request):
+    query = request.GET.get('q', '').strip()
+    if len(query) < 2:
+        return JsonResponse({'suggestions': []})
+
+    products = (
+        Product.objects
+        .filter(Q(name__icontains=query))
+        .select_related('category')
+        .only('name', 'slug', 'price', 'image', 'category__name')
+        .order_by('-created_at')[:8]
+    )
+
+    suggestions = []
+    for p in products:
+        suggestions.append({
+            'name': p.name,
+            'slug': p.slug,
+            'price': str(p.price),
+            'image_url': p.image.url if p.image else '',
+            'category': p.category.name,
+            'detail_url': f'/product/{p.slug}/',
+        })
+
+    return JsonResponse({'suggestions': suggestions})
