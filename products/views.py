@@ -1,8 +1,24 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.http import JsonResponse
-from django.db.models import Q
+from django.db.models import Q, Sum
 from .models import Product, Category, Variation
+
+SORT_OPTIONS = {
+    'latest': '-created_at',
+    'popularity': None,  # handled separately via annotation
+    'price_asc': 'price',
+    'price_desc': '-price',
+}
+
+def _apply_sort(queryset, sort_key):
+    """Apply sorting to a product queryset."""
+    if sort_key == 'popularity':
+        return queryset.annotate(
+            total_sold=Sum('orderitem__quantity', filter=Q(orderitem__is_ordered=True))
+        ).order_by('-total_sold', '-created_at')
+    order_field = SORT_OPTIONS.get(sort_key, '-created_at')
+    return queryset.order_by(order_field)
 
 # Create your views here.
 def home(request):
@@ -11,11 +27,9 @@ def home(request):
 
 def category_list(request, slug):
     category = get_object_or_404(Category, slug=slug)
-    products = (
-        Product.objects.filter(category=category)
-        .select_related('category')
-        .order_by('-created_at')
-    )
+    sort = request.GET.get('sort', 'latest')
+    products = Product.objects.filter(category=category).select_related('category')
+    products = _apply_sort(products, sort)
 
     keyword = request.GET.get('keyword', '').strip()
     if keyword:
@@ -102,7 +116,9 @@ def category_list(request, slug):
     return render(request, 'products/product_list.html', context)
 
 def products_list(request):
-    products = Product.objects.all().order_by('-created_at')
+    sort = request.GET.get('sort', 'latest')
+    products = Product.objects.all()
+    products = _apply_sort(products, sort)
     keyword = request.GET.get('keyword', '').strip()
     if keyword:
         products = products.filter(name__icontains=keyword)
