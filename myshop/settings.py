@@ -170,6 +170,7 @@ EMAIL_HOST_PASSWORD = 'dyed uevg lttu emsd'
 # EMAIL_HOST_USER = os.environ.get('User_Email')
 # EMAIL_HOST_PASSWORD = os.environ.get('User_Password')
 EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'EShopper <hoanggduongg2004@gmail.com>'
 
 # Fix 1 — Cho phép cookie gửi qua cross-site redirect
 SESSION_COOKIE_SAMESITE = 'None'

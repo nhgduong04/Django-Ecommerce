@@ -15,6 +15,9 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 from .models import Order, OrderItem
 from .forms import OrderForm
@@ -36,8 +39,8 @@ def _generate_order_number(order_id):
 def _create_momo_signature(raw_data, secret_key):
     """Tạo chữ ký HMAC-SHA256 cho request gửi đến MoMo."""
     h = hmac.new(
-        key=secret_key.encode('ascii'),
-        msg=raw_data.encode('ascii'),
+        key=secret_key.encode('utf-8'),
+        msg=raw_data.encode('utf-8'),
         digestmod=hashlib.sha256,
     )
     return h.hexdigest()
@@ -149,7 +152,9 @@ def _create_order_with_items(form, user, cart_summary, payment_method):
         order.payment_method = payment_method
         order.payment_status = 'unpaid'
         order.status = 'PENDING'
-        order.is_ordered = True
+        # MoMo: chưa xác nhận thanh toán → is_ordered=False
+        # COD: đặt hàng ngay → is_ordered=True
+        order.is_ordered = (payment_method != 'MOMO')
         order.save()
 
         # 2. Sinh mã đơn hàng
@@ -187,6 +192,42 @@ def _create_order_with_items(form, user, cart_summary, payment_method):
     return order
 
 
+def _send_order_received_email(order):
+    """
+    Gửi email xác nhận đơn hàng cho khách hàng.
+    Exception được bắt để log lỗi mà không ảnh hưởng đến flow chính.
+    """
+    order_items = (
+        order.order_products
+        .select_related('product', 'variant')
+        .prefetch_related('variant__variations')
+    )
+
+    context = {
+        'order': order,
+        'order_items': order_items,
+    }
+
+    subject = f'EShopper - Xác nhận đơn hàng #{order.order_number}'
+    html_message = render_to_string('orders/emails/order_received.html', context)
+    plain_message = strip_tags(html_message)
+
+    try:
+        send_mail(
+            subject=subject,
+            message=plain_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[order.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        logger.info("Email xác nhận đã gửi cho đơn hàng %s", order.order_number)
+    except Exception:
+        logger.exception(
+            "Không thể gửi email xác nhận cho đơn hàng %s", order.order_number
+        )
+
+
 # ─── Views ───────────────────────────────────────────────────
 
 
@@ -219,6 +260,10 @@ def place_order_view(request):
             )
             # Xóa cart ngay vì COD không cần xác nhận thanh toán
             CartItem.objects.filter(user=request.user, is_active=True).delete()
+
+            # Gửi email xác nhận đơn hàng
+            _send_order_received_email(order)
+
             return redirect('order_successful')
         
         except ValueError as e:
@@ -262,16 +307,14 @@ def place_order_view(request):
                 error_msg = momo_response.get('message', 'Lỗi không xác định từ MoMo')
                 logger.error("MoMo API error: %s", momo_response)
                 messages.error(request, f'Lỗi thanh toán MoMo: {error_msg}')
-                # Hủy order vừa tạo vì không thể thanh toán
-                order.status = 'CANCELLED'
-                order.save(update_fields=['status'])
+                # Xóa order vì không thể thanh toán
+                order.delete()
                 return redirect('checkout')
 
         except requests.RequestException:
             logger.exception("Không thể kết nối đến MoMo API")
             messages.error(request, 'Không thể kết nối đến cổng thanh toán. Vui lòng thử lại.')
-            order.status = 'CANCELLED'
-            order.save(update_fields=['status'])
+            order.delete()
             return redirect('checkout')
 
     # ── Phương thức không hợp lệ ──
@@ -324,10 +367,11 @@ def momo_ipn_view(request):
 
     # 4. Xử lý kết quả thanh toán
     if result_code == 0:
-        # Thanh toán thành công
+        # Thanh toán thành công → xác nhận đơn hàng
         order.payment_status = 'paid'
+        order.is_ordered = True
         order.momo_transaction_id = trans_id
-        order.save(update_fields=['payment_status', 'momo_transaction_id'])
+        order.save(update_fields=['payment_status', 'is_ordered', 'momo_transaction_id'])
 
         # 2. Trừ stock từng variant
         order_items = OrderItem.objects.filter(order=order).select_related('variant')
@@ -340,11 +384,13 @@ def momo_ipn_view(request):
         CartItem.objects.filter(user=order.user, is_active=True).delete()
 
         logger.info("MoMo IPN: Đơn hàng %s đã thanh toán thành công", order_id)
+
+        # Gửi email xác nhận đơn hàng
+        _send_order_received_email(order)
     else:
-        # Thanh toán thất bại
-        order.status = 'CANCELLED'
-        order.save(update_fields=['status'])
-        logger.info("MoMo IPN: Đơn hàng %s thanh toán thất bại (code=%s)", order_id, result_code)
+        # Thanh toán thất bại → xóa order khỏi DB
+        logger.info("MoMo IPN: Đơn hàng %s thanh toán thất bại (code=%s), xóa order", order_id, result_code)
+        order.delete()
 
     # 5. Trả response cho MoMo (bắt buộc)
     return JsonResponse({'message': 'OK'}, status=200)

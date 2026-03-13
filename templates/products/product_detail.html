@@ -48,6 +48,40 @@
         transform: scale(1.1);
         box-shadow: 0 0 0 2px #fff inset, 0 0 0 3px #D19C97;
     }
+
+    /* Product Description */
+    .product-description .desc-title {
+        margin-bottom: 12px;
+        font-size: 0.95rem;
+        color: #333;
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .product-description .desc-list {
+        list-style: none;
+        padding-left: 0;
+        margin-bottom: 0;
+    }
+
+    .product-description .desc-list li {
+        position: relative;
+        padding-left: 20px;
+        margin-bottom: 6px;
+        line-height: 1.6;
+        color: #555;
+        font-size: 0.9rem;
+    }
+
+    .product-description .desc-list li::before {
+        content: "\25A0";
+        position: absolute;
+        left: 0;
+        color: #333;
+        font-size: 0.55rem;
+        top: 5px;
+    }
 </style>
 <!-- Page Header Start -->
 <div class="container-fluid bg-secondary mb-5">
@@ -85,7 +119,7 @@
         <div class="col-lg-7 pb-5">
             <h3 class="font-weight-semi-bold">{{ product.name }}</h3>
             <h3 class="font-weight-semi-bold mb-4" id="product-price">{{ product.price|floatformat:0|intcomma }}đ</h3>
-            <p class="mb-4">{{ product.description }}</p>
+            <div class="mb-4 product-description" id="product-description">{{ product.description }}</div>
             <form id="add-to-cart-form" action="{% url 'add_to_cart' product.id %}" method="POST">
                 {% csrf_token %}
                 <input type="hidden" name="variant_id" id="selected-variant-id" value="">
@@ -261,6 +295,35 @@
 <!-- Products End -->
 
 <script>
+    // ----- Format product description into vertical bullet list -----
+    (function() {
+        const descEl = document.getElementById('product-description');
+        if (!descEl) return;
+        const raw = descEl.textContent.trim();
+        // Split on ■ (or common bullet markers) and filter empty parts
+        const parts = raw.split(/[■●▪◾]/).map(s => s.trim()).filter(Boolean);
+        if (parts.length <= 1) {
+            // No bullet markers found – render as paragraphs using line breaks
+            descEl.innerHTML = raw.replace(/\n/g, '<br>');
+            return;
+        }
+        // First part is often the title/intro, the rest are bullet items
+        let html = '';
+        const firstPart = parts[0];
+        const bullets = parts.slice(1);
+        if (firstPart) {
+            html += '<p class="desc-title">' + firstPart.replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])) + '</p>';
+        }
+        if (bullets.length) {
+            html += '<ul class="desc-list">';
+            bullets.forEach(item => {
+                html += '<li>' + item.replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])) + '</li>';
+            });
+            html += '</ul>';
+        }
+        descEl.innerHTML = html;
+    })();
+
     // ----- Lấy cookie CSRF token cho AJAX -----
     function getCookie(name) {
         if (!document.cookie) return null;

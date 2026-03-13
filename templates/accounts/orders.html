@@ -1,4 +1,5 @@
 {% extends 'accounts/profile_base.html' %}
+{% load static %}
 
 {% block profile_content %}
 <style>
@@ -55,12 +56,20 @@
         font-weight: 500;
     }
 
-    .status-on-way {
+    .status-pending {
+        color: #ffc107;
+    }
+
+    .status-processing {
         color: #fd7e14;
     }
 
-    .status-shipped {
+    .status-completed {
         color: #28a745;
+    }
+
+    .status-cancelled {
+        color: #dc3545;
     }
 
     .order-product-grid {
@@ -93,6 +102,7 @@
         margin-right: 15px;
         flex-shrink: 0;
         border: 1px solid #dee2e6;
+        overflow: hidden;
     }
 
     .order-product-img img {
@@ -115,13 +125,12 @@
     }
 
     .order-tabs {
-        display: flex;
+        display: inline-flex;
         gap: 0;
         margin-bottom: 24px;
         background-color: #f1f3f5;
         border-radius: 6px;
         padding: 4px;
-        display: inline-flex;
     }
 
     .order-tab {
@@ -162,93 +171,123 @@
         color: #212529;
         border-color: #adb5bd;
     }
+
+    .empty-orders {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+
+    .empty-orders i {
+        font-size: 48px;
+        color: #dee2e6;
+        margin-bottom: 16px;
+    }
+
+    .empty-orders p {
+        font-size: 15px;
+        margin-bottom: 0;
+    }
 </style>
 
+<!-- Order Status Tabs -->
 <div class="order-tabs">
-    <a href="#" class="order-tab active">Current</a>
-    <a href="#" class="order-tab">Unpaid</a>
-    <a href="#" class="order-tab">All orders</a>
+    <a href="{% url 'orders' %}?status=pending"
+       class="order-tab {% if active_tab == 'pending' %}active{% endif %}">Current</a>
+    <a href="{% url 'orders' %}?status=processing"
+       class="order-tab {% if active_tab == 'processing' %}active{% endif %}">Processing Orders</a>
+    <a href="{% url 'orders' %}?status=completed"
+       class="order-tab {% if active_tab == 'completed' %}active{% endif %}">Completed Orders</a>
 </div>
 
-<!-- Order 1 -->
-<div class="order-card">
-    <div class="order-header">
-        <div class="order-header-info">
-            <h6>Order #: 73262</h6>
-            <p>4 Products | By Alex John | 13:45, Nov 10, 2025</p>
+{% if orders %}
+    {% for order in orders %}
+    <!-- Order Card -->
+    <div class="order-card">
+        <div class="order-header">
+            <div class="order-header-info">
+                <h6>Order #: {{ order.order_number }}</h6>
+                <p>
+                    {{ order.order_products.all|length }} Product{{ order.order_products.all|length|pluralize }}
+                    | By {{ order.full_name }}
+                    | {{ order.created_at|date:"H:i, M d, Y" }}
+                </p>
+            </div>
+            <div>
+                <button class="btn btn-order-action btn-sm px-3">
+                    <i class="fas fa-download mr-2"></i> Download Invoice
+                </button>
+                <button class="btn btn-order-action btn-sm ml-2 px-2">
+                    <i class="fas fa-ellipsis-v px-1"></i>
+                </button>
+            </div>
         </div>
-        <div>
-            <button class="btn btn-order-action btn-sm px-3"><i class="fas fa-download mr-2"></i>
-                Download invoice
-            </button>
-            <button class="btn btn-order-action btn-sm ml-2 px-2"><i class="fas fa-ellipsis-v px-1"></i></button>
-        </div>
-    </div>
-    <div class="order-body">
-        <div class="order-meta">
-            <div class="order-meta-item">
-                <div class="order-meta-label">Status:</div>
-                <div class="order-meta-value status-on-way font-weight-bold">
-                    On the way
+        <div class="order-body">
+            <div class="order-meta">
+                <div class="order-meta-item">
+                    <div class="order-meta-label">Status:</div>
+                    <div class="order-meta-value font-weight-bold
+                        {% if order.status == 'PENDING' %}status-pending
+                        {% elif order.status == 'PROCESSING' %}status-processing
+                        {% elif order.status == 'COMPLETED' %}status-completed
+                        {% elif order.status == 'CANCELLED' %}status-cancelled
+                        {% endif %}">
+                        {{ order.get_status_display }}
+                    </div>
+                </div>
+                <div class="order-meta-item">
+                    <div class="order-meta-label">Date of delivery:</div>
+                    <div class="order-meta-value">{{ order.created_at|date:"D, d M, Y" }}</div>
+                </div>
+                <div class="order-meta-item">
+                    <div class="order-meta-label">Delivered to:</div>
+                    <div class="order-meta-value">{{ order.address }}, {{ order.ward }}, {{ order.district }}, {{ order.province }}</div>
+                </div>
+                <div class="order-meta-item">
+                    <div class="order-meta-label">Payment:</div>
+                    <div class="order-meta-value">{{ order.payment_method }} — {{ order.payment_status|title }}</div>
+                </div>
+                <div class="order-meta-item">
+                    <div class="order-meta-label">Total:</div>
+                    <div class="order-meta-value font-weight-bold">{{ order.order_total|floatformat:0 }} ₫</div>
                 </div>
             </div>
-            <div class="order-meta-item">
-                <div class="order-meta-label">Date of delivery:</div>
-                <div class="order-meta-value">Fri, 13 Nov, 2025</div>
-            </div>
-            <div class="order-meta-item">
-                <div class="order-meta-label">Delivered to:</div>
-                <div class="order-meta-value">Great street, New York Brooklyn 5A, PO: 212891</div>
-            </div>
-            <div class="order-meta-item">
-                <div class="order-meta-label">Total:</div>
-                <div class="order-meta-value font-weight-bold">USD 340.00</div>
-            </div>
-        </div>
 
-        <div class="order-product-grid">
-            <div class="order-product-item">
-                <div class="order-product-img">
-                    <img src="https://via.placeholder.com/60?text=Cup" alt="Product">
+            <!-- Order Items -->
+            <div class="order-product-grid">
+                {% for item in order.order_products.all %}
+                <div class="order-product-item">
+                    <div class="order-product-img">
+                        {% if item.product.image %}
+                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                        {% else %}
+                            <i class="fas fa-image" style="color: #ccc; font-size: 24px;"></i>
+                        {% endif %}
+                    </div>
+                    <div class="order-product-info">
+                        <h6>{{ item.product.name }}</h6>
+                        <p>Quantity: {{ item.quantity }}x = {{ item.product_price|floatformat:0 }} ₫</p>
+                        {% if item.variant %}
+                            {% for variation in item.variant.variations.all %}
+                                {% if forloop.first %}<p>{% endif %}
+                                {{ variation.variation_category|title }}: {{ variation.variation_value }}
+                                {% if not forloop.last %}<br>{% endif %}
+                                {% if forloop.last %}</p>{% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </div>
                 </div>
-                <div class="order-product-info">
-                    <h6>Great product name goes here</h6>
-                    <p>Quantity: 1x = USD 340</p>
-                    <p>Color: Silver<br>Size: Large</p>
-                </div>
-            </div>
-            <div class="order-product-item">
-                <div class="order-product-img">
-                    <img src="https://via.placeholder.com/60?text=Lamp" alt="Product">
-                </div>
-                <div class="order-product-info">
-                    <h6>Table lamp for office or bedroom</h6>
-                    <p>Quantity: 1x = USD 76</p>
-                    <p>Color: Silver<br>Size: Large</p>
-                </div>
-            </div>
-            <div class="order-product-item">
-                <div class="order-product-img">
-                    <img src="https://via.placeholder.com/60?text=Pot" alt="Product">
-                </div>
-                <div class="order-product-info">
-                    <h6>Great product name goes here</h6>
-                    <p>Quantity: 2x = USD 87</p>
-                    <p>Color: Silver<br>Size: Large</p>
-                </div>
-            </div>
-            <div class="order-product-item">
-                <div class="order-product-img">
-                    <img src="https://via.placeholder.com/60?text=Mug" alt="Product">
-                </div>
-                <div class="order-product-info">
-                    <h6>Great cup white minimalist style</h6>
-                    <p>Quantity: 1x = USD 340</p>
-                    <p>Color: Silver<br>Size: Large</p>
-                </div>
+                {% endfor %}
             </div>
         </div>
     </div>
-</div>
+    {% endfor %}
+{% else %}
+    <!-- Empty State -->
+    <div class="empty-orders">
+        <i class="fas fa-box-open d-block"></i>
+        <p>Không có đơn hàng nào trong mục này.</p>
+    </div>
+{% endif %}
 
 {% endblock %}

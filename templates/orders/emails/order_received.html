@@ -1,0 +1,189 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác nhận đơn hàng #{{ order.order_number }}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f7; font-family: Arial, Helvetica, sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+           style="background-color: #f4f4f7; padding: 30px 0;">
+        <tr>
+            <td align="center">
+                <table role="presentation" width="600" cellpadding="0" cellspacing="0"
+                       style="background-color: #ffffff; border-radius: 8px;
+                              max-width: 600px; width: 100%;">
+
+                    <!-- HEADER -->
+                    <tr>
+                        <td style="padding: 30px 40px 20px; text-align: center;
+                                   border-bottom: 2px solid #f0f0f0;">
+                            <h1 style="margin: 0; font-size: 24px; color: #1a1f36;">
+                                <span style="color: #D19C97; font-weight: bold;
+                                             border: 2px solid #D19C97;
+                                             padding: 2px 10px; margin-right: 6px;">E</span>Shopper
+                            </h1>
+                        </td>
+                    </tr>
+
+                    <!-- GREETING -->
+                    <tr>
+                        <td style="padding: 30px 40px 10px;">
+                            <h2 style="margin: 0 0 10px; font-size: 20px; color: #1a1f36;">
+                                Cảm ơn bạn đã đặt hàng!
+                            </h2>
+                            <p style="margin: 0; font-size: 14px; color: #6b7280;
+                                      line-height: 1.6;">
+                                Xin chào {{ order.full_name }}, đơn hàng
+                                <strong style="color: #1a1f36;">#{{ order.order_number }}</strong>
+                                của bạn đã được tiếp nhận và sẽ được xử lý trong thời gian sớm nhất.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- ORDER ITEMS TABLE -->
+                    <tr>
+                        <td style="padding: 20px 40px;">
+                            <table role="presentation" width="100%" cellpadding="0"
+                                   cellspacing="0"
+                                   style="border: 1px solid #e5e7eb; border-radius: 6px;">
+                                <!-- Table header -->
+                                <tr style="background-color: #f9fafb;">
+                                    <td style="padding: 12px 16px; font-size: 13px;
+                                               font-weight: 600; color: #6b7280;
+                                               border-bottom: 1px solid #e5e7eb;">
+                                        Sản phẩm
+                                    </td>
+                                    <td style="padding: 12px 16px; font-size: 13px;
+                                               font-weight: 600; color: #6b7280;
+                                               text-align: center;
+                                               border-bottom: 1px solid #e5e7eb;">
+                                        SL
+                                    </td>
+                                    <td style="padding: 12px 16px; font-size: 13px;
+                                               font-weight: 600; color: #6b7280;
+                                               text-align: right;
+                                               border-bottom: 1px solid #e5e7eb;">
+                                        Giá
+                                    </td>
+                                </tr>
+                                <!-- Item rows -->
+                                {% for item in order_items %}
+                                <tr>
+                                    <td style="padding: 14px 16px;
+                                               border-bottom: 1px solid #f0f0f0;">
+                                        <strong style="font-size: 14px; color: #1a1f36;">
+                                            {{ item.product.name }}
+                                        </strong>
+                                        {% if item.variant and item.variant.variations.all %}
+                                        <br>
+                                        <span style="font-size: 12px; color: #9ca3af;">
+                                            {% for v in item.variant.variations.all %}
+                                                {{ v.variation_value }}{% if not forloop.last %} / {% endif %}
+                                            {% endfor %}
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="padding: 14px 16px; text-align: center;
+                                               font-size: 14px; color: #374151;
+                                               border-bottom: 1px solid #f0f0f0;">
+                                        {{ item.quantity }}
+                                    </td>
+                                    <td style="padding: 14px 16px; text-align: right;
+                                               font-size: 14px; color: #374151;
+                                               border-bottom: 1px solid #f0f0f0;">
+                                        {{ item.product_price|floatformat:0|intcomma }}đ
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- ORDER TOTAL -->
+                    <tr>
+                        <td style="padding: 0 40px 20px;">
+                            <table role="presentation" width="100%" cellpadding="0"
+                                   cellspacing="0">
+                                <tr>
+                                    <td style="padding: 10px 0; font-size: 16px;
+                                               font-weight: 700; color: #1a1f36;">
+                                        Tổng cộng
+                                    </td>
+                                    <td style="padding: 10px 0; font-size: 16px;
+                                               font-weight: 700; color: #1a1f36;
+                                               text-align: right;">
+                                        {{ order.order_total|floatformat:0|intcomma }}đ
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- SHIPPING & PAYMENT INFO -->
+                    <tr>
+                        <td style="padding: 0 40px 30px;">
+                            <table role="presentation" width="100%" cellpadding="0"
+                                   cellspacing="0"
+                                   style="background-color: #f9fafb; border-radius: 6px;">
+                                <tr>
+                                    <td style="padding: 20px 20px 12px;">
+                                        <p style="margin: 0 0 8px; font-size: 13px;
+                                                  font-weight: 600; color: #6b7280;
+                                                  text-transform: uppercase;">
+                                            Địa chỉ giao hàng
+                                        </p>
+                                        <p style="margin: 0; font-size: 14px;
+                                                  color: #374151; line-height: 1.6;">
+                                            {{ order.full_name }}<br>
+                                            {% if order.phone %}{{ order.phone }}<br>{% endif %}
+                                            {% if order.address %}{{ order.address }}<br>{% endif %}
+                                            {% if order.ward %}{{ order.ward }}, {% endif %}{% if order.district %}{{ order.district }}, {% endif %}{{ order.province }}
+                                        </p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px 20px 20px;">
+                                        <p style="margin: 0 0 8px; font-size: 13px;
+                                                  font-weight: 600; color: #6b7280;
+                                                  text-transform: uppercase;">
+                                            Phương thức thanh toán
+                                        </p>
+                                        <p style="margin: 0; font-size: 14px;
+                                                  color: #374151;">
+                                            {% if order.payment_method == 'COD' %}
+                                                Thanh toán khi nhận hàng (COD)
+                                            {% elif order.payment_method == 'MOMO' %}
+                                                Ví MoMo
+                                                {% if order.momo_transaction_id %}
+                                                    - Mã GD: {{ order.momo_transaction_id }}
+                                                {% endif %}
+                                            {% else %}
+                                                {{ order.payment_method }}
+                                            {% endif %}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- FOOTER -->
+                    <tr>
+                        <td style="padding: 20px 40px; text-align: center;
+                                   border-top: 1px solid #e5e7eb;">
+                            <p style="margin: 0; font-size: 12px; color: #9ca3af;
+                                      line-height: 1.6;">
+                                Nếu bạn có bất kỳ thắc mắc nào, vui lòng liên hệ với chúng tôi.<br>
+                                &copy; EShopper
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
