@@ -1,6 +1,8 @@
 from django.db import models
-from django.db.models import Case, When, Value, IntegerField
+from django.utils import timezone
+from django.db.models import Case, When, Value, IntegerField, Max
 from django.urls import reverse
+from decimal import Decimal
 
 # Create your models here.
 class Product(models.Model):
@@ -12,6 +14,22 @@ class Product(models.Model):
     image = models.ImageField(upload_to='products/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def get_discount_percentage(self):
+        active_promotions = self.promotions.filter(is_active=True, start_date__lte=timezone.now(), end_date__gte=timezone.now())
+        if active_promotions.exists():
+            return active_promotions.aggregate(max_discount=Max('discount_percentage'))['max_discount']
+        return 0
+
+    def get_price(self):
+        discount = self.get_discount_percentage()
+        if discount > 0:
+            discount_amount = self.price * (Decimal(str(discount)) / Decimal('100'))
+            return self.price - discount_amount
+        return self.price
+
+    def get_original_price(self):
+        return self.price
 
     def __str__(self):
         return self.name
@@ -71,17 +89,38 @@ class Variation(models.Model):
 class ProductVariant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
     sku = models.CharField(max_length=100, unique=True, blank=True, null=True)
-    variations = models.ManyToManyField(Variation, related_name='product_variants') 
+    variations = models.ManyToManyField(Variation, related_name='product_variants', blank=True) 
     stock = models.PositiveIntegerField(default=0)
     price_variant = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def get_original_price(self):
+        #Hàm tiện ích để lấy giá gốc ban đầu
+        return self.price_variant if self.price_variant else self.product.get_original_price()
+
     def get_price(self):
-        #Hàm tiện ích để lấy giá chuẩn xác
-        return self.price_variant if self.price_variant else self.product.price
+        #Hàm tiện ích để lấy giá chuẩn xác (đã bao gồm discount nếu có)
+        original_price = self.get_original_price()
+        discount = self.product.get_discount_percentage()
+        if discount > 0:
+            discount_amount = original_price * (Decimal(str(discount)) / Decimal('100'))
+            return original_price - discount_amount
+        return original_price
     
     def __str__(self):
         return f"{self.product.name} - {', '.join([f'{v.variation_category}: {v.variation_value}' for v in self.variations.all()])}"
 
+class Promotion(models.Model):
+    name = models.CharField(max_length=255)
+    discount_percentage = models.PositiveIntegerField() # vd: 10 cho 10% giảm giá
+    start_date = models.DateTimeField(default=timezone.now)
+    end_date = models.DateTimeField()
+    products = models.ManyToManyField(Product, related_name='promotions', blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name

@@ -69,11 +69,12 @@ def category_list(request, slug):
             product_list.append({
                 'name': p.name,
                 'slug': p.slug,
-                'price': str(p.price),
+                'price': str(p.get_price()),
+                'original_price': str(p.get_original_price()),
                 'image_url': p.image.url if p.image else '',
                 'detail_url': f'/product/{p.slug}/',
             })
-        return JsonResponse({
+        response = JsonResponse({
             'products': product_list,
             'page': page_obj.number,
             'num_pages': paginator.num_pages,
@@ -83,6 +84,8 @@ def category_list(request, slug):
             'next_page_number': page_obj.next_page_number() if page_obj.has_next() else None,
             'page_range': list(paginator.page_range),
         })
+        response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        return response
 
     # Distinct colors/sizes scoped to this category's products
     category_products = Product.objects.filter(category=category)
@@ -159,11 +162,12 @@ def products_list(request):
             product_list.append({
                 'name': p.name,
                 'slug': p.slug,
-                'price': str(p.price),
+                'price': str(p.get_price()),
+                'original_price': str(p.get_original_price()),
                 'image_url': p.image.url if p.image else '',
                 'detail_url': p.get_absolute_url() if hasattr(p, 'get_absolute_url') else f'/product/{p.slug}/',
             })
-        return JsonResponse({
+        response = JsonResponse({
             'products': product_list,
             'page': page_obj.number,
             'num_pages': paginator.num_pages,
@@ -173,6 +177,8 @@ def products_list(request):
             'next_page_number': page_obj.next_page_number() if page_obj.has_next() else None,
             'page_range': list(paginator.page_range),
         })
+        response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        return response
 
     # Distinct colors and sizes from active variations
     all_colors = (

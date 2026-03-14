@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Product, Variation, ProductVariant
+from .models import Category, Product, Variation, ProductVariant, Promotion
 
 # Register your models here.
 class ProductVariantInline(admin.TabularInline):
@@ -31,3 +31,9 @@ class VariationAdmin(admin.ModelAdmin):
 
     class Media:
         js = ('admin/js/variation_color_picker.js',)
+
+@admin.register(Promotion)
+class PromotionAdmin(admin.ModelAdmin):
+    list_display = ('name', 'discount_percentage', 'start_date', 'end_date', 'is_active')
+    list_editable = ('is_active',)
+    filter_horizontal = ('products',)

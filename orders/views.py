@@ -261,6 +261,12 @@ def place_order_view(request):
             # Xóa cart ngay vì COD không cần xác nhận thanh toán
             CartItem.objects.filter(user=request.user, is_active=True).delete()
 
+            order_items = OrderItem.objects.filter(order=order).select_related('variant')
+            for item in order_items:
+                variant = item.variant
+                variant.stock = max(0, variant.stock - item.quantity)
+                variant.save(update_fields=['stock'])
+
             # Gửi email xác nhận đơn hàng
             _send_order_received_email(order)
 

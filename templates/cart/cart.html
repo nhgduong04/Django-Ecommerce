@@ -49,11 +49,38 @@
                             {% endif %}
                         </td>
                         <td class="align-middle">
-                            {% if cart_item.variant %}
-                                {{ cart_item.variant.get_price|floatformat:0|intcomma }}đ
+                            {% comment %} {% if cart_item.variant %}
+                                {% if cart_item.variant.get_discount_percentage > 0 %}
+                                    <div class="d-flex flex-column align-items-center">
+                                        <del class="text-muted small">{{ cart_item.variant.get_original_price|floatformat:0|intcomma }}đ</del>
+                                        <span>{{ cart_item.variant.get_price|floatformat:0|intcomma }}đ</span>
+                                    </div>
+                                {% else %}
+                                    {{ cart_item.variant.get_price|floatformat:0|intcomma }}đ
+                                {% endif %}
                             {% else %}
-                                {{ cart_item.product.price|floatformat:0|intcomma }}đ
-                            {% endif %}
+                                {% if cart_item.product.get_discount_percentage > 0 %}
+                                    <div class="d-flex flex-column align-items-center">
+                                        <del class="text-muted small">{{ cart_item.product.get_original_price|floatformat:0|intcomma }}đ</del>
+                                        <span>{{ cart_item.product.get_price|floatformat:0|intcomma }}đ</span>
+                                    </div>
+                                {% else %}
+                                    {{ cart_item.product.get_price|floatformat:0|intcomma }}đ
+                                {% endif %}
+                            {% endif %} {% endcomment %}
+
+                            {% with item=cart_item.variant|default:cart_item.product %}
+                                {% if item.get_discount_percentage > 0 %}
+                                    <div class="d-flex flex-column align-items-center">
+                                        <del class="text-muted small">
+                                            {{ item.get_original_price|floatformat:0|intcomma }}đ
+                                        </del>
+                                        <span>{{ item.get_price|floatformat:0|intcomma }}đ</span>
+                                    </div>
+                                {% else %}
+                                    {{ item.get_price|floatformat:0|intcomma }}đ
+                                {% endif %}
+                            {% endwith %}
                         </td>
                         <td class="align-middle">
                             <div class="input-group quantity mx-auto" style="width: 100px;">
