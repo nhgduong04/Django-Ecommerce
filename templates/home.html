@@ -118,7 +118,9 @@
                         </div>
                         <div class="navbar-nav ml-auto py-0">
                             {% if user.is_authenticated %}
-                            <a href="{% url 'profile' %}" class="nav-item nav-link font-weight-bold text-primary">Hi, {{ user.username }}</a>
+                            <a href="{% url 'profile' %}" class="nav-item nav-link font-weight-bold text-primary">
+                                Hi, {{ user.username }}
+                            </a>
                             <a href="{% url 'logout' %}" class="nav-item nav-link">Logout</a>
                             {% else %}
                             <a href="{% url 'login' %}" class="nav-item nav-link">Login</a>
@@ -307,12 +309,14 @@
                         <h6 class="text-truncate mb-3">{{ product.name }}</h6>
                         <div class="d-flex justify-content-center">
                             {% if product.get_discount_percentage > 0 %}
-                                <h6 class="text-muted"><del>{{ product.get_original_price|floatformat:0|intcomma }}đ</del></h6>
-                                <h6 class="text-danger ml-2">{{ product.get_price|floatformat:0|intcomma }}đ</h6>
-                                <h6 class="text-danger ml-2">-{{ product.get_discount_percentage|floatformat:0 }}%</h6>
+                            <h6 class="text-muted"><del>{{ product.get_original_price|floatformat:0|intcomma }}đ</del>
+                            </h6>
+                            <h6 class="text-danger ml-2">{{ product.get_price|floatformat:0|intcomma }}đ</h6>
+                            <h6 class="text-danger ml-2">-{{ product.get_discount_percentage|floatformat:0 }}%</h6>
                             {% else %}
-                                <h6>{{ product.get_price|floatformat:0|intcomma }}đ</h6>
-                                <h6 class="text-muted ml-2" style="display: none;"><del>{{ product.get_original_price|floatformat:0|intcomma }}đ</del></h6>
+                            <h6>{{ product.get_price|floatformat:0|intcomma }}đ</h6>
+                            <h6 class="text-muted ml-2" style="display: none;"><del>{{
+                                    product.get_original_price|floatformat:0|intcomma }}đ</del></h6>
                             {% endif %}
                         </div>
                     </div>

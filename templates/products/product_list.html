@@ -5,10 +5,12 @@
 {% block content %}
 <style>
     /* Dual range slider thumb styles */
-    #price-min, #price-max {
+    #price-min,
+    #price-max {
         pointer-events: none;
         z-index: 2;
     }
+
     #price-min::-webkit-slider-thumb,
     #price-max::-webkit-slider-thumb {
         pointer-events: all;
@@ -19,9 +21,10 @@
         border-radius: 50%;
         background: var(--primary);
         border: 2px solid #fff;
-        box-shadow: 0 1px 4px rgba(0,0,0,.2);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, .2);
         cursor: pointer;
     }
+
     #price-min::-moz-range-thumb,
     #price-max::-moz-range-thumb {
         pointer-events: all;
@@ -30,7 +33,7 @@
         border-radius: 50%;
         background: var(--primary);
         border: 2px solid #fff;
-        box-shadow: 0 1px 4px rgba(0,0,0,.2);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, .2);
         cursor: pointer;
     }
 </style>
@@ -62,8 +65,10 @@
                         <span id="price-min-label" class="font-weight-bold">0đ</span>
                         <span id="price-max-label" class="font-weight-bold">2,000,000đ</span>
                     </div>
-                    <div class="price-slider-track" style="position:relative;height:6px;background:#ddd;border-radius:3px;margin:16px 0;">
-                        <div id="price-slider-range" style="position:absolute;height:100%;background:var(--primary);border-radius:3px;"></div>
+                    <div class="price-slider-track"
+                        style="position:relative;height:6px;background:#ddd;border-radius:3px;margin:16px 0;">
+                        <div id="price-slider-range"
+                            style="position:absolute;height:100%;background:var(--primary);border-radius:3px;"></div>
                         <input type="range" id="price-min" min="0" max="2000000" value="0" step="10000"
                             style="position:absolute;width:100%;top:-6px;pointer-events:none;-webkit-appearance:none;appearance:none;background:none;height:18px;">
                         <input type="range" id="price-max" min="0" max="2000000" value="2000000" step="10000"
@@ -81,7 +86,8 @@
                 <h5 class="font-weight-semi-bold mb-4">Filter by color</h5>
                 {% for color in all_colors %}
                 <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-                    <input type="checkbox" class="custom-control-input filter-color" id="color-{{ forloop.counter }}" value="{{ color }}" {% if color in selected_colors %}checked{% endif %}>
+                    <input type="checkbox" class="custom-control-input filter-color" id="color-{{ forloop.counter }}"
+                        value="{{ color }}" {% if color in selected_colors %}checked{% endif %}>
                     <label class="custom-control-label" for="color-{{ forloop.counter }}">{{ color }}</label>
                 </div>
                 {% empty %}
@@ -95,7 +101,8 @@
                 <h5 class="font-weight-semi-bold mb-4">Filter by size</h5>
                 {% for size in all_sizes %}
                 <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-                    <input type="checkbox" class="custom-control-input filter-size" id="size-{{ forloop.counter }}" value="{{ size }}" {% if size in selected_sizes %}checked{% endif %}>
+                    <input type="checkbox" class="custom-control-input filter-size" id="size-{{ forloop.counter }}"
+                        value="{{ size }}" {% if size in selected_sizes %}checked{% endif %}>
                     <label class="custom-control-label" for="size-{{ forloop.counter }}">{{ size }}</label>
                 </div>
                 {% empty %}
@@ -113,9 +120,11 @@
                 <div class="col-12 pb-1">
                     <div class="d-flex align-items-center justify-content-between mb-4">
                         <div class="input-group" style="max-width:300px">
-                            <input type="text" class="form-control" placeholder="Search by name" id="search-keyword" value="{{ keyword|default:'' }}">
+                            <input type="text" class="form-control" placeholder="Search by name" id="search-keyword"
+                                value="{{ keyword|default:'' }}">
                             <div class="input-group-append">
-                                <span class="input-group-text bg-transparent text-primary" id="search-btn" style="cursor: pointer;">
+                                <span class="input-group-text bg-transparent text-primary" id="search-btn"
+                                    style="cursor: pointer;">
                                     <i class="fa fa-search"></i>
                                 </span>
                             </div>
@@ -128,77 +137,18 @@
                             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="triggerId">
                                 <a class="dropdown-item sort-option active" href="#" data-sort="latest">Latest</a>
                                 <a class="dropdown-item sort-option" href="#" data-sort="popularity">Popularity</a>
-                                <a class="dropdown-item sort-option" href="#" data-sort="price_asc">Price: Low to High</a>
-                                <a class="dropdown-item sort-option" href="#" data-sort="price_desc">Price: High to Low</a>
+                                <a class="dropdown-item sort-option" href="#" data-sort="price_asc">Price: Low to
+                                    High</a>
+                                <a class="dropdown-item sort-option" href="#" data-sort="price_desc">Price: High to
+                                    Low</a>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div id="product-grid" class="col-12">
-                    <div class="row">
-                    {% for product in products %}
-                    <div class="col-lg-4 col-md-6 col-sm-12 pb-1">
-                        <div class="card product-item border-0 mb-4">
-                            <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                                <img class="img-fluid w-100" src="{{ product.image.url }}" alt="{{ product.name }}">
-                            </div>
-                            <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                                <h6 class="text-truncate mb-3">{{ product.name }}</h6>
-                                <div class="d-flex justify-content-center">
-                                    {% if product.get_discount_percentage > 0 %}
-                                        <h6 class="text-muted"><del>{{ product.get_original_price|floatformat:0|intcomma }}đ</del></h6>
-                                        <h6 class="text-danger ml-2">{{ product.get_price|floatformat:0|intcomma }}đ</h6>
-                                        <h6 class="text-danger ml-2">-{{ product.get_discount_percentage|floatformat:0 }}%</h6>
-                                    {% else %}
-                                        <h6>{{ product.get_price|floatformat:0|intcomma }}đ</h6>
-                                        <h6 class="text-muted ml-2" style="display: none;"><del>{{ product.get_original_price|floatformat:0|intcomma }}đ</del></h6>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="card-footer d-flex justify-content-between bg-light border">
-                                <a href="{% url 'product_detail' product.slug %}" class="btn btn-sm text-dark p-0">
-                                    <i class="fas fa-eye text-primary mr-1"></i>View Detail
-                                </a>
-                                <a href="{% url 'product_detail' product.slug %}" class="btn btn-sm text-dark p-0">
-                                    <i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                    </div>
+                <div id="filtered-products-container" class="col-12">
+                    {% include 'products/snippets/product_grid.html' %}
                 </div>
-
-                <!-- Pagination Start -->
-                <div class="col-12 pb-1" id="pagination-container">
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination justify-content-center mb-3">
-                            {% if products.has_previous %}
-                            <li class="page-item">
-                                <a class="page-link page-nav" href="#" data-page="{{ products.previous_page_number }}" aria-label="Previous">
-                                    <span aria-hidden="true">&laquo;</span>
-                                </a>
-                            </li>
-                            {% endif %}
-                            {% for num in products.paginator.page_range %}
-                            {% if products.number == num %}
-                            <li class="page-item active"><a class="page-link page-nav" href="#" data-page="{{ num }}">{{ num }}</a></li>
-                            {% else %}
-                            <li class="page-item"><a class="page-link page-nav" href="#" data-page="{{ num }}">{{ num }}</a></li>
-                            {% endif %}
-                            {% endfor %}
-                            {% if products.has_next %}
-                            <li class="page-item">
-                                <a class="page-link page-nav" href="#" data-page="{{ products.next_page_number }}" aria-label="Next">
-                                    <span aria-hidden="true">&raquo;</span>
-                                </a>
-                            </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
-                </div>
-                <!-- Pagination End -->
             </div>
         </div>
         <!-- Shop Product End -->
@@ -206,241 +156,185 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // ===== Price Slider =====
-    var minSlider = document.getElementById('price-min');
-    var maxSlider = document.getElementById('price-max');
-    var minLabel = document.getElementById('price-min-label');
-    var maxLabel = document.getElementById('price-max-label');
-    var range = document.getElementById('price-slider-range');
-    var sliderMax = 2000000;
+    document.addEventListener('DOMContentLoaded', function () {
+        // ===== Price Slider =====
+        var minSlider = document.getElementById('price-min');
+        var maxSlider = document.getElementById('price-max');
+        var minLabel = document.getElementById('price-min-label');
+        var maxLabel = document.getElementById('price-max-label');
+        var range = document.getElementById('price-slider-range');
+        var sliderMax = 2000000;
 
-    function formatPrice(val) {
-        return parseInt(val).toLocaleString('vi-VN') + 'đ';
-    }
-
-    function updateSliderUI() {
-        var minVal = parseInt(minSlider.value);
-        var maxVal = parseInt(maxSlider.value);
-        if (minVal > maxVal) {
-            var tmp = minVal;
-            minSlider.value = maxVal;
-            maxSlider.value = tmp;
-            minVal = parseInt(minSlider.value);
-            maxVal = parseInt(maxSlider.value);
+        function formatPrice(val) {
+            return parseInt(val).toLocaleString('vi-VN') + 'đ';
         }
-        minLabel.textContent = formatPrice(minVal);
-        maxLabel.textContent = formatPrice(maxVal);
-        // tỉ lệ phần trăm để vẽ thanh màu
-        var percentMin = (minVal / sliderMax) * 100;
-        var percentMax = (maxVal / sliderMax) * 100;
-        range.style.left = percentMin + '%';
-        range.style.width = (percentMax - percentMin) + '%';
-    }
-    minSlider.addEventListener('input', updateSliderUI);
-    maxSlider.addEventListener('input', updateSliderUI);
 
-    // ===== Gather current filters from UI =====
-    function getFilters() {
-        var params = new URLSearchParams();
-        // Keyword
-        var kw = document.getElementById('search-keyword').value.trim();
-        if (kw) params.set('keyword', kw);
-        // Price
-        var minVal = parseInt(minSlider.value);
-        var maxVal = parseInt(maxSlider.value);
-        if (minVal > maxVal) { var t = minVal; minVal = maxVal; maxVal = t; }
-        if (minVal > 0) params.set('min_price', minVal);
-        if (maxVal < sliderMax) params.set('max_price', maxVal);
-        // Colors
-        document.querySelectorAll('.filter-color:checked').forEach(function(cb) {
-            params.append('color', cb.value);
-        });
-        // Sizes
-        document.querySelectorAll('.filter-size:checked').forEach(function(cb) {
-            params.append('size', cb.value);
-        });
-        // Sort
-        var activeSort = document.querySelector('.sort-option.active');
-        var sortVal = activeSort ? activeSort.getAttribute('data-sort') : 'latest';
-        if (sortVal && sortVal !== 'latest') params.set('sort', sortVal);
-        return params;
-    }
+        function updateSliderUI() {
+            var minVal = parseInt(minSlider.value);
+            var maxVal = parseInt(maxSlider.value);
+            if (minVal > maxVal) {
+                var tmp = minVal;
+                minSlider.value = maxVal;
+                maxSlider.value = tmp;
+                minVal = parseInt(minSlider.value);
+                maxVal = parseInt(maxSlider.value);
+            }
+            minLabel.textContent = formatPrice(minVal);
+            maxLabel.textContent = formatPrice(maxVal);
+            // tỉ lệ phần trăm để vẽ thanh màu
+            var percentMin = (minVal / sliderMax) * 100;
+            var percentMax = (maxVal / sliderMax) * 100;
+            range.style.left = percentMin + '%';
+            range.style.width = (percentMax - percentMin) + '%';
+        }
+        minSlider.addEventListener('input', updateSliderUI);
+        maxSlider.addEventListener('input', updateSliderUI);
 
-    // ===== Format number with commas (vi-VN) =====
-    function intcomma(val) {
-        return parseInt(val).toLocaleString('vi-VN');
-    }
-
-    // ===== Render product grid from JSON =====
-    function renderProducts(data) {
-        var grid = document.getElementById('product-grid');
-        var html = '<div class="row">';
-        if (data.products.length === 0) {
-            html += '<div class="col-12 text-center py-5"><h5 class="text-muted">No products found</h5></div>';
-        } else {
-            data.products.forEach(function(p) {
-                html += '<div class="col-lg-4 col-md-6 col-sm-12 pb-1">' +
-                    '<div class="card product-item border-0 mb-4">' +
-                    '<div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">' +
-                    '<img class="img-fluid w-100" src="' + p.image_url + '" alt="' + p.name + '">' +
-                    '</div>' +
-                    '<div class="card-body border-left border-right text-center p-0 pt-4 pb-3">' +
-                    '<h6 class="text-truncate mb-3">' + p.name + '</h6>' +
-                    '<div class="d-flex justify-content-center">';
-                if (p.original_price && p.original_price > p.price) {
-                    var discount = Math.round((p.original_price - p.price) / p.original_price * 100);
-                    html += '<h6 class="text-muted"><del>' + intcomma(p.original_price) + 'đ</del></h6>' +
-                            '<h6 class="text-danger ml-2">' + intcomma(p.price) + 'đ</h6>' +
-                            '<h6 class="text-danger ml-2">-' + discount + '%</h6>';
-                } else {
-                    html += '<h6>' + intcomma(p.price) + 'đ</h6>' +
-                            '<h6 class="text-muted ml-2" style="display: none;"><del>' + intcomma(p.original_price || p.price) + 'đ</del></h6>';
-                }
-                html += '</div></div>' +
-                    '<div class="card-footer d-flex justify-content-between bg-light border">' +
-                    '<a href="' + p.detail_url + '" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>' +
-                    '<a href="' + p.detail_url + '" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Select options</a>' +
-                    '</div></div></div>';
+        // ===== Gather current filters from UI =====
+        function getFilters() {
+            var params = new URLSearchParams();
+            // Keyword
+            var kw = document.getElementById('search-keyword').value.trim();
+            if (kw) params.set('keyword', kw);
+            // Price
+            var minVal = parseInt(minSlider.value);
+            var maxVal = parseInt(maxSlider.value);
+            if (minVal > maxVal) { var t = minVal; minVal = maxVal; maxVal = t; }
+            if (minVal > 0) params.set('min_price', minVal);
+            if (maxVal < sliderMax) params.set('max_price', maxVal);
+            // Colors
+            document.querySelectorAll('.filter-color:checked').forEach(function (cb) {
+                params.append('color', cb.value);
             });
+            // Sizes
+            document.querySelectorAll('.filter-size:checked').forEach(function (cb) {
+                params.append('size', cb.value);
+            });
+            // Sort
+            var activeSort = document.querySelector('.sort-option.active');
+            var sortVal = activeSort ? activeSort.getAttribute('data-sort') : 'latest';
+            if (sortVal && sortVal !== 'latest') params.set('sort', sortVal);
+            return params;
         }
-        html += '</div>';
-        grid.innerHTML = html;
-    }
 
-    // ===== Render pagination from JSON =====
-    function renderPagination(data) {
-        var container = document.getElementById('pagination-container');
-        if (data.num_pages <= 1) { container.innerHTML = ''; return; }
-        var html = '<nav aria-label="Page navigation"><ul class="pagination justify-content-center mb-3">';
-        if (data.has_previous) {
-            html += '<li class="page-item"><a class="page-link page-nav" href="#" data-page="' + data.previous_page_number + '" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>';
+        // ===== Format number with commas (vi-VN) =====
+        function intcomma(val) {
+            return parseInt(val).toLocaleString('vi-VN');
         }
-        data.page_range.forEach(function(num) {
-            var active = (num === data.page) ? ' active' : '';
-            html += '<li class="page-item' + active + '"><a class="page-link page-nav" href="#" data-page="' + num + '">' + num + '</a></li>';
+
+        // ===== AJAX fetch =====
+        var fetchController = null;
+        function fetchProducts(params, pushState) {
+            if (fetchController) fetchController.abort();
+            fetchController = new AbortController(); // API của JS để hủy request cũ nếu có
+
+            var qs = params.toString();
+            var basePath = window.location.pathname;
+            var url = basePath + (qs ? '?' + qs : '');
+
+            // Push browser history so back/forward works
+            if (pushState !== false) {
+                history.pushState(null, '', url);
+            }
+
+            fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                signal: fetchController.signal
+            })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    document.getElementById('filtered-products-container').innerHTML = data.html;
+                    bindPaginationEvents();
+                })
+                .catch(function (err) {
+                    if (err.name !== 'AbortError') console.error(err);
+                });
+        }
+
+        // ===== Trigger filter (resets to page 1) =====
+        function applyFilters() {
+            var params = getFilters();
+            fetchProducts(params);
+        }
+
+        // ===== Event: Price filter button =====
+        document.getElementById('price-filter-btn').addEventListener('click', applyFilters);
+
+        // ===== Event: Color / Size checkboxes =====
+        document.querySelectorAll('.filter-color, .filter-size').forEach(function (cb) {
+            cb.addEventListener('change', applyFilters);
         });
-        if (data.has_next) {
-            html += '<li class="page-item"><a class="page-link page-nav" href="#" data-page="' + data.next_page_number + '" aria-label="Next"><span aria-hidden="true">&raquo;</span></a></li>';
-        }
-        html += '</ul></nav>';
-        container.innerHTML = html;
-        bindPaginationEvents();
-    }
 
-    // ===== AJAX fetch =====
-    var fetchController = null;
-    function fetchProducts(params, pushState) {
-        if (fetchController) fetchController.abort();
-        fetchController = new AbortController(); // API của JS để hủy request cũ nếu có
-
-        var qs = params.toString();
-        var basePath = window.location.pathname;
-        var url = basePath + (qs ? '?' + qs : '');
-
-        // Push browser history so back/forward works
-        if (pushState !== false) {
-            history.pushState(null, '', url);
-        }
-
-        fetch(url, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' },
-            signal: fetchController.signal
-        })
-        .then(function(res) { return res.json(); })
-        .then(function(data) {
-            renderProducts(data);
-            renderPagination(data);
-        })
-        .catch(function(err) {
-            if (err.name !== 'AbortError') console.error(err);
+        // ===== Event: Search =====
+        document.getElementById('search-btn').addEventListener('click', applyFilters);
+        document.getElementById('search-keyword').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); applyFilters(); }
         });
-    }
 
-    // ===== Trigger filter (resets to page 1) =====
-    function applyFilters() {
-        var params = getFilters();
-        fetchProducts(params);
-    }
-
-    // ===== Event: Price filter button =====
-    document.getElementById('price-filter-btn').addEventListener('click', applyFilters);
-
-    // ===== Event: Color / Size checkboxes =====
-    document.querySelectorAll('.filter-color, .filter-size').forEach(function(cb) {
-        cb.addEventListener('change', applyFilters);
-    });
-
-    // ===== Event: Search =====
-    document.getElementById('search-btn').addEventListener('click', applyFilters);
-    document.getElementById('search-keyword').addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') { e.preventDefault(); applyFilters(); }
-    });
-
-    // ===== Event: Sort dropdown =====
-    var SORT_LABELS = {latest: 'Latest', popularity: 'Popularity', price_asc: 'Price: Low to High', price_desc: 'Price: High to Low'};
-    document.querySelectorAll('.sort-option').forEach(function(item) {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
-            document.querySelectorAll('.sort-option').forEach(function(el) { el.classList.remove('active'); });
-            this.classList.add('active');
-            document.getElementById('triggerId').textContent = SORT_LABELS[this.getAttribute('data-sort')] || 'Sort by';
-            applyFilters();
-        });
-    });
-
-    // ===== Event: Pagination (delegated) =====
-    function bindPaginationEvents() {
-        document.querySelectorAll('.page-nav').forEach(function(link) {
-            link.addEventListener('click', function(e) {
+        // ===== Event: Sort dropdown =====
+        var SORT_LABELS = { latest: 'Latest', popularity: 'Popularity', price_asc: 'Price: Low to High', price_desc: 'Price: High to Low' };
+        document.querySelectorAll('.sort-option').forEach(function (item) {
+            item.addEventListener('click', function (e) {
                 e.preventDefault();
-                var page = this.getAttribute('data-page');
-                var params = getFilters();
-                params.set('page', page);
-                fetchProducts(params);
+                document.querySelectorAll('.sort-option').forEach(function (el) { el.classList.remove('active'); });
+                this.classList.add('active');
+                document.getElementById('triggerId').textContent = SORT_LABELS[this.getAttribute('data-sort')] || 'Sort by';
+                applyFilters();
             });
         });
-    }
-    bindPaginationEvents();
 
-    // ===== Browser back/forward =====
-    window.addEventListener('popstate', function() {
+        // ===== Event: Pagination (delegated) =====
+        function bindPaginationEvents() {
+            document.querySelectorAll('.page-nav').forEach(function (link) {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    var page = this.getAttribute('data-page');
+                    var params = getFilters();
+                    params.set('page', page);
+                    fetchProducts(params);
+                });
+            });
+        }
+        bindPaginationEvents();
+
+        // ===== Browser back/forward =====
+        window.addEventListener('popstate', function () {
+            syncUIFromURL();
+            var params = new URLSearchParams(window.location.search);
+            fetchProducts(params, false);
+        });
+
+        // ===== Sync UI controls from URL params =====
+        function syncUIFromURL() {
+            var params = new URLSearchParams(window.location.search);
+            // Keyword
+            document.getElementById('search-keyword').value = params.get('keyword') || '';
+            // Price sliders
+            minSlider.value = params.get('min_price') || 0;
+            maxSlider.value = params.get('max_price') || sliderMax;
+            updateSliderUI();
+            // Colors
+            var selColors = params.getAll('color');
+            document.querySelectorAll('.filter-color').forEach(function (cb) {
+                cb.checked = selColors.includes(cb.value);
+            });
+            // Sizes
+            var selSizes = params.getAll('size');
+            document.querySelectorAll('.filter-size').forEach(function (cb) {
+                cb.checked = selSizes.includes(cb.value);
+            });
+            // Sort
+            var sortVal = params.get('sort') || 'latest';
+            document.querySelectorAll('.sort-option').forEach(function (el) {
+                el.classList.toggle('active', el.getAttribute('data-sort') === sortVal);
+            });
+            var SORT_LABELS = { latest: 'Latest', popularity: 'Popularity', price_asc: 'Price: Low to High', price_desc: 'Price: High to Low' };
+            document.getElementById('triggerId').textContent = SORT_LABELS[sortVal] || 'Sort by';
+        }
+
+        // ===== Init from URL on page load =====
         syncUIFromURL();
-        var params = new URLSearchParams(window.location.search);
-        fetchProducts(params, false);
     });
-
-    // ===== Sync UI controls from URL params =====
-    function syncUIFromURL() {
-        var params = new URLSearchParams(window.location.search);
-        // Keyword
-        document.getElementById('search-keyword').value = params.get('keyword') || '';
-        // Price sliders
-        minSlider.value = params.get('min_price') || 0;
-        maxSlider.value = params.get('max_price') || sliderMax;
-        updateSliderUI();
-        // Colors
-        var selColors = params.getAll('color');
-        document.querySelectorAll('.filter-color').forEach(function(cb) {
-            cb.checked = selColors.includes(cb.value);
-        });
-        // Sizes
-        var selSizes = params.getAll('size');
-        document.querySelectorAll('.filter-size').forEach(function(cb) {
-            cb.checked = selSizes.includes(cb.value);
-        });
-        // Sort
-        var sortVal = params.get('sort') || 'latest';
-        document.querySelectorAll('.sort-option').forEach(function(el) {
-            el.classList.toggle('active', el.getAttribute('data-sort') === sortVal);
-        });
-        var SORT_LABELS = {latest: 'Latest', popularity: 'Popularity', price_asc: 'Price: Low to High', price_desc: 'Price: High to Low'};
-        document.getElementById('triggerId').textContent = SORT_LABELS[sortVal] || 'Sort by';
-    }
-
-    // ===== Init from URL on page load =====
-    syncUIFromURL();
-});
 </script>
 <!-- Shop End -->
 {% endblock %}

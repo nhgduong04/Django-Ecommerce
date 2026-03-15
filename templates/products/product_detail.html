@@ -120,13 +120,23 @@
             <h3 class="font-weight-semi-bold">{{ product.name }}</h3>
             <div class="d-flex mb-4 align-items-center">
                 {% if product.get_discount_percentage > 0 %}
-                    <h4 class="text-muted mb-0 mr-3" id="product-original-price"><del>{{ product.get_original_price|floatformat:0|intcomma }}đ</del></h4>
-                    <h3 class="font-weight-semi-bold mb-0 text-danger" id="product-price">{{ product.get_price|floatformat:0|intcomma }}đ</h3>
-                    <h4 class="text-danger ml-3 mb-0" id="product-discount-percent">-{{ product.get_discount_percentage|floatformat:0 }}%</h4>
+                <h4 class="text-muted mb-0 mr-3" id="product-original-price">
+                    <del>{{ product.get_original_price|floatformat:0|intcomma }}đ</del>
+                </h4>
+                <h3 class="font-weight-semi-bold mb-0 text-danger" id="product-price">
+                    {{ product.get_price|floatformat:0|intcomma }}đ
+                </h3>
+                <h4 class="text-danger ml-3 mb-0" id="product-discount-percent">
+                    -{{ product.get_discount_percentage|floatformat:0 }}%
+                </h4>
                 {% else %}
-                    <h4 class="text-muted mb-0 mr-3" id="product-original-price" style="display: none;"><del>{{ product.get_original_price|floatformat:0|intcomma }}đ</del></h4>
-                    <h3 class="font-weight-semi-bold mb-0" id="product-price">{{ product.get_price|floatformat:0|intcomma }}đ</h3>
-                    <h4 class="text-danger ml-3 mb-0" id="product-discount-percent" style="display: none;"></h4>
+                <h4 class="text-muted mb-0 mr-3" id="product-original-price" style="display: none;">
+                    <del>{{ product.get_original_price|floatformat:0|intcomma }}đ</del>
+                </h4>
+                <h3 class="font-weight-semi-bold mb-0" id="product-price">
+                    {{ product.get_price|floatformat:0|intcomma }}đ
+                </h3>
+                <h4 class="text-danger ml-3 mb-0" id="product-discount-percent" style="display: none;"></h4>
                 {% endif %}
             </div>
             <div class="mb-4 product-description" id="product-description">{{ product.description }}</div>
@@ -208,96 +218,37 @@
     <div class="row px-xl-5">
         <div class="col">
             <div class="owl-carousel related-carousel">
+                {% for item in related_products %}
                 <div class="card product-item border-0">
                     <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100" src="img/product-1.jpg" alt="">
+                        <img class="img-fluid w-100"
+                            src="{% if item.image %}{{ item.image.url }}{% else %}{% static 'img/product-1.jpg' %}{% endif %}"
+                            alt="{{ item.name }}">
                     </div>
                     <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
+                        <h6 class="text-truncate mb-3">{{ item.name }}</h6>
                         <div class="d-flex justify-content-center">
-                            <h6>$123.00</h6>
-                            <h6 class="text-muted ml-2"><del>$123.00</del></h6>
+                            <h6>{{ item.get_price|floatformat:0|intcomma }}đ</h6>
+                            {% if item.get_discount_percentage > 0 %}
+                            <h6 class="text-muted ml-2"><del>{{ item.get_original_price|floatformat:0|intcomma }}đ</del>
+                            </h6>
+                            {% endif %}
                         </div>
                     </div>
                     <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View
-                            Detail</a>
-                        <a href="" class="btn btn-sm text-dark p-0"><i
-                                class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
+                        <a href="{% url 'product_detail' item.slug %}" class="btn btn-sm text-dark p-0">
+                            <i class="fas fa-eye text-primary mr-1"></i>View Detail
+                        </a>
+                        <a href="{% url 'product_detail' item.slug %}" class="btn btn-sm text-dark p-0">
+                            <i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart
+                        </a>
                     </div>
                 </div>
-                <div class="card product-item border-0">
-                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100" src="img/product-2.jpg" alt="">
-                    </div>
-                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
-                        <div class="d-flex justify-content-center">
-                            <h6>$123.00</h6>
-                            <h6 class="text-muted ml-2"><del>$123.00</del></h6>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View
-                            Detail</a>
-                        <a href="" class="btn btn-sm text-dark p-0"><i
-                                class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
-                    </div>
+                {% empty %}
+                <div class="text-center w-100 py-4">
+                    <p class="mb-0 text-muted">No related products found in this category.</p>
                 </div>
-                <div class="card product-item border-0">
-                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100" src="img/product-3.jpg" alt="">
-                    </div>
-                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
-                        <div class="d-flex justify-content-center">
-                            <h6>$123.00</h6>
-                            <h6 class="text-muted ml-2"><del>$123.00</del></h6>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View
-                            Detail</a>
-                        <a href="" class="btn btn-sm text-dark p-0"><i
-                                class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
-                    </div>
-                </div>
-                <div class="card product-item border-0">
-                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100" src="img/product-4.jpg" alt="">
-                    </div>
-                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
-                        <div class="d-flex justify-content-center">
-                            <h6>$123.00</h6>
-                            <h6 class="text-muted ml-2"><del>$123.00</del></h6>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View
-                            Detail</a>
-                        <a href="" class="btn btn-sm text-dark p-0"><i
-                                class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
-                    </div>
-                </div>
-                <div class="card product-item border-0">
-                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100" src="img/product-5.jpg" alt="">
-                    </div>
-                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
-                        <div class="d-flex justify-content-center">
-                            <h6>$123.00</h6>
-                            <h6 class="text-muted ml-2"><del>$123.00</del></h6>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View
-                            Detail</a>
-                        <a href="" class="btn btn-sm text-dark p-0"><i
-                                class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
-                    </div>
-                </div>
+                {% endfor %}
             </div>
         </div>
     </div>
@@ -306,7 +257,7 @@
 
 <script>
     // ----- Format product description into vertical bullet list -----
-    (function() {
+    (function () {
         const descEl = document.getElementById('product-description');
         if (!descEl) return;
         const raw = descEl.textContent.trim();
@@ -322,12 +273,12 @@
         const firstPart = parts[0];
         const bullets = parts.slice(1);
         if (firstPart) {
-            html += '<p class="desc-title">' + firstPart.replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])) + '</p>';
+            html += '<p class="desc-title">' + firstPart.replace(/[<>&"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c])) + '</p>';
         }
         if (bullets.length) {
             html += '<ul class="desc-list">';
             bullets.forEach(item => {
-                html += '<li>' + item.replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])) + '</li>';
+                html += '<li>' + item.replace(/[<>&"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c])) + '</li>';
             });
             html += '</ul>';
         }
@@ -355,7 +306,7 @@
                 stock: {{ variant.stock }},
                 options: {
                     {% for v in variant.variations.all %}
-                    "{{ v.variation_category }}": "{{ v.variation_value }}"{% if not forloop.last %},{% endif %}
+                        "{{ v.variation_category }}": "{{ v.variation_value }}"{% if not forloop.last %}, {% endif %}
                     {% endfor %}
                 }
             },
@@ -425,14 +376,14 @@
 
             const originalPriceDisplay = document.getElementById('product-original-price');
             const discountPercentDisplay = document.getElementById('product-discount-percent');
-            
+
             if (originalPriceDisplay) {
                 if (matchedVariant.original_price > matchedVariant.price) {
                     originalPriceDisplay.style.display = 'block';
                     originalPriceDisplay.innerHTML = '<del>' + new Intl.NumberFormat('vi-VN').format(matchedVariant.original_price) + 'đ</del>';
-                    
+
                     priceDisplay.classList.add('text-danger');
-                    
+
                     if (discountPercentDisplay) {
                         const discount = Math.round((matchedVariant.original_price - matchedVariant.price) / matchedVariant.original_price * 100);
                         discountPercentDisplay.style.display = 'block';
@@ -441,7 +392,7 @@
                 } else {
                     originalPriceDisplay.style.display = 'none';
                     priceDisplay.classList.remove('text-danger');
-                    
+
                     if (discountPercentDisplay) {
                         discountPercentDisplay.style.display = 'none';
                     }

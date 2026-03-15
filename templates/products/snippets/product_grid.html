@@ -1,0 +1,41 @@
+<div class="row">
+    {% for product in products %}
+        {% include 'products/snippets/product_card.html' %}
+    {% empty %}
+        <div class="col-12 text-center py-5"><h5 class="text-muted">No products found</h5></div>
+    {% endfor %}
+</div>
+
+<!-- Pagination Start -->
+<div class="col-12 pb-1" id="pagination-container">
+    {% if products.paginator.num_pages > 1 %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center mb-3">
+            {% if products.has_previous %}
+            <li class="page-item">
+                <a class="page-link page-nav" href="#" data-page="{{ products.previous_page_number }}"
+                    aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% endif %}
+            {% for num in products.paginator.page_range %}
+            {% if products.number == num %}
+            <li class="page-item active"><a class="page-link page-nav" href="#" data-page="{{ num }}">{{ num }}</a></li>
+            {% else %}
+            <li class="page-item"><a class="page-link page-nav" href="#" data-page="{{ num }}">{{ num }}</a></li>
+            {% endif %}
+            {% endfor %}
+            {% if products.has_next %}
+            <li class="page-item">
+                <a class="page-link page-nav" href="#" data-page="{{ products.next_page_number }}"
+                    aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+<!-- Pagination End -->
