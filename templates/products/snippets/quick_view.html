@@ -1,0 +1,125 @@
+{% load humanize %}
+<div id="quick-add-root" class="container-fluid py-3">
+    <div class="row">
+        <div class="col-md-5 mb-3 mb-md-0">
+            <div class="border">
+                {% if product.image %}
+                <img class="w-100" src="{{ product.image.url }}" alt="{{ product.name }}">
+                {% else %}
+                <img class="w-100" src="" alt="{{ product.name }}">
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-7">
+            <h4 class="font-weight-semi-bold mb-2">{{ product.name }}</h4>
+            <div class="d-flex mb-3 align-items-center">
+                {% if product.get_discount_percentage > 0 %}
+                <h5 class="text-muted mb-0 mr-2" id="quick-product-original-price">
+                    <del>{{ product.get_original_price|floatformat:0|intcomma }}đ</del>
+                </h5>
+                <h4 class="font-weight-semi-bold mb-0 text-danger" id="quick-product-price">
+                    {{ product.get_price|floatformat:0|intcomma }}đ
+                </h4>
+                <h5 class="text-danger ml-2 mb-0" id="quick-product-discount-percent">
+                    -{{ product.get_discount_percentage|floatformat:0 }}%
+                </h5>
+                {% else %}
+                <h5 class="text-muted mb-0 mr-2" id="quick-product-original-price" style="display: none;">
+                    <del>{{ product.get_original_price|floatformat:0|intcomma }}đ</del>
+                </h5>
+                <h4 class="font-weight-semi-bold mb-0" id="quick-product-price">
+                    {{ product.get_price|floatformat:0|intcomma }}đ
+                </h4>
+                <h5 class="text-danger ml-2 mb-0" id="quick-product-discount-percent" style="display: none;"></h5>
+                {% endif %}
+            </div>
+
+            {% if product.description %}
+            <p class="mb-3 small text-muted" style="max-height: 80px; overflow: hidden;">
+                {{ product.description }}
+            </p>
+            {% endif %}
+
+            <form id="quick-add-to-cart-form" action="{% url 'add_to_cart' product.id %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="variant_id" id="quick-selected-variant-id" value="">
+
+                {% if product.variations.sizes %}
+                <div class="d-flex mb-2 align-items-center">
+                    <p class="text-dark font-weight-medium mb-0 mr-3">Sizes:</p>
+                    <div class="d-flex flex-wrap">
+                        {% for variation in product.variations.sizes %}
+                        <div class="swatch-option mr-2 mb-2">
+                            <input type="radio" class="swatch-input" id="quick-size-{{ variation.variation_value }}"
+                                name="size" value="{{ variation.variation_value }}">
+                            <label class="size-swatch" for="quick-size-{{ variation.variation_value }}">
+                                {{ variation.variation_value }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if product.variations.colors %}
+                <div class="d-flex mb-3 align-items-center">
+                    <p class="text-dark font-weight-medium mb-0 mr-3">Colors:</p>
+                    <div class="d-flex flex-wrap">
+                        {% for variation in product.variations.colors %}
+                        <div class="swatch-option mr-2 mb-2">
+                            <input type="radio" class="swatch-input" id="quick-color-{{ variation.variation_value }}"
+                                name="color" value="{{ variation.variation_value }}">
+                            <label class="color-swatch" for="quick-color-{{ variation.variation_value }}"
+                                style="background-color: {{ variation.variation_value | lower }};"
+                                title="{{ variation.variation_value }}"></label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <div id="quick-in-stock-controls">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="d-flex align-items-center mr-3 bg-secondary px-2"
+                            style="width: 130px; justify-content: space-between;">
+                            <button type="button" class="btn btn-primary quick-btn-minus" style="border-radius: 0;">
+                                <i class="fa fa-minus"></i>
+                            </button>
+                            <span id="quick-qty-display" class="font-weight-bold"
+                                style="font-size: 1rem; user-select: none;">1</span>
+                            <input type="hidden" name="quantity" id="quick-hidden-quantity" value="1">
+                            <button type="button" class="btn btn-primary quick-btn-plus" style="border-radius: 0;">
+                                <i class="fa fa-plus"></i>
+                            </button>
+                        </div>
+                        <button type="submit" class="btn btn-primary px-3">
+                            <i class="fa fa-shopping-cart mr-1"></i> Thêm vào giỏ
+                        </button>
+                    </div>
+                </div>
+            </form>
+            <div id="quick-out-of-stock-badge" style="display: none;">
+                <button type="button" class="btn btn-outline-dark px-4 py-2" style="font-weight: 600; cursor: default;"
+                    disabled>HẾT HÀNG</button>
+            </div>
+        </div>
+    </div>
+
+    <script id="quick-variants-json" type="application/json">
+        [
+        {% for variant in product.variants.all %}
+            {
+                "id": {{ variant.id }},
+                "price": {{ variant.get_price|floatformat:0 }},
+                "original_price": {{ variant.get_original_price|floatformat:0 }},
+                "stock": {{ variant.stock }},
+                "options": {
+                    {% for v in variant.variations.all %}
+                    "{{ v.variation_category }}": "{{ v.variation_value }}"{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                }
+            }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+        ]
+    </script>
+</div>

@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.db.models import Q, Sum
+from django.template.loader import render_to_string
 from .models import Product, Category, Variation
 
 SORT_OPTIONS = {
@@ -64,26 +65,8 @@ def category_list(request, slug):
     page_obj = paginator.get_page(page_number)
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        product_list = []
-        for p in page_obj:
-            product_list.append({
-                'name': p.name,
-                'slug': p.slug,
-                'price': str(p.get_price()),
-                'original_price': str(p.get_original_price()),
-                'image_url': p.image.url if p.image else '',
-                'detail_url': f'/product/{p.slug}/',
-            })
-        response = JsonResponse({
-            'products': product_list,
-            'page': page_obj.number,
-            'num_pages': paginator.num_pages,
-            'has_previous': page_obj.has_previous(),
-            'has_next': page_obj.has_next(),
-            'previous_page_number': page_obj.previous_page_number() if page_obj.has_previous() else None,
-            'next_page_number': page_obj.next_page_number() if page_obj.has_next() else None,
-            'page_range': list(paginator.page_range),
-        })
+        html = render_to_string('products/snippets/product_grid.html', {'products': page_obj}, request=request)
+        response = JsonResponse({'html': html})
         response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
         return response
 
@@ -157,26 +140,8 @@ def products_list(request):
 
     # AJAX request -> return JSON
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        product_list = []
-        for p in page_obj:
-            product_list.append({
-                'name': p.name,
-                'slug': p.slug,
-                'price': str(p.get_price()),
-                'original_price': str(p.get_original_price()),
-                'image_url': p.image.url if p.image else '',
-                'detail_url': p.get_absolute_url() if hasattr(p, 'get_absolute_url') else f'/product/{p.slug}/',
-            })
-        response = JsonResponse({
-            'products': product_list,
-            'page': page_obj.number,
-            'num_pages': paginator.num_pages,
-            'has_previous': page_obj.has_previous(),
-            'has_next': page_obj.has_next(),
-            'previous_page_number': page_obj.previous_page_number() if page_obj.has_previous() else None,
-            'next_page_number': page_obj.next_page_number() if page_obj.has_next() else None,
-            'page_range': list(paginator.page_range),
-        })
+        html = render_to_string('products/snippets/product_grid.html', {'products': page_obj}, request=request)
+        response = JsonResponse({'html': html})
         response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
         return response
 
@@ -203,7 +168,38 @@ def products_list(request):
 
 def product_detail(request, slug):
     product = get_object_or_404(Product, slug=slug)
-    return render(request, 'products/product_detail.html', {'product': product})
+
+    related_products = (
+        Product.objects
+        .filter(category=product.category)
+        .exclude(id=product.id)
+        .order_by('-created_at')[:4]
+    )
+
+    context = {
+        'product': product,
+        'related_products': related_products,
+    }
+    return render(request, 'products/product_detail.html', context)
+
+
+def product_quick_view(request, slug):
+    """
+    Return a small HTML fragment for the quick add-to-cart modal.
+
+    Loaded via AJAX from the product list page to keep initial page load fast.
+    """
+    product = get_object_or_404(
+        Product.objects.prefetch_related("variants__variations"),
+        slug=slug,
+    )
+
+    html = render_to_string(
+        "products/snippets/quick_view.html",
+        {"product": product},
+        request=request,
+    )
+    return JsonResponse({"html": html})
 
 
 def search_suggestions(request):

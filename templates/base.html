@@ -64,11 +64,11 @@
             font-size: 14px;
             font-weight: 500;
             color: #1a1a1a;
-            box-shadow: 0 4px 16px rgba(0,0,0,.12);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, .12);
             pointer-events: auto;
             transform: translateX(120%);
             opacity: 0;
-            transition: transform .4s cubic-bezier(.22,1,.36,1), opacity .4s ease;
+            transition: transform .4s cubic-bezier(.22, 1, .36, 1), opacity .4s ease;
         }
 
         .toast-notification.show {
@@ -115,18 +115,46 @@
         }
 
         /* Type variants */
-        .toast-success  { background: #4caf50; color: #fff; }
-        .toast-info     { background: #5bc0de; color: #fff; }
-        .toast-warning  { background: #f0ad4e; color: #1a1a1a; }
-        .toast-danger,
-        .toast-error    { background: #e74c3c; color: #fff; }
-        .toast-default  { background: #f5f5f5; color: #1a1a1a; border: 1px solid #ddd; }
+        .toast-success {
+            background: #4caf50;
+            color: #fff;
+        }
 
-        .toast-warning .toast-close { color: #1a1a1a; }
-        .toast-default .toast-close { color: #1a1a1a; }
+        .toast-info {
+            background: #5bc0de;
+            color: #fff;
+        }
+
+        .toast-warning {
+            background: #f0ad4e;
+            color: #1a1a1a;
+        }
+
+        .toast-danger,
+        .toast-error {
+            background: #e74c3c;
+            color: #fff;
+        }
+
+        .toast-default {
+            background: #f5f5f5;
+            color: #1a1a1a;
+            border: 1px solid #ddd;
+        }
+
+        .toast-warning .toast-close {
+            color: #1a1a1a;
+        }
+
+        .toast-default .toast-close {
+            color: #1a1a1a;
+        }
 
         /* ===== Search Autocomplete ===== */
-        .search-wrapper { position: relative; }
+        .search-wrapper {
+            position: relative;
+        }
+
         .search-dropdown {
             display: none;
             position: absolute;
@@ -137,11 +165,12 @@
             border: 1px solid #ddd;
             border-top: none;
             border-radius: 0 0 4px 4px;
-            box-shadow: 0 4px 12px rgba(0,0,0,.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
             z-index: 10000;
             max-height: 420px;
             overflow-y: auto;
         }
+
         .search-dropdown .search-item {
             display: flex;
             align-items: center;
@@ -151,12 +180,14 @@
             border-bottom: 1px solid #f0f0f0;
             transition: background .15s;
         }
+
         .search-dropdown .search-item:hover,
         .search-dropdown .search-item.active {
             background: #f5f5f5;
             text-decoration: none;
             color: #333;
         }
+
         .search-dropdown .search-item img {
             width: 44px;
             height: 44px;
@@ -165,7 +196,12 @@
             margin-right: 12px;
             flex-shrink: 0;
         }
-        .search-dropdown .search-item-info { flex: 1; min-width: 0; }
+
+        .search-dropdown .search-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
         .search-dropdown .search-item-name {
             font-size: 14px;
             font-weight: 500;
@@ -173,16 +209,19 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+
         .search-dropdown .search-item-meta {
             font-size: 12px;
             color: #888;
         }
+
         .search-dropdown .search-no-results {
             padding: 14px;
             text-align: center;
             color: #888;
             font-size: 14px;
         }
+
         .search-dropdown .search-view-all {
             display: block;
             text-align: center;
@@ -192,6 +231,7 @@
             color: #D19C97;
             border-top: 1px solid #eee;
         }
+
         .search-dropdown .search-view-all:hover {
             background: #fafafa;
             text-decoration: none;
@@ -212,9 +252,11 @@
             </div>
             <div class="col-lg-6 col-6 text-left">
                 <div class="search-wrapper">
-                    <form action="{% url 'products' %}" onsubmit="return this.keyword.value.trim() !== ''" autocomplete="off">
+                    <form action="{% url 'products' %}" onsubmit="return this.keyword.value.trim() !== ''"
+                        autocomplete="off">
                         <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Search for products" name="keyword" id="search-input">
+                            <input type="text" class="form-control" placeholder="Search for products" name="keyword"
+                                id="search-input">
                             <div class="input-group-append">
                                 <span class="input-group-text bg-transparent text-primary"
                                     onclick="if(this.closest('form').keyword.value.trim() !== '') this.closest('form').submit()"
@@ -277,7 +319,9 @@
                             <a href="{% url 'contact' %}" class="nav-item nav-link">Contact</a>
                         </div>
                         {% if user.is_authenticated %}
-                        <a href="{% url 'profile' %}" class="nav-item nav-link font-weight-bold text-primary">Hi, {{ user.username }}</a>
+                        <a href="{% url 'profile' %}" class="nav-item nav-link font-weight-bold text-primary">
+                            Hi, {{ user.username }}
+                        </a>
                         <a href="{% url 'logout' %}" class="nav-item nav-link">Logout</a>
                         {% else %}
                         <a href="{% url 'login' %}" class="nav-item nav-link">Login</a>
@@ -298,13 +342,15 @@
         <div class="row px-xl-5 pt-5">
             <div class="col-lg-4 col-md-12 mb-5 pr-3 pr-xl-5">
                 <a href="{% url 'home' %}" class="text-decoration-none">
-                    <h1 class="mb-4 display-5 font-weight-semi-bold"><span
-                            class="text-primary font-weight-bold border border-white px-3 mr-1">E</span>Shopper</h1>
+                    <h1 class="mb-4 display-5 font-weight-semi-bold">
+                        <span class="text-primary font-weight-bold border border-white px-3 mr-1">E</span>Shopper
+                    </h1>
                 </a>
                 <p>Dolore erat dolor sit lorem vero amet. Sed sit lorem magna, ipsum no sit erat lorem et magna ipsum
                     dolore amet erat.</p>
-                <p class="mb-2"><i class="fa fa-map-marker-alt text-primary mr-3"></i>123 Street, New York, USA</p>
-                <p class="mb-2"><i class="fa fa-envelope text-primary mr-3"></i>info@example.com</p>
+                <p class="mb-2"><i class="fa fa-map-marker-alt text-primary mr-3"></i>218 Linh Nam, Hoang Mai, Ha Noi
+                </p>
+                <p class="mb-2"><i class="fa fa-envelope text-primary mr-3"></i>hoanggduongg2004@gmail.com</p>
                 <p class="mb-0"><i class="fa fa-phone-alt text-primary mr-3"></i>+012 345 67890</p>
             </div>
             <div class="col-lg-8 col-md-12">
@@ -400,55 +446,55 @@
     <div class="toast-container" id="toast-container"></div>
 
     <script>
-    function showToast(message, type, duration) {
-        type = type || 'default';
-        duration = duration || 4000;
-        var container = document.getElementById('toast-container');
-        if (!container) return;
+        function showToast(message, type, duration) {
+            type = type || 'default';
+            duration = duration || 4000;
+            var container = document.getElementById('toast-container');
+            if (!container) return;
 
-        var iconMap = {
-            success: '<i class="fas fa-check-circle"></i>',
-            info:    '<i class="fas fa-info-circle"></i>',
-            warning: '<i class="fas fa-exclamation-circle"></i>',
-            danger:  '<i class="fas fa-exclamation-triangle"></i>',
-            error:   '<i class="fas fa-exclamation-triangle"></i>',
-            default: '<i class="fas fa-cog"></i>'
-        };
+            var iconMap = {
+                success: '<i class="fas fa-check-circle"></i>',
+                info: '<i class="fas fa-info-circle"></i>',
+                warning: '<i class="fas fa-exclamation-circle"></i>',
+                danger: '<i class="fas fa-exclamation-triangle"></i>',
+                error: '<i class="fas fa-exclamation-triangle"></i>',
+                default: '<i class="fas fa-cog"></i>'
+            };
 
-        var toast = document.createElement('div');
-        toast.className = 'toast-notification toast-' + type;
-        toast.innerHTML =
-            '<span class="toast-icon">' + (iconMap[type] || iconMap['default']) + '</span>' +
-            '<span class="toast-message">' + message + '</span>' +
-            '<button class="toast-close" aria-label="Close">&times;</button>';
+            var toast = document.createElement('div');
+            toast.className = 'toast-notification toast-' + type;
+            toast.innerHTML =
+                '<span class="toast-icon">' + (iconMap[type] || iconMap['default']) + '</span>' +
+                '<span class="toast-message">' + message + '</span>' +
+                '<button class="toast-close" aria-label="Close">&times;</button>';
 
-        container.appendChild(toast);
+            container.appendChild(toast);
 
-        // Trigger reflow then animate in
-        toast.offsetHeight;
-        toast.classList.add('show');
+            // Trigger reflow then animate in
+            toast.offsetHeight;
+            toast.classList.add('show');
 
-        function dismiss() {
-            toast.classList.remove('show');
-            toast.classList.add('hide');
-            setTimeout(function() { toast.remove(); }, 400);
+            function dismiss() {
+                toast.classList.remove('show');
+                toast.classList.add('hide');
+                setTimeout(function () { toast.remove(); }, 400);
+            }
+
+            toast.querySelector('.toast-close').addEventListener('click', dismiss);
+            if (duration > 0) setTimeout(dismiss, duration);
         }
-
-        toast.querySelector('.toast-close').addEventListener('click', dismiss);
-        if (duration > 0) setTimeout(dismiss, duration);
-    }
     </script>
 
     {% if messages %}
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        {% for message in messages %}
-        showToast(
-            '{{ message|escapejs }}',
-            '{% if message.tags == "error" %}danger{% elif message.tags %}{{ message.tags }}{% else %}info{% endif %}'
-        );
-        {% endfor %}
-    });
+        document.addEventListener('DOMContentLoaded', function () {
+            {% for message in messages %}
+            showToast(
+                '{{ message|escapejs }}',
+                '{% if message.tags == "error" %}danger{% elif message.tags %}{{ message.tags }}{% else %}info{% endif %}'
+            );
+            {% endfor %}
+        });
     </script>
     {% endif %}
 </body>

@@ -261,6 +261,9 @@ def place_order_view(request):
             # Xóa cart ngay vì COD không cần xác nhận thanh toán
             CartItem.objects.filter(user=request.user, is_active=True).delete()
 
+            # Lưu order_number vào session để hiển thị ở trang thành công
+            request.session['cod_order_number'] = order.order_number
+
             order_items = OrderItem.objects.filter(order=order).select_related('variant')
             for item in order_items:
                 variant = item.variant
@@ -307,6 +310,8 @@ def place_order_view(request):
             pay_url = momo_response.get('payUrl')
 
             if pay_url:
+                # Backup: lưu order_number vào session phòng khi cần
+                request.session['pending_momo_order'] = order.order_number
                 return redirect(pay_url)
             else:
                 # MoMo trả về lỗi (resultCode != 0)
@@ -330,8 +335,12 @@ def place_order_view(request):
 
 
 def order_success_view(request):
-    """Hiển thị trang đặt hàng thành công."""
-    return render(request, 'orders/order_successful.html')
+    """Hiển thị trang đặt hàng thành công (dùng cho COD)."""
+    order_number = request.session.pop('cod_order_number', '')
+    return render(request, 'orders/order_successful.html', {
+        'order_number': order_number,
+        'is_momo': False,
+    })
 
 
 @csrf_exempt
@@ -408,16 +417,52 @@ def momo_return_view(request):
 
     LƯU Ý: View này KHÔNG đánh dấu paid — chỉ dùng để hiển thị
     kết quả cho user. Việc xác nhận thanh toán chỉ qua IPN.
+
+    Fix logout: Dùng orderId từ query params (MoMo gửi kèm) thay vì
+    dựa vào session. Render trực tiếp template thay vì redirect thêm
+    lần nữa, tránh mất session cookie qua ngrok interstitial.
     """
     try:
         result_code = int(request.GET.get('resultCode', -1))
     except (ValueError, TypeError):
         result_code = -1
 
+    # Lấy order_number: ưu tiên từ URL param → fallback session
+    order_number = request.GET.get('orderId', '')
+    if not order_number:
+        order_number = request.session.pop('pending_momo_order', '')
+
     if result_code == 0:
-        # Thanh toán thành công → hiển thị trang thành công
-        return redirect('order_successful')
+        # Thanh toán thành công → render trực tiếp (không redirect)
+        return render(request, 'orders/order_successful.html', {
+            'order_number': order_number,
+            'is_momo': True,
+        })
     else:
         # Thanh toán thất bại hoặc bị hủy
         messages.error(request, 'Thanh toán MoMo không thành công. Vui lòng thử lại.')
-        return render(request, 'orders/order_failed.html')
+        return render(request, 'orders/order_failed.html', {
+            'order_number': order_number,
+        })
+
+
+def momo_check_status_view(request):
+    """
+    API endpoint để JS poll kiểm tra trạng thái thanh toán MoMo.
+    IPN từ MoMo sẽ cập nhật payment_status → JS poll endpoint này
+    để biết khi nào hiển thị kết quả cuối cùng cho user.
+
+    GET /orders/payment/momo/check-status/?order_number=...
+    → JSON { "status": "paid" | "pending" | "not_found" }
+    """
+    order_number = request.GET.get('order_number', '')
+    if not order_number:
+        return JsonResponse({'status': 'not_found'}, status=400)
+
+    try:
+        order = Order.objects.get(order_number=order_number)
+    except Order.DoesNotExist:
+        # Order bị xóa (IPN trả thất bại) hoặc không tồn tại
+        return JsonResponse({'status': 'not_found'})
+
+    return JsonResponse({'status': order.payment_status})
