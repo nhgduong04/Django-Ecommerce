@@ -183,6 +183,25 @@ def product_detail(request, slug):
     return render(request, 'products/product_detail.html', context)
 
 
+def product_quick_view(request, slug):
+    """
+    Return a small HTML fragment for the quick add-to-cart modal.
+
+    Loaded via AJAX from the product list page to keep initial page load fast.
+    """
+    product = get_object_or_404(
+        Product.objects.prefetch_related("variants__variations"),
+        slug=slug,
+    )
+
+    html = render_to_string(
+        "products/snippets/quick_view.html",
+        {"product": product},
+        request=request,
+    )
+    return JsonResponse({"html": html})
+
+
 def search_suggestions(request):
     query = request.GET.get('q', '').strip()
     if len(query) < 2:

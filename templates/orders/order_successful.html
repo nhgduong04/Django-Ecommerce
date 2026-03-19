@@ -171,6 +171,62 @@
         transform: translateY(-1px);
     }
 
+    /* ── MoMo Pending Spinner ── */
+    .momo-pending-section {
+        margin-bottom: 30px;
+        animation: fadeUp 0.5s 0.3s ease both;
+    }
+
+    .momo-spinner {
+        width: 90px;
+        height: 90px;
+        margin: 0 auto 30px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #fff7ed 0%, #fef3c7 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 20px rgba(217, 119, 6, 0.08);
+        position: relative;
+    }
+
+    .momo-spinner::before {
+        content: '';
+        position: absolute;
+        inset: -8px;
+        border-radius: 50%;
+        border: 2px solid rgba(217, 119, 6, 0.06);
+    }
+
+    .momo-spinner::after {
+        content: '';
+        width: 36px;
+        height: 36px;
+        border: 3px solid #e5e7eb;
+        border-top-color: #d97706;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .momo-pending-title {
+        font-family: 'Poppins', sans-serif;
+        font-size: 28px;
+        font-weight: 700;
+        color: #1a1f36;
+        margin-bottom: 16px;
+    }
+
+    .momo-pending-message {
+        font-family: 'Poppins', sans-serif;
+        font-size: 14px;
+        color: #6b7280;
+        line-height: 1.7;
+    }
+
     @media (max-width: 480px) {
         .success-actions {
             flex-direction: column;
@@ -182,7 +238,8 @@
             text-align: center;
         }
 
-        .success-title {
+        .success-title,
+        .momo-pending-title {
             font-size: 24px;
         }
     }
@@ -190,24 +247,44 @@
 
 <div class="order-success-wrapper">
     <div class="order-success-card">
-        <!-- Success Icon -->
-        <div class="success-icon">
-            <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-                <circle class="checkmark-circle" cx="20" cy="20" r="18" />
-                <path class="checkmark-check" d="M12 20 l6 6 l10 -12" />
-            </svg>
+
+        {% if is_momo %}
+        <!-- ── MoMo: Chờ xác nhận thanh toán ── -->
+        <div id="momo-pending" class="momo-pending-section">
+            <div class="momo-spinner"></div>
+            <h1 class="momo-pending-title">Đang xác nhận thanh toán...</h1>
+            <p class="momo-pending-message">
+                Đơn hàng <span class="order-number">{{ order_number }}</span> đang chờ xác nhận từ MoMo.<br>
+                Vui lòng đợi trong giây lát.
+            </p>
         </div>
 
-        <!-- Title -->
-        <h1 class="success-title">Purchase Success!</h1>
+        <!-- ── MoMo: Thành công (ẩn ban đầu) ── -->
+        <div id="momo-confirmed" style="display: none;">
+        {% endif %}
 
-        <!-- Message -->
-        <p class="success-message">
-            Thank's for your order at EShopper. Your order will be processed as soon as possible.
-            Make sure you make note of your order number, which is
-            <span class="order-number">{{ order_number|default:"1234ABCD56EF" }}</span>.
-            You will be receiving an email shortly with invoice from your order.
-        </p>
+            <!-- Success Icon -->
+            <div class="success-icon">
+                <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                    <circle class="checkmark-circle" cx="20" cy="20" r="18" />
+                    <path class="checkmark-check" d="M12 20 l6 6 l10 -12" />
+                </svg>
+            </div>
+
+            <!-- Title -->
+            <h1 class="success-title">Purchase Success!</h1>
+
+            <!-- Message -->
+            <p class="success-message">
+                Thank's for your order at EShopper. Your order will be processed as soon as possible.
+                Make sure you make note of your order number, which is
+                <span class="order-number">{{ order_number|default:"N/A" }}</span>.
+                You will be receiving an email shortly with invoice from your order.
+            </p>
+
+        {% if is_momo %}
+        </div>
+        {% endif %}
 
         <!-- Action Buttons -->
         <div class="success-actions">
@@ -216,4 +293,64 @@
         </div>
     </div>
 </div>
-{% endblock %}
+
+{% if is_momo %}
+<script>
+(function() {
+    var orderNumber = '{{ order_number|escapejs }}';
+    var pendingEl = document.getElementById('momo-pending');
+    var confirmedEl = document.getElementById('momo-confirmed');
+    var attempts = 0;
+    var maxAttempts = 10;
+    var intervalMs = 3000;
+
+    if (!orderNumber) {
+        // Không có order number → hiện thẳng kết quả
+        pendingEl.style.display = 'none';
+        confirmedEl.style.display = 'block';
+        return;
+    }
+
+    var timer = setInterval(function() {
+        attempts++;
+
+        fetch('{% url "momo_check_status" %}?order_number=' + encodeURIComponent(orderNumber))
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data.status === 'paid') {
+                    // IPN đã xác nhận → hiện thành công
+                    clearInterval(timer);
+                    pendingEl.style.display = 'none';
+                    confirmedEl.style.display = 'block';
+                } else if (data.status === 'not_found') {
+                    // Order bị xóa (IPN thất bại)
+                    clearInterval(timer);
+                    pendingEl.innerHTML =
+                        '<div class="momo-spinner" style="background:linear-gradient(135deg,#fff0f0,#fde8e8);">' +
+                        '<i class="fas fa-times" style="font-size:28px;color:#dc3545;position:relative;z-index:1;"></i></div>' +
+                        '<h1 class="momo-pending-title">Thanh toán thất bại</h1>' +
+                        '<p class="momo-pending-message">Đơn hàng đã bị hủy do thanh toán không thành công.<br>Vui lòng thử lại.</p>';
+                    pendingEl.querySelector('.momo-spinner').style.cssText +=
+                        'background:linear-gradient(135deg,#fff0f0,#fde8e8);';
+                } else if (attempts >= maxAttempts) {
+                    // Hết thời gian poll → thông báo chờ email
+                    clearInterval(timer);
+                    pendingEl.style.display = 'none';
+                    confirmedEl.style.display = 'block';
+                    confirmedEl.querySelector('.success-message').innerHTML =
+                        'Đơn hàng <span class="order-number">' + orderNumber + '</span> đang được xác nhận.' +
+                        '<br>Bạn sẽ nhận email xác nhận khi thanh toán hoàn tất.';
+                }
+            })
+            .catch(function() {
+                if (attempts >= maxAttempts) {
+                    clearInterval(timer);
+                    pendingEl.style.display = 'none';
+                    confirmedEl.style.display = 'block';
+                }
+            });
+    }, intervalMs);
+})();
+</script>
+{% endif %}
+{% endblock %}

@@ -36,6 +36,51 @@
         box-shadow: 0 1px 4px rgba(0, 0, 0, .2);
         cursor: pointer;
     }
+
+    /* Reuse swatch styles from detail page for consistency */
+    .swatch-input {
+        display: none;
+    }
+
+    .size-swatch {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        line-height: 38px;
+        text-align: center;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        background-color: #fff;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease-in-out;
+        margin-bottom: 0;
+        color: #6C757D;
+    }
+
+    .swatch-input:checked+.size-swatch {
+        background-color: #D19C97;
+        color: #fff;
+        border-color: #D19C97;
+    }
+
+    .color-swatch {
+        display: inline-block;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 1px solid #dee2e6;
+        transition: all 0.2s ease-in-out;
+        margin-bottom: 0;
+        position: relative;
+    }
+
+    .swatch-input:checked+.color-swatch {
+        border-color: #D19C97;
+        transform: scale(1.1);
+        box-shadow: 0 0 0 2px #fff inset, 0 0 0 3px #D19C97;
+    }
 </style>
 <!-- Page Header Start -->
 <div class="container-fluid bg-secondary mb-5">
@@ -152,6 +197,27 @@
             </div>
         </div>
         <!-- Shop Product End -->
+    </div>
+</div>
+
+<!-- Quick Add To Cart Modal -->
+<div class="modal fade" id="quickAddModal" tabindex="-1" role="dialog" aria-labelledby="quickAddModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-2">
+                <h5 class="modal-title font-weight-semi-bold" id="quickAddModalLabel">Thêm nhanh vào giỏ</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body pt-0" id="quick-add-modal-body">
+                <!-- Filled via AJAX -->
+                <div class="text-center py-4 text-muted small d-none" id="quick-add-loading">
+                    <span class="spinner-border spinner-border-sm mr-2"></span>Đang tải sản phẩm...
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -334,6 +400,283 @@
 
         // ===== Init from URL on page load =====
         syncUIFromURL();
+
+        // ===== Quick Add To Cart Modal Logic =====
+        function getCookie(name) {
+            if (!document.cookie) return null;
+            const cookies = document.cookie.split(';')
+                .map(c => c.trim())
+                .filter(c => c.startsWith(name + '='));
+            if (!cookies.length) return null;
+            return decodeURIComponent(cookies[0].split('=')[1]);
+        }
+
+        const productsContainer = document.getElementById('filtered-products-container');
+        const quickModal = document.getElementById('quickAddModal');
+        const quickModalBody = document.getElementById('quick-add-modal-body');
+        const quickLoading = document.getElementById('quick-add-loading');
+
+        function initQuickAddModalInteractions() {
+            if (!quickModalBody) return;
+            const root = quickModalBody.querySelector('#quick-add-root');
+            if (!root) return;
+
+            const variantsScript = root.querySelector('#quick-variants-json');
+            let variantsData = [];
+            if (variantsScript) {
+                try {
+                    variantsData = JSON.parse(variantsScript.textContent || '[]');
+                } catch (e) {
+                    console.error('Invalid variants JSON', e);
+                }
+            }
+
+            const btnMinus = root.querySelector('.quick-btn-minus');
+            const btnPlus = root.querySelector('.quick-btn-plus');
+            const qtyDisplay = root.querySelector('#quick-qty-display');
+            const hiddenInput = root.querySelector('#quick-hidden-quantity');
+            const form = root.querySelector('#quick-add-to-cart-form');
+            const variantIdInput = root.querySelector('#quick-selected-variant-id');
+            const priceDisplay = root.querySelector('#quick-product-price');
+
+            const optionNames = new Set();
+            root.querySelectorAll('.swatch-input').forEach(function (input) {
+                optionNames.add(input.name);
+            });
+
+            let currentMaxStock = null;
+
+            function resetQuantity() {
+                if (hiddenInput) hiddenInput.value = '1';
+                if (qtyDisplay) qtyDisplay.textContent = '1';
+            }
+
+            function updateSelectedVariant() {
+                const selectedOptions = {};
+                root.querySelectorAll('.swatch-input:checked').forEach(function (input) {
+                    selectedOptions[input.name] = input.value;
+                });
+
+                let matchedVariant = null;
+                if (Object.keys(selectedOptions).length > 0 && Object.keys(selectedOptions).length === optionNames.size) {
+                    matchedVariant = variantsData.find(function (v) {
+                        for (const key in selectedOptions) {
+                            if (Object.prototype.hasOwnProperty.call(selectedOptions, key)) {
+                                if (v.options[key] !== selectedOptions[key]) return false;
+                            }
+                        }
+                        return true;
+                    });
+                } else if (optionNames.size === 0 && variantsData.length > 0) {
+                    matchedVariant = variantsData[0];
+                }
+
+                const newStock = matchedVariant ? matchedVariant.stock : null;
+                if (newStock !== currentMaxStock) {
+                    currentMaxStock = newStock;
+                    resetQuantity();
+                }
+
+                const inStockControls = root.querySelector('#quick-in-stock-controls');
+                const outOfStockBadge = root.querySelector('#quick-out-of-stock-badge');
+
+                if (matchedVariant) {
+                    if (variantIdInput) variantIdInput.value = matchedVariant.id;
+                    if (priceDisplay) {
+                        priceDisplay.textContent = new Intl.NumberFormat('vi-VN').format(matchedVariant.price) + 'đ';
+                    }
+
+                    const originalPriceDisplay = root.querySelector('#quick-product-original-price');
+                    const discountPercentDisplay = root.querySelector('#quick-product-discount-percent');
+
+                    if (originalPriceDisplay) {
+                        if (matchedVariant.original_price > matchedVariant.price) {
+                            originalPriceDisplay.style.display = 'block';
+                            originalPriceDisplay.innerHTML = '<del>' + new Intl.NumberFormat('vi-VN').format(matchedVariant.original_price) + 'đ</del>';
+
+                            priceDisplay && priceDisplay.classList.add('text-danger');
+
+                            if (discountPercentDisplay) {
+                                const discount = Math.round((matchedVariant.original_price - matchedVariant.price) / matchedVariant.original_price * 100);
+                                discountPercentDisplay.style.display = 'block';
+                                discountPercentDisplay.textContent = '-' + discount + '%';
+                            }
+                        } else {
+                            originalPriceDisplay.style.display = 'none';
+                            priceDisplay && priceDisplay.classList.remove('text-danger');
+
+                            if (discountPercentDisplay) {
+                                discountPercentDisplay.style.display = 'none';
+                            }
+                        }
+                    }
+
+                    if (matchedVariant.stock <= 0) {
+                        if (inStockControls) inStockControls.style.display = 'none';
+                        if (outOfStockBadge) outOfStockBadge.style.display = 'block';
+                    } else {
+                        if (inStockControls) inStockControls.style.display = '';
+                        if (outOfStockBadge) outOfStockBadge.style.display = 'none';
+                    }
+                } else {
+                    if (variantIdInput) variantIdInput.value = '';
+                    const inStockControls = root.querySelector('#quick-in-stock-controls');
+                    const outOfStockBadge = root.querySelector('#quick-out-of-stock-badge');
+                    if (inStockControls) inStockControls.style.display = '';
+                    if (outOfStockBadge) outOfStockBadge.style.display = 'none';
+                }
+            }
+
+            root.querySelectorAll('.swatch-input').forEach(function (input) {
+                input.addEventListener('change', updateSelectedVariant);
+            });
+
+            root.querySelectorAll('.d-flex.flex-wrap').forEach(function (group) {
+                const radios = group.querySelectorAll('.swatch-input');
+                if (radios.length === 1) {
+                    radios[0].checked = true;
+                }
+            });
+
+            updateSelectedVariant();
+
+            if (btnMinus && btnPlus && qtyDisplay && hiddenInput) {
+                btnMinus.addEventListener('click', function () {
+                    let currentVal = parseInt(hiddenInput.value, 10) || 1;
+                    if (currentVal > 1) {
+                        currentVal--;
+                        hiddenInput.value = String(currentVal);
+                        qtyDisplay.textContent = String(currentVal);
+                    }
+                });
+
+                btnPlus.addEventListener('click', function () {
+                    let currentVal = parseInt(hiddenInput.value, 10) || 1;
+                    if (currentMaxStock !== null && currentVal >= currentMaxStock) {
+                        showToast('Bạn chỉ có thể mua tối đa ' + currentMaxStock + ' sản phẩm', 'warning');
+                        return;
+                    }
+                    currentVal++;
+                    hiddenInput.value = String(currentVal);
+                    qtyDisplay.textContent = String(currentVal);
+                });
+            }
+
+            if (form) {
+                form.addEventListener('submit', function (e) {
+                    if (!window.fetch) return;
+                    e.preventDefault();
+
+                    if (optionNames.size > 0 && (!variantIdInput || !variantIdInput.value)) {
+                        const selectedCount = root.querySelectorAll('.swatch-input:checked').length;
+                        if (selectedCount < optionNames.size) {
+                            showToast('Vui lòng chọn đầy đủ biến thể trước khi thêm vào giỏ.', 'warning');
+                        } else {
+                            showToast('Không tồn tại biến thể phù hợp với lựa chọn của bạn. Vui lòng thử lại.', 'danger');
+                        }
+                        return;
+                    }
+
+                    const url = form.getAttribute('action');
+                    const formData = new FormData(form);
+                    const csrftoken = getCookie('csrftoken');
+
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            ...(csrftoken ? { 'X-CSRFToken': csrftoken } : {})
+                        },
+                        body: formData,
+                        credentials: 'same-origin'
+                    })
+                        .then(function (response) {
+                            return response.json().then(function (data) {
+                                return { ok: response.ok, status: response.status, data: data };
+                            }).catch(function () {
+                                return { ok: response.ok, status: response.status, data: null };
+                            });
+                        })
+                        .then(function (res) {
+                            const data = res.data;
+                            if (!data) {
+                                showToast('Có lỗi xảy ra.', 'danger');
+                                return;
+                            }
+
+                            if (res.ok && data.success) {
+                                const cartBadge = document.getElementById('cart-badge');
+                                if (cartBadge) cartBadge.innerText = data.cart_quantity;
+                                if (window.jQuery && $('#quickAddModal').modal) {
+                                    $('#quickAddModal').modal('hide');
+                                } else if (quickModal) {
+                                    quickModal.classList.remove('show');
+                                }
+                                showToast('Đã thêm sản phẩm vào giỏ hàng thành công!', 'success');
+                                return;
+                            }
+
+                            if (res.status === 409 && data.error === 'out_of_stock') {
+                                showToast('Sản phẩm đã hết hàng hoặc vượt quá tồn kho.', 'warning');
+                                return;
+                            }
+
+                            showToast(data.message || data.error || 'Không thể thêm vào giỏ hàng.', 'danger');
+                        })
+                        .catch(function (err) {
+                            console.error(err);
+                            showToast('Không thể kết nối server.', 'danger');
+                        });
+                });
+            }
+        }
+
+        function openQuickAddModal(url) {
+            if (!quickModal || !quickModalBody) return;
+
+            quickModalBody.innerHTML = '';
+            if (quickLoading) {
+                quickLoading.classList.remove('d-none');
+                quickModalBody.appendChild(quickLoading);
+            }
+
+            if (window.jQuery && $('#quickAddModal').modal) {
+                $('#quickAddModal').modal('show');
+            }
+
+            fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    if (!data || !data.html) {
+                        throw new Error('Invalid response');
+                    }
+                    quickModalBody.innerHTML = data.html;
+                    initQuickAddModalInteractions();
+                })
+                .catch(function (err) {
+                    console.error(err);
+                    quickModalBody.innerHTML = '<p class="text-center text-danger mb-0">Không thể tải thông tin sản phẩm.</p>';
+                });
+        }
+
+        if (productsContainer) {
+            productsContainer.addEventListener('click', function (e) {
+                const btn = e.target.closest('.js-quick-add-btn');
+                if (!btn) return;
+                e.preventDefault();
+                const url = btn.getAttribute('data-quick-url');
+                if (!url) {
+                    const fallback = btn.getAttribute('href');
+                    if (fallback) {
+                        window.location.href = fallback;
+                    }
+                    return;
+                }
+                openQuickAddModal(url);
+            });
+        }
     });
 </script>
 <!-- Shop End -->
