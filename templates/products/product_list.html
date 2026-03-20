@@ -3,85 +3,10 @@
 {% load humanize %}
 {% block title %}{% if category %}{{ category.name }}{% else %}Tất cả sản phẩm{% endif %}{% endblock %}
 {% block content %}
-<style>
-    /* Dual range slider thumb styles */
-    #price-min,
-    #price-max {
-        pointer-events: none;
-        z-index: 2;
-    }
+{% block extra_css %}
+<link href="{% static 'custom/pages/products.css' %}" rel="stylesheet">
+{% endblock %}
 
-    #price-min::-webkit-slider-thumb,
-    #price-max::-webkit-slider-thumb {
-        pointer-events: all;
-        -webkit-appearance: none;
-        appearance: none;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: var(--primary);
-        border: 2px solid #fff;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, .2);
-        cursor: pointer;
-    }
-
-    #price-min::-moz-range-thumb,
-    #price-max::-moz-range-thumb {
-        pointer-events: all;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: var(--primary);
-        border: 2px solid #fff;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, .2);
-        cursor: pointer;
-    }
-
-    /* Reuse swatch styles from detail page for consistency */
-    .swatch-input {
-        display: none;
-    }
-
-    .size-swatch {
-        display: inline-block;
-        width: 40px;
-        height: 40px;
-        line-height: 38px;
-        text-align: center;
-        border: 1px solid #dee2e6;
-        border-radius: 5px;
-        background-color: #fff;
-        cursor: pointer;
-        font-weight: 500;
-        transition: all 0.2s ease-in-out;
-        margin-bottom: 0;
-        color: #6C757D;
-    }
-
-    .swatch-input:checked+.size-swatch {
-        background-color: #D19C97;
-        color: #fff;
-        border-color: #D19C97;
-    }
-
-    .color-swatch {
-        display: inline-block;
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        cursor: pointer;
-        border: 1px solid #dee2e6;
-        transition: all 0.2s ease-in-out;
-        margin-bottom: 0;
-        position: relative;
-    }
-
-    .swatch-input:checked+.color-swatch {
-        border-color: #D19C97;
-        transform: scale(1.1);
-        box-shadow: 0 0 0 2px #fff inset, 0 0 0 3px #D19C97;
-    }
-</style>
 <!-- Page Header Start -->
 <div class="container-fluid bg-secondary mb-5">
     <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">

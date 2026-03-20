@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Account - EShopper{% endblock %}
 
@@ -16,40 +17,10 @@
 </div>
 <!-- Page Header End -->
 
-<style>
-    .profile-sidebar ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
+{% block extra_css %}
+<link href="{% static 'custom/pages/profile.css' %}" rel="stylesheet">
+{% endblock %}
 
-    .profile-sidebar ul li {
-        margin-bottom: 10px;
-    }
-
-    .profile-sidebar .nav-link {
-        color: #333;
-        padding: 5px 0;
-        text-decoration: none;
-        display: block;
-        font-size: 15px;
-        transition: color 0.3s;
-    }
-
-    .profile-sidebar .nav-link.active {
-        color: #D19C97 !important;
-        font-weight: 600;
-    }
-
-    .profile-sidebar .nav-link:hover {
-        color: #D19C97 !important;
-    }
-
-    .profile-content h5 {
-        font-weight: 500;
-        font-size: 18px;
-    }
-</style>
 
 <!-- Profile Start -->
 <div class="container-fluid py-5">

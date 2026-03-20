@@ -3,86 +3,10 @@
 {% load humanize %}
 {% block title %}{{ product.name }}{% endblock %}
 {% block content %}
-<style>
-    /* Swatch Styles */
-    .swatch-input {
-        display: none;
-    }
+{% block extra_css %}
+<link href="{% static 'custom/pages/products.css' %}" rel="stylesheet">
+{% endblock %}
 
-    .size-swatch {
-        display: inline-block;
-        width: 40px;
-        height: 40px;
-        line-height: 38px;
-        text-align: center;
-        border: 1px solid #dee2e6;
-        border-radius: 5px;
-        background-color: #fff;
-        cursor: pointer;
-        font-weight: 500;
-        transition: all 0.2s ease-in-out;
-        margin-bottom: 0;
-        color: #6C757D;
-    }
-
-    .swatch-input:checked+.size-swatch {
-        background-color: #D19C97;
-        color: #fff;
-        border-color: #D19C97;
-    }
-
-    .color-swatch {
-        display: inline-block;
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        cursor: pointer;
-        border: 1px solid #dee2e6;
-        transition: all 0.2s ease-in-out;
-        margin-bottom: 0;
-        position: relative;
-    }
-
-    .swatch-input:checked+.color-swatch {
-        border-color: #D19C97;
-        transform: scale(1.1);
-        box-shadow: 0 0 0 2px #fff inset, 0 0 0 3px #D19C97;
-    }
-
-    /* Product Description */
-    .product-description .desc-title {
-        margin-bottom: 12px;
-        font-size: 0.95rem;
-        color: #333;
-        text-transform: uppercase;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-    }
-
-    .product-description .desc-list {
-        list-style: none;
-        padding-left: 0;
-        margin-bottom: 0;
-    }
-
-    .product-description .desc-list li {
-        position: relative;
-        padding-left: 20px;
-        margin-bottom: 6px;
-        line-height: 1.6;
-        color: #555;
-        font-size: 0.9rem;
-    }
-
-    .product-description .desc-list li::before {
-        content: "\25A0";
-        position: absolute;
-        left: 0;
-        color: #333;
-        font-size: 0.55rem;
-        top: 5px;
-    }
-</style>
 <!-- Page Header Start -->
 <div class="container-fluid bg-secondary mb-5">
     <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">

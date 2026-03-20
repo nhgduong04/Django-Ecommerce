@@ -1,0 +1,78 @@
+/* ============================================================
+   products.css — Product List & Product Detail Pages
+   Scope: Trang danh sách sản phẩm và chi tiết sản phẩm
+   NOTE: Các swatch styles đã được chuyển vào components.css
+   ============================================================ */
+
+
+/* ===== Price Range Slider =====
+   Dùng ở: product_list.html (sidebar filter)
+   ========================================= */
+#price-min,
+#price-max {
+    pointer-events: none;
+    z-index: 2;
+}
+
+#price-min::-webkit-slider-thumb,
+#price-max::-webkit-slider-thumb {
+    pointer-events: all;
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--primary);
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .2);
+    cursor: pointer;
+}
+
+#price-min::-moz-range-thumb,
+#price-max::-moz-range-thumb {
+    pointer-events: all;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--primary);
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .2);
+    cursor: pointer;
+}
+
+
+/* ===== Product Description =====
+   Dùng ở: product_detail.html
+   ========================================= */
+.product-description .desc-title {
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+    color: #333;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.product-description .desc-list {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 0;
+}
+
+.product-description .desc-list li {
+    position: relative;
+    padding-left: 20px;
+    margin-bottom: 6px;
+    line-height: 1.6;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.product-description .desc-list li::before {
+    content: "\25A0";
+    position: absolute;
+    left: 0;
+    color: #333;
+    font-size: 0.55rem;
+    top: 5px;
+}

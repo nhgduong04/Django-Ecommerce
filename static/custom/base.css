@@ -1,0 +1,20 @@
+/* ============================================================
+   base.css — CSS Variables & Global Utilities
+   Scope: Áp dụng cho toàn bộ dự án
+   NOTE: Không sửa static/css/style.css (template gốc)
+   ============================================================ */
+
+/* ----- Global UI: Product Image -----
+   Dùng trong product cards ở nhiều trang */
+.product-img {
+    display: flex;
+    align-items: center;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+}
+
+.product-img img {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+}

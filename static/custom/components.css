@@ -1,0 +1,256 @@
+/* ============================================================
+   components.css — Reusable UI Components
+   Scope: Các component dùng chung trên nhiều trang
+   Bao gồm: Toast Notifications, Search Autocomplete, Swatches
+   ============================================================ */
+
+
+/* ===== Toast Notification System =====
+   Dùng ở: base.html (toàn trang)
+   ========================================= */
+.toast-container {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 11000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.toast-notification {
+    display: flex;
+    align-items: center;
+    min-width: 300px;
+    max-width: 440px;
+    padding: 14px 18px;
+    border-radius: 6px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1a1a1a;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, .12);
+    pointer-events: auto;
+    transform: translateX(120%);
+    opacity: 0;
+    transition: transform .4s cubic-bezier(.22, 1, .36, 1), opacity .4s ease;
+}
+
+.toast-notification.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.toast-notification.hide {
+    transform: translateX(120%);
+    opacity: 0;
+}
+
+.toast-notification .toast-icon {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+}
+
+.toast-notification .toast-message {
+    flex: 1;
+}
+
+.toast-notification .toast-close {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    font-size: 18px;
+    margin-left: 14px;
+    cursor: pointer;
+    opacity: .5;
+    transition: opacity .2s;
+    color: inherit;
+    padding: 0 4px;
+    line-height: 1;
+}
+
+.toast-notification .toast-close:hover {
+    opacity: 1;
+}
+
+/* Toast type variants */
+.toast-success {
+    background: #4caf50;
+    color: #fff;
+}
+
+.toast-info {
+    background: #5bc0de;
+    color: #fff;
+}
+
+.toast-warning {
+    background: #f0ad4e;
+    color: #1a1a1a;
+}
+
+.toast-danger,
+.toast-error {
+    background: #e74c3c;
+    color: #fff;
+}
+
+.toast-default {
+    background: #f5f5f5;
+    color: #1a1a1a;
+    border: 1px solid #ddd;
+}
+
+.toast-warning .toast-close {
+    color: #1a1a1a;
+}
+
+.toast-default .toast-close {
+    color: #1a1a1a;
+}
+
+
+/* ===== Search Autocomplete Dropdown =====
+   Dùng ở: base.html (navbar search)
+   ========================================= */
+.search-wrapper {
+    position: relative;
+}
+
+.search-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
+    z-index: 10000;
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+.search-dropdown .search-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    text-decoration: none;
+    color: #333;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background .15s;
+}
+
+.search-dropdown .search-item:hover,
+.search-dropdown .search-item.active {
+    background: #f5f5f5;
+    text-decoration: none;
+    color: #333;
+}
+
+.search-dropdown .search-item img {
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.search-dropdown .search-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.search-dropdown .search-item-name {
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.search-dropdown .search-item-meta {
+    font-size: 12px;
+    color: #888;
+}
+
+.search-dropdown .search-no-results {
+    padding: 14px;
+    text-align: center;
+    color: #888;
+    font-size: 14px;
+}
+
+.search-dropdown .search-view-all {
+    display: block;
+    text-align: center;
+    padding: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #D19C97;
+    border-top: 1px solid #eee;
+}
+
+.search-dropdown .search-view-all:hover {
+    background: #fafafa;
+    text-decoration: none;
+}
+
+
+/* ===== Product Variant Swatches =====
+   Dùng ở: product_list.html, product_detail.html
+   Gộp lại để tránh duplicate code
+   ========================================= */
+.swatch-input {
+    display: none;
+}
+
+.size-swatch {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    line-height: 38px;
+    text-align: center;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    background-color: #fff;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+    margin-bottom: 0;
+    color: #6C757D;
+}
+
+.swatch-input:checked + .size-swatch {
+    background-color: #D19C97;
+    color: #fff;
+    border-color: #D19C97;
+}
+
+.color-swatch {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 1px solid #dee2e6;
+    transition: all 0.2s ease-in-out;
+    margin-bottom: 0;
+    position: relative;
+}
+
+.swatch-input:checked + .color-swatch {
+    border-color: #D19C97;
+    transform: scale(1.1);
+    box-shadow: 0 0 0 2px #fff inset, 0 0 0 3px #D19C97;
+}
