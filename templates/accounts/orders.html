@@ -65,8 +65,28 @@
                     <div class="order-meta-value">{{ order.payment_method }} — {{ order.payment_status|title }}</div>
                 </div>
                 <div class="order-meta-item">
+                    <div class="order-meta-label">Subtotal:</div>
+                    <div class="order-meta-value">{{ order.order_total|floatformat:0 }} ₫</div>
+                </div>
+                <div class="order-meta-item">
+                    <div class="order-meta-label">Shipping:</div>
+                    <div class="order-meta-value">{{ order.shipping_fee|floatformat:0 }} ₫</div>
+                </div>
+                {% if order.discount_amount > 0 %}
+                <div class="order-meta-item">
+                    <div class="order-meta-label">Discount:</div>
+                    <div class="order-meta-value text-success">-{{ order.discount_amount|floatformat:0 }} ₫</div>
+                </div>
+                {% endif %}
+                {% if order.shipping_saved > 0 %}
+                <div class="order-meta-item">
+                    <div class="order-meta-label">Shipping Discount:</div>
+                    <div class="order-meta-value text-success">-{{ order.shipping_saved|floatformat:0 }} ₫</div>
+                </div>
+                {% endif %}
+                <div class="order-meta-item">
                     <div class="order-meta-label">Total:</div>
-                    <div class="order-meta-value font-weight-bold">{{ order.order_total|floatformat:0 }} ₫</div>
+                    <div class="order-meta-value font-weight-bold">{{ order.grand_total|floatformat:0 }} ₫</div>
                 </div>
             </div>
 

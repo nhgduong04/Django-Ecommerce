@@ -115,13 +115,21 @@
             </table>
         </div>
         <div class="col-lg-4">
-            <form class="mb-5" action="">
+            <!-- Coupon Form -->
+            <form id="coupon-form" class="mb-5" onsubmit="return false;">
+                {% csrf_token %}
                 <div class="input-group">
-                    <input type="text" class="form-control p-4" placeholder="Coupon Code">
+                    <input type="text" id="coupon-input" class="form-control p-4" placeholder="Nhập mã giảm giá"
+                        value="{% if applied_coupon %}{{ applied_coupon.code }}{% endif %}">
                     <div class="input-group-append">
-                        <button class="btn btn-primary">Apply Coupon</button>
+                        {% if applied_coupon %}
+                        <button id="remove-coupon-btn" class="btn btn-danger">Xóa mã</button>
+                        {% else %}
+                        <button id="apply-coupon-btn" class="btn btn-primary">Áp dụng</button>
+                        {% endif %}
                     </div>
                 </div>
+                <small id="coupon-msg" class="mt-1 d-block"></small>
             </form>
             <div class="card border-secondary mb-5">
                 <div class="card-header bg-secondary border-0">
@@ -130,18 +138,26 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between mb-3 pt-1">
                         <h6 class="font-weight-medium">Subtotal</h6>
-                        <h6 class="font-weight-medium" id="cart-summary-subtotal">{{ total|floatformat:0|intcomma }}đ
+                        <h6 class="font-weight-medium" id="cart-summary-subtotal">{{ total|floatformat:0|intcomma }}đ</h6>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <h6 class="font-weight-medium">Phí ship</h6>
+                        <h6 class="font-weight-medium" id="cart-shipping-fee">
+                            {{ shipping_fee|floatformat:0|intcomma }}đ
                         </h6>
                     </div>
-                    <div class="d-flex justify-content-between">
-                        <h6 class="font-weight-medium">Shipping</h6>
-                        <h6 class="font-weight-medium">$0</h6>
+                    <div class="d-flex justify-content-between mb-2" id="coupon-discount-row"
+                        style="{% if not applied_coupon %}display:none!important;{% endif %}">
+                        <h6 class="font-weight-medium text-success">Giảm giá</h6>
+                        <h6 class="font-weight-medium text-success" id="cart-discount-amount">
+                            {% if applied_coupon %}-{{ coupon_savings|floatformat:0|intcomma }}đ{% else %}0đ{% endif %}
+                        </h6>
                     </div>
                 </div>
                 <div class="card-footer border-secondary bg-transparent">
                     <div class="d-flex justify-content-between mt-2">
                         <h5 class="font-weight-bold">Total</h5>
-                        <h5 class="font-weight-bold" id="cart-total">{{ total|floatformat:0|intcomma }}đ</h5>
+                        <h5 class="font-weight-bold" id="cart-total">{{ grand_total|default:total|floatformat:0|intcomma }}đ</h5>
                     </div>
                     <a href="{% url 'checkout' %}" class="btn btn-block btn-primary my-3 py-3">Proceed To Checkout</a>
                 </div>
@@ -162,6 +178,67 @@
 <!-- Cart End -->
 
 <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const applyBtn = document.getElementById("apply-coupon-btn");
+        const removeBtn = document.getElementById("remove-coupon-btn");
+        const couponInput = document.getElementById("coupon-input");
+        const couponMsg = document.getElementById("coupon-msg");
+
+        if (applyBtn) {
+            applyBtn.addEventListener("click", function () {
+                const code = couponInput.value.trim();
+                if (!code) {
+                    if (couponMsg) {
+                        couponMsg.innerText = "Vui lòng nhập mã giảm giá.";
+                        couponMsg.className = "mt-1 d-block text-danger";
+                    }
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append("coupon_code", code);
+
+                fetch("{% url 'apply_coupon' %}", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": getCookie("csrftoken")
+                    },
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        if (couponMsg) {
+                            couponMsg.innerText = data.message;
+                            couponMsg.className = "mt-1 d-block text-danger";
+                        }
+                    }
+                })
+                .catch(err => console.error(err));
+            });
+        }
+
+        if (removeBtn) {
+            removeBtn.addEventListener("click", function () {
+                fetch("{% url 'remove_coupon' %}", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": getCookie("csrftoken")
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    }
+                })
+                .catch(err => console.error(err));
+            });
+        }
+    });
+
     function getCookie(name) {
         if (!document.cookie) {
             return null;
@@ -230,10 +307,35 @@
 
                     // Update totals
                     const cartTotal = document.getElementById('cart-total');
-                    if (cartTotal) cartTotal.innerText = parseFloat(data.total).toLocaleString('en-US') + 'đ';
+                    if (cartTotal) cartTotal.innerText = parseFloat(data.grand_total || data.total).toLocaleString('en-US') + 'đ';
 
                     const summarySubtotal = document.getElementById('cart-summary-subtotal');
                     if (summarySubtotal) summarySubtotal.innerText = parseFloat(data.total).toLocaleString('en-US') + 'đ';
+
+                    const shippingFee = document.getElementById('cart-shipping-fee');
+                    if (shippingFee && data.shipping_fee !== undefined) {
+                        shippingFee.innerText = parseFloat(data.shipping_fee).toLocaleString('en-US') + 'đ';
+                    }
+
+                    const discountAmount = document.getElementById('cart-discount-amount');
+                    const discountRow = document.getElementById('coupon-discount-row');
+                    const couponSavings = parseFloat(
+                        data.coupon_savings !== undefined
+                            ? data.coupon_savings
+                            : ((data.discount_amount || 0) + (data.shipping_saved || 0))
+                    );
+                    if (discountAmount && !Number.isNaN(couponSavings)) {
+                        if (couponSavings > 0) {
+                            discountAmount.innerText = "-" + couponSavings.toLocaleString('en-US') + 'đ';
+                            if (discountRow) discountRow.style.setProperty("display", "flex", "important");
+                        } else {
+                            discountAmount.innerText = "0đ";
+                            // If coupon was removed or doesn't apply based on minimum Total condition
+                            if (discountRow && !document.getElementById('remove-coupon-btn')) {
+                                discountRow.style.setProperty("display", "none", "important");
+                            }
+                        }
+                    }
 
                     // Update cart badge
                     const cartBadge = document.getElementById('cart-badge');

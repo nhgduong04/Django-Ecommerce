@@ -21,7 +21,12 @@ class Order(models.Model):
     district = models.CharField(max_length=100)
     ward = models.CharField(max_length=100)
     order_note = models.TextField(blank=True, null=True)
-    order_total = models.DecimalField(max_digits=10, decimal_places=2)
+    order_total = models.DecimalField(max_digits=10, decimal_places=2)  # Tổng tiền hàng
+    shipping_fee = models.DecimalField(max_digits=10, decimal_places=2, default=30000)  # Phí ship
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # Số tiền giảm từ coupon
+    shipping_saved = models.DecimalField(max_digits=10, decimal_places=0, default=0)
+    grand_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # Tổng cuối = order_total + shipping_fee - discount_amount - shipping_saved
+    coupon = models.ForeignKey('coupon.Coupon', on_delete=models.SET_NULL, null=True, blank=True)
     payment_method = models.CharField(max_length=100, blank=True) # 'COD', 'MoMo'
     payment_status = models.CharField(max_length=100, default='unpaid') # 'unpaid', 'paid'
     momo_transaction_id = models.CharField(max_length=100, blank=True, null=True)

@@ -110,15 +110,21 @@
                             <h6 class="font-weight-medium">Subtotal</h6>
                             <h6 class="font-weight-medium">{{ total|floatformat:0|intcomma }}đ</h6>
                         </div>
-                        <div class="d-flex justify-content-between">
-                            <h6 class="font-weight-medium">Shipping</h6>
-                            <h6 class="font-weight-medium">0đ</h6>
+                        <div class="d-flex justify-content-between mb-2">
+                            <h6 class="font-weight-medium">Phí ship</h6>
+                            <h6 class="font-weight-medium">{{ shipping_fee|floatformat:0|intcomma }}đ</h6>
                         </div>
+                        {% if applied_coupon %}
+                        <div class="d-flex justify-content-between">
+                            <h6 class="font-weight-medium text-success">Giảm giá ({{ applied_coupon.code }})</h6>
+                            <h6 class="font-weight-medium text-success">-{{ coupon_savings|floatformat:0|intcomma }}đ</h6>
+                        </div>
+                        {% endif %}
                     </div>
                     <div class="card-footer border-secondary bg-transparent">
                         <div class="d-flex justify-content-between mt-2">
                             <h5 class="font-weight-bold">Total</h5>
-                            <h5 class="font-weight-bold">{{ total|floatformat:0|intcomma }}đ</h5>
+                            <h5 class="font-weight-bold">{{ grand_total|default:total|floatformat:0|intcomma }}đ</h5>
                         </div>
                     </div>
                 </div>

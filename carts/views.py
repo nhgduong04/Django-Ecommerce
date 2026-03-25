@@ -123,7 +123,31 @@ def add_to_cart(request, product_id: int):
 
 
 def cart(request):
+    from coupon.services import validate_coupon, calculate_discount, CouponError, DEFAULT_SHIPPING_FEE, COUPON_SESSION_KEY
+    from decimal import Decimal
+
     cart = get_cart_summary(request=request, user=request.user)
+
+    shipping_fee = DEFAULT_SHIPPING_FEE
+    shipping_saved = Decimal('0')
+    discount_amount = Decimal('0')
+    applied_coupon = None
+
+    coupon_code = request.session.get(COUPON_SESSION_KEY, '')
+    if coupon_code and cart.total > 0:
+        try:
+            coupon = validate_coupon(coupon_code, request.user, cart.total)
+            result = calculate_discount(coupon, cart.total, DEFAULT_SHIPPING_FEE)
+            discount_amount = result.cart_discount
+            shipping_fee = result.shipping_fee
+            shipping_saved = result.shipping_saved
+            applied_coupon = coupon
+        except CouponError:
+            del request.session[COUPON_SESSION_KEY]
+            request.session.modified = True
+
+    coupon_savings = discount_amount + shipping_saved
+    grand_total = cart.total - discount_amount + shipping_fee if cart.total > 0 else Decimal('0')
 
     return render(
         request,
@@ -132,6 +156,12 @@ def cart(request):
             "cart_items": cart.items,
             "total": cart.total,
             "quantity": cart.quantity,
+            "shipping_fee": shipping_fee,
+            "shipping_saved": shipping_saved,
+            "discount_amount": discount_amount,
+            "coupon_savings": coupon_savings,
+            "grand_total": grand_total,
+            "applied_coupon": applied_coupon,
         },
     )
 
@@ -237,6 +267,29 @@ def update_cart(request):
                 v = variants_by_id.get(int(key))
                 item_sub_total = (v.get_price() * item_quantity) if (v and item_quantity > 0) else 0
 
+            # Tính coupon nếu có
+            from coupon.services import validate_coupon, calculate_discount, CouponError, DEFAULT_SHIPPING_FEE, COUPON_SESSION_KEY
+            from decimal import Decimal
+
+            shipping_fee = DEFAULT_SHIPPING_FEE
+            shipping_saved = Decimal('0')
+            discount_amount = Decimal('0')
+            coupon_code = request.session.get(COUPON_SESSION_KEY, '')
+
+            if coupon_code and total > 0:
+                try:
+                    c = validate_coupon(coupon_code, request.user, total)
+                    result = calculate_discount(c, total, DEFAULT_SHIPPING_FEE)
+                    discount_amount = result.cart_discount
+                    shipping_fee = result.shipping_fee
+                    shipping_saved = result.shipping_saved
+                except CouponError:
+                    del request.session[COUPON_SESSION_KEY]
+                    request.session.modified = True
+
+            coupon_savings = discount_amount + shipping_saved
+            grand_total = (total - discount_amount + shipping_fee) if total > 0 else 0
+
             return JsonResponse(
                 {
                     "success": True,
@@ -244,6 +297,11 @@ def update_cart(request):
                     "sub_total": float(item_sub_total),
                     "total": float(total),
                     "cart_quantity": int(quantity),
+                    "shipping_fee": float(shipping_fee),
+                    "shipping_saved": float(shipping_saved),
+                    "discount_amount": float(discount_amount),
+                    "coupon_savings": float(coupon_savings),
+                    "grand_total": float(grand_total),
                 }
             )
         except OutOfStockError as exc:
@@ -264,13 +322,46 @@ def update_cart(request):
 @login_required(login_url='login')
 def checkout(request):
     '''Fetch cart items and calculate total'''
+    from coupon.services import validate_coupon, calculate_discount, CouponError, DEFAULT_SHIPPING_FEE, COUPON_SESSION_KEY
+    from coupon.models import Coupon
+    from decimal import Decimal
+
     cart = get_cart_summary(request=request, user=request.user)
     if not cart.items:
         return redirect('cart')
+
+    shipping_fee = DEFAULT_SHIPPING_FEE
+    shipping_saved = Decimal('0')
+    discount_amount = Decimal('0')
+    applied_coupon = None
+
+    coupon_code = request.session.get(COUPON_SESSION_KEY, '')
+    if coupon_code:
+        try:
+            coupon = validate_coupon(coupon_code, request.user, cart.total)
+            result = calculate_discount(coupon, cart.total, DEFAULT_SHIPPING_FEE)
+            discount_amount = result.cart_discount
+            shipping_fee = result.shipping_fee
+            shipping_saved = result.shipping_saved
+            applied_coupon = coupon
+        except CouponError:
+            # Coupon không còn hợp lệ → xoá khỏi session
+            del request.session[COUPON_SESSION_KEY]
+            request.session.modified = True
+
+    coupon_savings = discount_amount + shipping_saved
+    grand_total = cart.total - discount_amount + shipping_fee
 
     context = {
         'cart_items': cart.items,
         'total': cart.total,
         'quantity': cart.quantity,
+        'shipping_fee': shipping_fee,
+        'shipping_saved': shipping_saved,
+        'discount_amount': discount_amount,
+        'coupon_savings': coupon_savings,
+        'grand_total': grand_total,
+        'applied_coupon': applied_coupon,
+        'coupon_code': applied_coupon.code if applied_coupon else '',
     }
     return render(request, 'cart/checkout.html', context)

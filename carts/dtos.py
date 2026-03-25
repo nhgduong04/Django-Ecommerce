@@ -17,7 +17,6 @@ class SessionCartItemDTO:
     def variations(self):
         return self.variant.variations
     
-    @property
     def sub_total(self):
         return self.variant.get_price() * self.quantity
     
