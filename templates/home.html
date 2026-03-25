@@ -44,15 +44,15 @@
                 <span class="logo-text">VIBE</span>
             </a>
             <div class="floating-links">
-                <a href="/" class="float-link active">/HOME</a>
-                <a href="{% url 'products' %}" class="float-link">/SHOP</a>
-                <a href="{% url 'contact' %}" class="float-link">/CONTACT</a>
+                <a href="/" class="float-link active">HOME</a>
+                <a href="{% url 'products' %}" class="float-link">SHOP</a>
+                <a href="{% url 'contact' %}" class="float-link">CONTACT</a>
                 {% if user.is_authenticated %}
-                <a href="{% url 'profile' %}" class="float-link">/{{ user.username }}</a>
-                <a href="{% url 'logout' %}" class="float-link">/EXIT</a>
+                <a href="{% url 'profile' %}" class="float-link">Welcome, {{ user.username }}</a>
+                <a href="{% url 'logout' %}" class="float-link">LOGOUT</a>
                 {% else %}
-                <a href="{% url 'login' %}" class="float-link">/LOGIN</a>
-                <a href="{% url 'register' %}" class="float-link">/JOIN</a>
+                <a href="{% url 'login' %}" class="float-link">LOGIN</a>
+                <a href="{% url 'register' %}" class="float-link">JOIN</a>
                 {% endif %}
             </div>
             <div class="floating-actions">
@@ -278,49 +278,6 @@
         </div>
     </div>
 
-    <!-- ========== TESTIMONIAL SECTION ========== -->
-    <div class="testimonial-section">
-        <div class="section-header">
-            <span class="section-tag">/VOICES</span>
-            <h2 class="section-title">WHAT THE <span class="highlight">STREET</span> SAYS</h2>
-        </div>
-        <div class="testimonial-grid">
-            <div class="testimonial-card">
-                <div class="testimonial-quote">"</div>
-                <p>Best streetwear experience. Quality is unmatched and the vibe is real.</p>
-                <div class="testimonial-author">
-                    <div class="author-avatar">MK</div>
-                    <div>
-                        <div class="author-name">Mike K.</div>
-                        <div class="author-title">Regular Customer</div>
-                    </div>
-                </div>
-            </div>
-            <div class="testimonial-card">
-                <div class="testimonial-quote">"</div>
-                <p>Shipping was fast, pieces are fire. Definitely my go-to spot.</p>
-                <div class="testimonial-author">
-                    <div class="author-avatar">SR</div>
-                    <div>
-                        <div class="author-name">Sarah R.</div>
-                        <div class="author-title">Style Enthusiast</div>
-                    </div>
-                </div>
-            </div>
-            <div class="testimonial-card">
-                <div class="testimonial-quote">"</div>
-                <p>The attention to detail in every piece is incredible. 10/10.</p>
-                <div class="testimonial-author">
-                    <div class="author-avatar">JT</div>
-                    <div>
-                        <div class="author-name">James T.</div>
-                        <div class="author-title">Collector</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- ========== NEWSLETTER SECTION ========== -->
     <div class="newsletter-section">
         <div class="newsletter-container">
@@ -399,54 +356,117 @@
     <script src="{% static 'js/main.js' %}"></script>
     
     <!-- Custom Script for Animations -->
-    <script>
-        // Back to top button
-        const backToTop = document.getElementById('backToTop');
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) {
-                backToTop.classList.add('show');
-            } else {
-                backToTop.classList.remove('show');
+    <!-- Custom Script for Animations & Navbar Sticky -->
+<!-- Custom Script for Animations & Navbar Sticky -->
+<script>
+    // ========== NAVBAR STICKY ON SCROLL - FIXED TO TOP NO ANIMATION ==========
+    const floatingNav = document.querySelector('.floating-nav');
+    let isNavSticky = false;
+    
+    function handleNavbarScroll() {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        
+        if (scrollTop > 50) {
+            if (!isNavSticky) {
+                floatingNav.classList.add('scrolled');
+                isNavSticky = true;
+            }
+        } else {
+            if (isNavSticky) {
+                floatingNav.classList.remove('scrolled');
+                isNavSticky = false;
+            }
+        }
+    }
+    
+    // Thêm event listener cho scroll
+    window.addEventListener('scroll', handleNavbarScroll);
+    // Gọi ngay khi load để kiểm tra vị trí ban đầu
+    handleNavbarScroll();
+    
+    // ========== BACK TO TOP BUTTON ==========
+    const backToTop = document.getElementById('backToTop');
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) {
+            backToTop.classList.add('show');
+        } else {
+            backToTop.classList.remove('show');
+        }
+    });
+    if (backToTop) {
+        backToTop.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+    
+    // ========== MOBILE MENU TOGGLE ==========
+    const menuToggle = document.getElementById('menuToggle');
+    const floatingLinks = document.querySelector('.floating-links');
+    if (menuToggle) {
+        menuToggle.addEventListener('click', () => {
+            floatingLinks.classList.toggle('active');
+            menuToggle.classList.toggle('active');
+        });
+        
+        // Đóng menu khi click ra ngoài
+        document.addEventListener('click', (e) => {
+            if (menuToggle && floatingLinks) {
+                if (!menuToggle.contains(e.target) && !floatingLinks.contains(e.target)) {
+                    floatingLinks.classList.remove('active');
+                    menuToggle.classList.remove('active');
+                }
             }
         });
-        if (backToTop) {
-            backToTop.addEventListener('click', () => {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            });
-        }
-        
-        // Mobile menu toggle
-        const menuToggle = document.getElementById('menuToggle');
-        const floatingLinks = document.querySelector('.floating-links');
-        if (menuToggle) {
-            menuToggle.addEventListener('click', () => {
-                floatingLinks.classList.toggle('active');
-                menuToggle.classList.toggle('active');
-            });
-        }
-        
-        // Add animation on scroll
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-        
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, observerOptions);
-        
-        document.querySelectorAll('.product-card, .category-card, .testimonial-card, .feature-item').forEach(el => {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(30px)';
-            el.style.transition = 'all 0.6s ease';
-            observer.observe(el);
+    }
+    
+    // ========== SCROLL ANIMATION ==========
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
         });
-    </script>
+    }, observerOptions);
+    
+    document.querySelectorAll('.product-card, .category-card, .testimonial-card, .feature-item').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(30px)';
+        el.style.transition = 'all 0.6s ease';
+        observer.observe(el);
+    });
+    
+    // ========== HEADER SEARCH FOCUS ANIMATION ==========
+    const searchInput = document.querySelector('.header-search-input');
+    if (searchInput) {
+        searchInput.addEventListener('focus', () => {
+            if (floatingNav.classList.contains('scrolled')) {
+                floatingNav.style.boxShadow = '0 4px 25px rgba(0, 0, 0, 0.15)';
+            }
+        });
+        
+        searchInput.addEventListener('blur', () => {
+            floatingNav.style.boxShadow = '';
+        });
+    }
+    
+    // ========== OPTIMIZE SCROLL PERFORMANCE ==========
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+        if (!ticking) {
+            requestAnimationFrame(() => {
+                handleNavbarScroll();
+                ticking = false;
+            });
+            ticking = true;
+        }
+    });
+</script>
 </body>
 
 </html>
