@@ -95,7 +95,9 @@
                 {% for item in order.order_products.all %}
                 <div class="order-product-item">
                     <div class="order-product-img">
-                        {% if item.product.image %}
+                        {% if item.variant and item.variant.get_image %}
+                            <img src="{{ item.variant.get_image.url }}" alt="{{ item.product.name }}">
+                        {% elif item.product.image %}
                             <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
                         {% else %}
                             <i class="fas fa-image" style="color: #ccc; font-size: 24px;"></i>
@@ -107,7 +109,7 @@
                         {% if item.variant %}
                             {% for variation in item.variant.variations.all %}
                                 {% if forloop.first %}<p>{% endif %}
-                                {{ variation.variation_category|title }}: {{ variation.variation_value }}
+                                {{ variation.variation_category|title }}: {{ variation.get_display_name }}
                                 {% if not forloop.last %}<br>{% endif %}
                                 {% if forloop.last %}</p>{% endif %}
                             {% endfor %}

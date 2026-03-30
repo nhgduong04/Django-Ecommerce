@@ -75,6 +75,8 @@ class Variation(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variations') # related_name để truy cập các variation của một product dễ dàng hơn (product.variations.all())
     variation_category = models.CharField(max_length=100, choices=Variation_category_choice) # vd: color, size
     variation_value = models.CharField(max_length=100) # vd: red, blue, S, M, L
+    label = models.CharField(max_length=100, blank=True, null=True, help_text="Tên hiển thị (VD: Wash, Denim)")
+    color_image = models.ImageField(upload_to='variations/colors/', blank=True, null=True, help_text="Ảnh hiển thị (Render ra UI)")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -83,8 +85,11 @@ class Variation(models.Model):
     class Meta:
         unique_together = ('product', 'variation_category', 'variation_value')
 
+    def get_display_name(self):
+        return self.label if self.label else self.variation_value
+
     def __str__(self):
-        return f"{self.variation_category}: {self.variation_value}"
+        return f"{self.variation_category}: {self.get_display_name()}"
 
 class ProductVariant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
@@ -109,6 +114,24 @@ class ProductVariant(models.Model):
             return original_price - discount_amount
         return original_price
     
+    def get_image(self):
+        """Trả về ảnh theo thứ tự ưu tiên:
+            1. color_variation.color_image (ảnh gắn trực tiếp trên variation)
+            2. ProductGallery linked với color variation
+            3. product.image (fallback)
+        """
+        color_variation = self.variations.filter(variation_category='color').first()
+        if color_variation:
+            if color_variation.color_image:
+                return color_variation.color_image
+            gallery_img = ProductGallery.objects.filter(
+                product=self.product,
+                variation=color_variation
+            ).first()
+            if gallery_img:
+                return gallery_img.image
+        return self.product.image
+
     def __str__(self):
         return f"{self.product.name} - {', '.join([f'{v.variation_category}: {v.variation_value}' for v in self.variations.all()])}"
 
@@ -124,3 +147,23 @@ class Promotion(models.Model):
 
     def __str__(self):
         return self.name
+    
+class ProductGallery(models.Model):
+    product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
+    variation = models.ForeignKey(
+        'Variation',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='gallery_images'
+    )
+    image = models.ImageField(upload_to='gallery/')
+    alt_text = models.CharField(max_length=255, blank=True) #SEO-friendly alt text
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['order', 'id']
+    
+    def __str__(self):
+        return f"Image for {self.product.name}"

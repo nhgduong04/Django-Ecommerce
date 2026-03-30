@@ -41,7 +41,6 @@ def rollback_coupon_on_cancel(sender, instance, **kwargs):
     if not previous.coupon_id:
         return
 
-    from coupon.services import rollback_coupon_usage
     # Chạy trong transaction để đảm bảo rollback coupon và order update là atomic
     transaction.on_commit(lambda: _do_rollback(instance.pk))
 

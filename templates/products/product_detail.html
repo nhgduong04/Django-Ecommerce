@@ -1,9 +1,11 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
+{% load description_filters %}
 {% block title %}{{ product.name }}{% endblock %}
 {% block content %}
 {% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 <link href="{% static 'custom/pages/products.css' %}" rel="stylesheet">
 {% endblock %}
 
@@ -25,18 +27,41 @@
 <div class="container-fluid py-5">
     <div class="row px-xl-5">
         <div class="col-lg-5 pb-5">
-            <div id="product-carousel" class="carousel slide" data-ride="carousel">
-                <div class="carousel-inner border">
-                    <div class="carousel-item active">
-                        <img class="w-100 h-100" src="{{ product.image.url }}" alt="{{ product.name }}">
+            <div class="product-gallery-container">
+                <!-- Thumbs Slider -->
+                <div class="swiper gallery-thumbs">
+                    <div class="swiper-wrapper">
+                        <!-- Main product image as first thumb -->
+                        <div class="swiper-slide">
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy">
+                        </div>
+                        <!-- Additional gallery images -->
+                        {% for img in product.images.all %}
+                        <div class="swiper-slide">
+                            <img src="{{ img.image.url }}" alt="{{ product.name }} image {{ forloop.counter }}" loading="lazy">
+                        </div>
+                        {% endfor %}
                     </div>
                 </div>
-                <a class="carousel-control-prev" href="#product-carousel" data-slide="prev">
-                    <i class="fa fa-2x fa-angle-left text-dark"></i>
-                </a>
-                <a class="carousel-control-next" href="#product-carousel" data-slide="next">
-                    <i class="fa fa-2x fa-angle-right text-dark"></i>
-                </a>
+                
+                <!-- Main Slider -->
+                <div class="swiper gallery-main">
+                    <div class="swiper-wrapper">
+                        <!-- Main product image -->
+                        <div class="swiper-slide">
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy">
+                        </div>
+                        <!-- Additional gallery images -->
+                        {% for img in product.images.all %}
+                        <div class="swiper-slide" {% if img.variation and img.variation.variation_category == 'color' %}data-gallery-color="{{ img.variation.variation_value }}"{% endif %}>
+                            <img src="{{ img.image.url }}" alt="{{ product.name }} image {{ forloop.counter }}" loading="lazy">
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <!-- Navigation -->
+                    <div class="swiper-button-next"></div>
+                    <div class="swiper-button-prev"></div>
+                </div>
             </div>
         </div>
 
@@ -63,24 +88,29 @@
                 <h4 class="text-danger ml-3 mb-0" id="product-discount-percent" style="display: none;"></h4>
                 {% endif %}
             </div>
-            <div class="mb-4 product-description" id="product-description">{{ product.description }}</div>
+            <div class="mb-4 product-description" id="product-description">{{ product.description|format_description }}</div>
             <form id="add-to-cart-form" action="{% url 'add_to_cart' product.id %}" method="POST">
                 {% csrf_token %}
                 <input type="hidden" name="variant_id" id="selected-variant-id" value="">
 
                 {% if product.variations.sizes %}
-                <div class="d-flex mb-3 align-items-center">
-                    <p class="text-dark font-weight-medium mb-0 mr-3">Sizes:</p>
-                    <div class="d-flex flex-wrap">
-                        {% for variation in product.variations.sizes %}
-                        <div class="swatch-option mr-2 mb-2">
-                            <input type="radio" class="swatch-input" id="size-{{ variation.variation_value }}"
-                                name="size" value="{{ variation.variation_value }}">
-                            <label class="size-swatch" for="size-{{ variation.variation_value }}">
-                                {{ variation.variation_value }}
-                            </label>
+                <div class="d-flex mb-3 align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <p class="text-dark font-weight-medium mb-0 mr-3">Sizes:</p>
+                        <div class="d-flex flex-wrap">
+                            {% for variation in product.variations.sizes %}
+                            <div class="swatch-option mr-2 mb-2">
+                                <input type="radio" class="swatch-input" id="size-{{ variation.variation_value }}"
+                                    name="size" value="{{ variation.variation_value }}">
+                                <label class="size-swatch" for="size-{{ variation.variation_value }}">
+                                    {{ variation.variation_value }}
+                                </label>
+                            </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
+                    </div>
+                    <div class="mb-2">
+                        <a href="javascript:void(0);" data-toggle="modal" data-target="#sizeChartModal" class="text-muted" style="text-decoration: underline; font-size: 0.9rem;">size & fit</a>
                     </div>
                 </div>
                 {% endif %}
@@ -94,8 +124,12 @@
                             <input type="radio" class="swatch-input" id="color-{{ variation.variation_value }}"
                                 name="color" value="{{ variation.variation_value }}">
                             <label class="color-swatch" for="color-{{ variation.variation_value }}"
-                                style="background-color: {{ variation.variation_value | lower }};"
-                                title="{{ variation.variation_value }}"></label>
+                                {% if variation.color_image %}
+                                    style="background-image: url('{{ variation.color_image.url }}'); background-size: cover; background-position: center;"
+                                {% else %}
+                                    style="background-color: {{ variation.variation_value | lower }};"
+                                {% endif %}
+                                title="{{ variation.get_display_name }}"></label>
                         </div>
                         {% endfor %}
                     </div>
@@ -179,36 +213,24 @@
 </div>
 <!-- Products End -->
 
-<script>
-    // ----- Format product description into vertical bullet list -----
-    (function () {
-        const descEl = document.getElementById('product-description');
-        if (!descEl) return;
-        const raw = descEl.textContent.trim();
-        // Split on ■ (or common bullet markers) and filter empty parts
-        const parts = raw.split(/[■●▪◾]/).map(s => s.trim()).filter(Boolean);
-        if (parts.length <= 1) {
-            // No bullet markers found – render as paragraphs using line breaks
-            descEl.innerHTML = raw.replace(/\n/g, '<br>');
-            return;
-        }
-        // First part is often the title/intro, the rest are bullet items
-        let html = '';
-        const firstPart = parts[0];
-        const bullets = parts.slice(1);
-        if (firstPart) {
-            html += '<p class="desc-title">' + firstPart.replace(/[<>&"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c])) + '</p>';
-        }
-        if (bullets.length) {
-            html += '<ul class="desc-list">';
-            bullets.forEach(item => {
-                html += '<li>' + item.replace(/[<>&"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c])) + '</li>';
-            });
-            html += '</ul>';
-        }
-        descEl.innerHTML = html;
-    })();
+<!-- Size Chart Modal -->
+<div class="modal fade" id="sizeChartModal" tabindex="-1" role="dialog" aria-labelledby="sizeChartModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body pt-0">
+                <img src="{% static 'img/all-size-chart-6272.png' %}" alt="Size Chart" class="img-fluid w-100">
+            </div>
+        </div>
+    </div>
+</div>
 
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
     // ----- Lấy cookie CSRF token cho AJAX -----
     function getCookie(name) {
         if (!document.cookie) return null;
@@ -236,6 +258,35 @@
             },
             {% endfor %}
         ];
+
+        // Init Swiper
+        const swiperThumbs = new Swiper('.gallery-thumbs', {
+            spaceBetween: 10,
+            slidesPerView: 4,
+            freeMode: true,
+            watchSlidesProgress: true,
+            direction: window.innerWidth >= 992 ? 'vertical' : 'horizontal',
+        });
+
+        window.swiperMain = new Swiper('.gallery-main', {
+            spaceBetween: 10,
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+            thumbs: {
+                swiper: swiperThumbs
+            }
+        });
+
+        // Update direction on resize
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 992) {
+                swiperThumbs.changeDirection('vertical');
+            } else {
+                swiperThumbs.changeDirection('horizontal');
+            }
+        });
 
     const btnMinus = document.querySelector(".custom-btn-minus");
     const btnPlus = document.querySelector(".custom-btn-plus");
@@ -297,6 +348,18 @@
         if (matchedVariant) {
             if (variantIdInput) variantIdInput.value = matchedVariant.id;
             if (priceDisplay) priceDisplay.textContent = new Intl.NumberFormat('vi-VN').format(matchedVariant.price) + 'đ';
+
+            // Automatic slide to matched color image
+            if (selectedOptions['color'] && window.swiperMain) {
+                const colorVal = selectedOptions['color'];
+                const slides = document.querySelectorAll('.gallery-main .swiper-slide');
+                for (let i = 0; i < slides.length; i++) {
+                    if (slides[i].getAttribute('data-gallery-color') === colorVal) {
+                        swiperMain.slideTo(i);
+                        break;
+                    }
+                }
+            }
 
             const originalPriceDisplay = document.getElementById('product-original-price');
             const discountPercentDisplay = document.getElementById('product-discount-percent');

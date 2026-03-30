@@ -89,7 +89,7 @@
                         <div class="checkout-product-item">
                             <div class="checkout-product-info">
                                 <div class="checkout-product-img-container">
-                                    <img src="{{ cart_item.product.image.url }}" alt="{{ cart_item.product.name }}">
+                                    <img src="{{ cart_item.variant.get_image.url }}" alt="{{ cart_item.product.name }}">
                                     <span class="checkout-product-quantity">{{ cart_item.quantity }}</span>
                                 </div>
                                 <div class="checkout-product-details">
@@ -117,7 +117,8 @@
                         {% if applied_coupon %}
                         <div class="d-flex justify-content-between">
                             <h6 class="font-weight-medium text-success">Giảm giá ({{ applied_coupon.code }})</h6>
-                            <h6 class="font-weight-medium text-success">-{{ coupon_savings|floatformat:0|intcomma }}đ</h6>
+                            <h6 class="font-weight-medium text-success">-{{ coupon_savings|floatformat:0|intcomma }}đ
+                            </h6>
                         </div>
                         {% endif %}
                     </div>

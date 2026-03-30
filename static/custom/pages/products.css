@@ -44,35 +44,117 @@
 /* ===== Product Description =====
    Dùng ở: product_detail.html
    ========================================= */
-.product-description .desc-title {
-    margin-bottom: 12px;
-    font-size: 0.95rem;
-    color: #333;
-    text-transform: uppercase;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-}
 
-.product-description .desc-list {
-    list-style: none;
-    padding-left: 0;
-    margin-bottom: 0;
-}
 
-.product-description .desc-list li {
+.product-description .desc-item {
     position: relative;
     padding-left: 20px;
     margin-bottom: 6px;
     line-height: 1.6;
     color: #555;
     font-size: 0.9rem;
+    margin-top: 0; /* Override default <p> margin-top if any */
 }
 
-.product-description .desc-list li::before {
+.product-description .desc-item::before {
     content: "\25A0";
     position: absolute;
     left: 0;
     color: #333;
     font-size: 0.55rem;
     top: 5px;
+}
+
+/* ===== Product Gallery (Swiper) =====
+   Dùng ở: product_detail.html
+   ========================================= */
+.product-gallery-container {
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    height: 500px;
+}
+
+/* Thumbs Swiper */
+.gallery-thumbs {
+    width: 85px;
+    flex-shrink: 0;
+}
+
+.gallery-thumbs .swiper-slide {
+    height: 100px;
+    opacity: 0.5;
+    cursor: pointer;
+    border: 1px solid var(--border-color, #dee2e6);
+    transition: all 0.3s ease;
+    background: #fff;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.gallery-thumbs .swiper-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.gallery-thumbs .swiper-slide-thumb-active {
+    opacity: 1;
+    border-color: var(--primary);
+}
+
+/* Main Swiper */
+.gallery-main {
+    flex-grow: 1;
+    width: calc(100% - 100px);
+    border: 1px solid var(--border-color, #dee2e6);
+    background: #fff;
+    position: relative;
+}
+
+.gallery-main .swiper-slide {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.gallery-main .swiper-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.gallery-main .swiper-button-next,
+.gallery-main .swiper-button-prev {
+    color: var(--primary);
+}
+
+/* Responsive Layout */
+@media (max-width: 991px) {
+    .product-gallery-container {
+        flex-direction: column-reverse; /* Main image on top, thumbs on bottom */
+        height: auto;
+    }
+    
+    .gallery-main {
+        width: 100%;
+        aspect-ratio: 1/1; /* maintain square ratio */
+        height: auto;
+    }
+    
+    .gallery-thumbs {
+        width: 100%;
+        height: 80px; 
+    }
+    
+    .gallery-thumbs .swiper-slide {
+        height: 100%;
+        width: 80px; /* Swiper horizontal slide width */
+    }
+}
+
+@media (min-width: 992px) {
+    .gallery-thumbs .swiper-slide {
+        width: 100% !important; /* Force width in vertical mode */
+    }
 }

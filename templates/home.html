@@ -46,17 +46,23 @@
                 </a>
             </div>
             <div class="col-lg-6 col-6 text-left">
-                <form action="{% url 'products' %}" method="get">
-                    <div class="input-group">
-                        <input type="text" class="form-control" placeholder="Search for products" name="keyword">
-                        <div class="input-group-append">
-                            <span class="input-group-text bg-transparent text-primary"
-                                onclick="this.closest('form').submit()" style="cursor: pointer;">
-                                <i class="fa fa-search"></i>
-                            </span>
+                <div class="search-wrapper">
+                    <form action="{% url 'products' %}" onsubmit="return this.keyword.value.trim() !== ''"
+                        autocomplete="off">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Search for products" name="keyword"
+                                id="search-input">
+                            <div class="input-group-append">
+                                <span class="input-group-text bg-transparent text-primary"
+                                    onclick="if(this.closest('form').keyword.value.trim() !== '') this.closest('form').submit()"
+                                    style="cursor: pointer;">
+                                    <i class="fa fa-search"></i>
+                                </span>
+                            </div>
                         </div>
-                    </div>
-                </form>
+                    </form>
+                    <div class="search-dropdown" id="search-dropdown"></div>
+                </div>
             </div>
             <div class="col-lg-3 col-6 text-right">
                 <a href="" class="btn border">
@@ -655,7 +661,6 @@
                 </div>
             </div>
             <!-- Footer End -->
-
 
             <!-- Back to Top -->
             <a href="#" class="btn btn-primary back-to-top"><i class="fa fa-angle-double-up"></i></a>

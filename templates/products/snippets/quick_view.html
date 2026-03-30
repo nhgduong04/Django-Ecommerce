@@ -70,8 +70,12 @@
                             <input type="radio" class="swatch-input" id="quick-color-{{ variation.variation_value }}"
                                 name="color" value="{{ variation.variation_value }}">
                             <label class="color-swatch" for="quick-color-{{ variation.variation_value }}"
-                                style="background-color: {{ variation.variation_value | lower }};"
-                                title="{{ variation.variation_value }}"></label>
+                                {% if variation.color_image %}
+                                    style="background-image: url('{{ variation.color_image.url }}'); background-size: cover; background-position: center;"
+                                {% else %}
+                                    style="background-color: {{ variation.variation_value | lower }};"
+                                {% endif %}
+                                title="{{ variation.get_display_name }}"></label>
                         </div>
                         {% endfor %}
                     </div>
