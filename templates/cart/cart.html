@@ -182,7 +182,7 @@
             <img src="{% static 'img/cart_empty.webp' %}" alt="Empty Cart" class="img-fluid mb-4" style="width: 295px;">
             <h3>“Hổng” có gì trong giỏ hết</h3>
             <p>Về trang cửa hàng để chọn mua sản phẩm bạn nhé!!</p>
-            <a href="{% url 'home' %}" class="btn btn-primary py-2 px-4">Mua sắm ngay</a>
+            <a href="{% url 'products' %}" class="btn btn-primary py-2 px-4">Mua sắm ngay</a>
         </div>
     </div>
     {% endif %}
@@ -309,6 +309,11 @@
                 }
 
                 if (ok && data.success) {
+                    if (data.cart_quantity === 0) {
+                        window.location.reload();
+                        return;
+                    }
+
                     if (data.quantity > 0) {
                         // Update quantity input
                         const quantityInput = document.getElementById(`quantity-${cartItemId}`); // HTML DOM 

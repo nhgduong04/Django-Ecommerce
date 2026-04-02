@@ -44,9 +44,7 @@
                         <input type="range" id="price-max" min="0" max="2000000" value="2000000" step="10000"
                             style="position:absolute;width:100%;top:-6px;pointer-events:none;-webkit-appearance:none;appearance:none;background:none;height:18px;">
                     </div>
-                    <div class="d-flex justify-content-between mt-3">
-                        <button id="price-filter-btn" class="btn btn-primary btn-sm px-4">Filter</button>
-                    </div>
+
                 </div>
             </div>
             <!-- Price End -->
@@ -178,8 +176,16 @@
             range.style.left = percentMin + '%';
             range.style.width = (percentMax - percentMin) + '%';
         }
-        minSlider.addEventListener('input', updateSliderUI);
-        maxSlider.addEventListener('input', updateSliderUI);
+        var sliderTimeout = null;
+        function handleSliderInput() {
+            updateSliderUI();
+            clearTimeout(sliderTimeout);
+            sliderTimeout = setTimeout(function() {
+                applyFilters();
+            }, 1000);
+        }
+        minSlider.addEventListener('input', handleSliderInput);
+        maxSlider.addEventListener('input', handleSliderInput);
 
         // ===== Gather current filters from UI =====
         function getFilters() {
@@ -248,8 +254,6 @@
             fetchProducts(params);
         }
 
-        // ===== Event: Price filter button =====
-        document.getElementById('price-filter-btn').addEventListener('click', applyFilters);
 
         // ===== Event: Color / Size checkboxes =====
         document.querySelectorAll('.filter-color, .filter-size').forEach(function (cb) {
