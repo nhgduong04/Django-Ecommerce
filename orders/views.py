@@ -99,8 +99,8 @@ def _build_momo_payment_request(order):
     order_id = str(order.order_number)
     request_id = str(uuid.uuid4())
     # Charge the final payable amount (after coupon/shipping), not subtotal.
-    amount = str(int(order.grand_total if order.grand_total else order.order_total))
-    order_info = f"Thanh toan don hang #{order.order_number}"
+    amount = (int(order.grand_total if order.grand_total else order.order_total))
+    order_info = f"Thanh toán đơn hàng #{order.order_number}"
     extra_data = ""  # Có thể encode base64 nếu cần truyền thêm data
 
     # Xây dựng rawSignature theo thứ tự alphabet
@@ -304,8 +304,6 @@ def place_order_view(request):
       - 'cod': tạo order → xóa cart → redirect trang thành công
       - 'momo': tạo order → gọi MoMo API → redirect đến payUrl
     """
-    from decimal import Decimal
-
     # Kiểm tra giỏ hàng có sản phẩm không
     cart_summary = get_cart_summary(request=request, user=request.user)
     if not cart_summary.items:
@@ -438,6 +436,59 @@ def order_success_view(request):
     })
 
 
+def _process_momo_payment_success(order_id, trans_id):
+    """
+    Xử lý logic khi thanh toán MoMo thành công (dùng chung cho IPN và Return URL).
+    Đảm bảo tính idempotency (chỉ xử lý 1 lần).
+    """
+    try:
+        with transaction.atomic():
+            order = Order.objects.select_for_update().get(order_number=order_id)
+            if order.payment_status == 'paid':
+                logger.info("MoMo: Đơn hàng %s đã được xác nhận trước đó", order_id)
+                return True, order
+
+            # Thanh toán thành công → xác nhận đơn hàng
+            order.payment_status = 'paid'
+            order.is_ordered = True
+            order.momo_transaction_id = trans_id
+            order.save(update_fields=['payment_status', 'is_ordered', 'momo_transaction_id'])
+
+            # Trừ stock với select_for_update để tránh race
+            order_items = list(
+                OrderItem.objects.filter(order=order)
+                .select_related('variant')
+            )
+            variant_ids = [item.variant_id for item in order_items if item.variant_id]
+            if variant_ids:
+                locked_variants = {
+                    v.pk: v
+                    for v in ProductVariant.objects.select_for_update().filter(pk__in=variant_ids)
+                }
+                for item in order_items:
+                    if item.variant_id:
+                        variant = locked_variants.get(item.variant_id)
+                        if variant:
+                            variant.stock = max(0, variant.stock - item.quantity)
+                            variant.save(update_fields=['stock'])
+
+            # Xóa cart của user (sau khi thanh toán MoMo thành công)
+            CartItem.objects.filter(user=order.user, is_active=True).delete()
+
+        logger.info("MoMo: Đơn hàng %s đã thanh toán thành công", order_id)
+
+        # Gửi email xác nhận đơn hàng (ngoài transaction để tránh kéo dài lock)
+        _send_order_received_email(order)
+        return True, order
+
+    except Order.DoesNotExist:
+        logger.warning("MoMo: Không tìm thấy order_number=%s", order_id)
+        return False, None
+    except Exception as e:
+        logger.exception("MoMo: Lỗi khi process MoMo payment cho order %s: %s", order_id, e)
+        return False, None
+
+
 @csrf_exempt
 @require_POST
 def momo_ipn_view(request):
@@ -468,60 +519,19 @@ def momo_ipn_view(request):
         result_code = -1
     trans_id = str(data.get('transId', ''))
 
-    # 3. Tìm order trong database
-    try:
-        order = Order.objects.get(order_number=order_id)
-    except Order.DoesNotExist:
-        logger.warning("MoMo IPN: Không tìm thấy order %s", order_id)
-        return JsonResponse({'message': 'Order not found'}, status=404)
-
-    # 4. Xử lý kết quả thanh toán
-    # BUG-03 FIX: Lock order với select_for_update để tránh IPN retry trừ stock 2 lần
+    # 3. Xử lý kết quả thanh toán
     if result_code == 0:
-        with transaction.atomic():
-            order = Order.objects.select_for_update().get(order_number=order_id)
-            if order.payment_status == 'paid':
-                # Idempotency: IPN can be delivered multiple times.
-                logger.info("MoMo IPN: Đơn hàng %s đã được xác nhận trước đó", order_id)
-                return JsonResponse({'message': 'OK'}, status=200)
-
-            # Thanh toán thành công → xác nhận đơn hàng
-            order.payment_status = 'paid'
-            order.is_ordered = True
-            order.momo_transaction_id = trans_id
-            order.save(update_fields=['payment_status', 'is_ordered', 'momo_transaction_id'])
-
-            # Trừ stock với select_for_update để tránh race
-            order_items = list(
-                OrderItem.objects.filter(order=order)
-                .select_related('variant')
-            )
-            variant_ids = [item.variant_id for item in order_items if item.variant_id]
-            if variant_ids:
-                locked_variants = {
-                    v.pk: v
-                    for v in ProductVariant.objects.select_for_update().filter(pk__in=variant_ids)
-                }
-                for item in order_items:
-                    if item.variant_id:
-                        variant = locked_variants.get(item.variant_id)
-                        if variant:
-                            variant.stock = max(0, variant.stock - item.quantity)
-                            variant.save(update_fields=['stock'])
-
-            # Xóa cart của user (sau khi thanh toán MoMo thành công)
-            CartItem.objects.filter(user=order.user, is_active=True).delete()
-
-        logger.info("MoMo IPN: Đơn hàng %s đã thanh toán thành công", order_id)
-
-        # Gửi email xác nhận đơn hàng (ngoài transaction để tránh kéo dài lock)
-        _send_order_received_email(order)
+        _process_momo_payment_success(order_id, trans_id)
     else:
         # Thanh toán thất bại → rollback coupon usage rồi xóa order
-        logger.info("MoMo IPN: Đơn hàng %s thanh toán thất bại (code=%s), xóa order", order_id, result_code)
-        _rollback_coupon_and_delete_order(order)
+        try:
+            order = Order.objects.get(order_number=order_id)
+            logger.info("MoMo IPN: Đơn hàng %s thanh toán thất bại (code=%s), xóa order", order_id, result_code)
+            _rollback_coupon_and_delete_order(order)
+        except Order.DoesNotExist:
+            logger.warning("MoMo IPN: Không tìm thấy order %s để xóa", order_id)
 
-    # 5. Trả response cho MoMo (bắt buộc)
+    # 4. Trả response cho MoMo (bắt buộc)
     return JsonResponse({'message': 'OK'}, status=200)
 
 
@@ -529,12 +539,9 @@ def momo_return_view(request):
     """
     Nhận redirect từ MoMo sau khi user thanh toán xong.
 
-    LƯU Ý: View này KHÔNG đánh dấu paid — chỉ dùng để hiển thị
-    kết quả cho user. Việc xác nhận thanh toán chỉ qua IPN.
-
-    Fix logout: Dùng orderId từ query params (MoMo gửi kèm) thay vì
-    dựa vào session. Render trực tiếp template thay vì redirect thêm
-    lần nữa, tránh mất session cookie qua ngrok interstitial.
+    LƯU Ý: Đây cũng đóng vai trò fallback khi IPN bị lỗi trên môi trường dev.
+    Chúng ta verify signature từ URL parameters, nếu hợp lệ thì gọi hàm 
+    _process_momo_payment_success y như khi nhận IPN.
     """
     try:
         result_code = int(request.GET.get('resultCode', -1))
@@ -546,7 +553,23 @@ def momo_return_view(request):
     if not order_number:
         order_number = request.session.pop('pending_momo_order', '')
 
+    trans_id = request.GET.get('transId', '')
+    received_signature = request.GET.get('signature', '')
+
+    # Xác thực signature
+    is_valid_signature = False
+    if received_signature and order_number:
+        # Lấy toàn bộ tham số từ URL
+        data_dict = request.GET.dict()
+        is_valid_signature = _verify_momo_signature(data_dict, settings.MOMO_SECRET_KEY, received_signature)
+
     if result_code == 0:
+        if is_valid_signature:
+            logger.info("MoMo Return: Chữ ký hợp lệ, xử lý fallback cho order %s", order_number)
+            _process_momo_payment_success(order_number, trans_id)
+        else:
+            logger.warning("MoMo Return: Chữ ký không hợp lệ cho order %s", order_number)
+
         # Thanh toán thành công → render trực tiếp (không redirect)
         return render(request, 'orders/order_successful.html', {
             'order_number': order_number,
@@ -555,6 +578,14 @@ def momo_return_view(request):
     else:
         # Thanh toán thất bại hoặc bị hủy
         messages.error(request, 'Thanh toán MoMo không thành công. Vui lòng thử lại.')
+        
+        if is_valid_signature and order_number:
+            try:
+                order = Order.objects.get(order_number=order_number)
+                _rollback_coupon_and_delete_order(order)
+            except Order.DoesNotExist:
+                pass
+
         return render(request, 'orders/order_failed.html', {
             'order_number': order_number,
         })
@@ -572,9 +603,10 @@ def momo_check_status_view(request):
     order_number = request.GET.get('order_number', '')
     if not order_number:
         return JsonResponse({'status': 'not_found'}, status=400)
-
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'unauthorized'}, status=403)
     try:
-        order = Order.objects.get(order_number=order_number)
+        order = Order.objects.get(order_number=order_number, user=request.user)
     except Order.DoesNotExist:
         # Order bị xóa (IPN trả thất bại) hoặc không tồn tại
         return JsonResponse({'status': 'not_found'})

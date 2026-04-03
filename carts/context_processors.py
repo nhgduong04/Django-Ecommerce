@@ -8,10 +8,7 @@ def counter(request):
         return {}
     else:
         if request.user.is_authenticated:
-            for qty in CartItem.objects.filter(user=request.user, is_active=True).values_list(
-                "quantity", flat=True
-            ):
-                cart_count += int(qty)
+            cart_count = CartItem.objects.filter(user=request.user, is_active=True).count()
         else:
             cart = get_session_cart(request)
             cart_count = session_cart_total_quantity(cart)
