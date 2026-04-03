@@ -213,7 +213,7 @@ def update_cart(request):
                     .select_related("variant__product")
                 )
                 total = sum(item.sub_total() for item in cart_items)
-                quantity = sum(int(item.quantity) for item in cart_items)
+                quantity = cart_items.count()
 
                 if item_deleted:
                     item_sub_total = 0

@@ -69,7 +69,7 @@ def set_session_cart(request, cart: Dict[str, int]) -> None:
 
 
 def session_cart_total_quantity(cart: Dict[str, int]) -> int:
-    return sum(max(int(q), 0) for q in cart.values())
+    return sum(1 for q in cart.values() if int(q) > 0)
 
 
 def resolve_variant_from_request(
@@ -168,14 +168,9 @@ def add_variant_to_user_cart(*, user: User, variant_id: int, quantity: int) -> T
     cart_item.is_active = True
     cart_item.save(update_fields=["quantity", "is_active"]) 
 
-    total_qty = (
-        CartItem.objects.filter(user=user, is_active=True)
-        .aggregate(total=Sum("quantity"))
-        .get("total")
-        or 0
-    )
+    cart_count = CartItem.objects.filter(user=user, is_active=True).count()
 
-    return cart_item, int(total_qty)
+    return cart_item, cart_count
 
 
 @transaction.atomic
@@ -292,5 +287,5 @@ def get_cart_summary(user=None, request=None) -> CartSummaryDTO:
         cart_items = items
 
     total = sum(cart_item.sub_total() for cart_item in cart_items)
-    quantity = sum(int(cart_item.quantity) for cart_item in cart_items)
+    quantity = len(cart_items)
     return CartSummaryDTO(items=cart_items, total=total, quantity=quantity)
