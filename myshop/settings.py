@@ -12,33 +12,59 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+from django.templatetags.static import static
+from django.urls import reverse_lazy
+from django.utils.translation import gettext_lazy as _
+
+from django.templatetags.static import static
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables from .env file
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-%5at8)r@*fkt)nm^fxcs-2z$5b=#wohe)t2%dpb6vej8@d0-*7'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-default-key-for-dev')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.ngrok-free.dev']
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 
 # Application definition
 
+AUTHENTICATION_BACKENDS = [
+    # Needed to login by username in Django admin, regardless of `allauth`
+    'django.contrib.auth.backends.ModelBackend',
+
+    # `allauth` specific authentication methods, such as login by email
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
 INSTALLED_APPS = [
-    'jazzmin',
+    'unfold',
+    'unfold.contrib.inlines',
+    'unfold.contrib.filters',
+    'unfold.contrib.import_export',
+    'import_export',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
     'django.contrib.humanize',
     'accounts',
     'products',
@@ -46,7 +72,11 @@ INSTALLED_APPS = [
     'orders',
     'contact',
     'coupon',
+    'dashboard',
+    'chatbot',
 ]
+
+SITE_ID = 1
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -54,9 +84,36 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'myshop.middleware.StaffAdminRedirectMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "allauth.account.middleware.AccountMiddleware",
 ]
+
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_EMAIL_VERIFICATION = "none"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
+
+SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+            'prompt': 'select_account consent',
+        },
+        'OAUTH_PKCE_ENABLED': True,
+    }
+}
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
@@ -89,15 +146,29 @@ WSGI_APPLICATION = 'myshop.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'ecommerce_project_db',
-        'USER': 'root',
-        'PASSWORD': 'hoanggduongg',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'NAME': os.getenv('DB_NAME', 'ecommerce_project_db'),
+        'USER': os.getenv('DB_USER', 'root'),
+        'PASSWORD': os.getenv('DB_PASSWORD', ''),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '3306'),
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         }
-    }
+    },
+    # Read-only alias for chatbot Agentic SQL tool
+    # Falls back to DB_USER/DB_PASSWORD if readonly credentials not configured
+    'chatbot_readonly': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv('DB_NAME', 'ecommerce_project_db'),
+        'USER': os.getenv('DB_READONLY_USER', os.getenv('DB_USER', 'root')),
+        'PASSWORD': os.getenv('DB_READONLY_PASSWORD', os.getenv('DB_PASSWORD', '')),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '3306'),
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
+        'TEST': {'NAME': None},
+    },
 }
 
 
@@ -168,12 +239,16 @@ LOGIN_URL = 'login'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'hoanggduongg2004@gmail.com'
-EMAIL_HOST_PASSWORD = 'dyed uevg lttu emsd'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 # EMAIL_HOST_USER = os.environ.get('User_Email')
 # EMAIL_HOST_PASSWORD = os.environ.get('User_Password')
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = 'EShopper <hoanggduongg2004@gmail.com>'
+DEFAULT_FROM_EMAIL = f'DUNE <{EMAIL_HOST_USER}>'
+
+SESSION_COOKIE_AGE = 1209600        # 14 ngày (mặc định Django cũng là 14 ngày)
+SESSION_SAVE_EVERY_REQUEST = False  # không reset timer mỗi lần request
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # mặc định False, nên giữ vậy
 
 # Fix 1 — Cho phép cookie gửi qua cross-site redirect
 SESSION_COOKIE_SAMESITE = 'None'
@@ -188,9 +263,120 @@ CSRF_COOKIE_SECURE   = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # ── MoMo Payment Configuration ──────────────────────────────
-MOMO_PARTNER_CODE = 'MOMO'
-MOMO_ACCESS_KEY   = 'F8BBA842ECF85'
-MOMO_SECRET_KEY   = 'K951B6PE1waDMi640xX08PD3vg6EkVlz' # để lý HMACSHA256 -> không được để lộ ra client
+MOMO_PARTNER_CODE = os.getenv('MOMO_PARTNER_CODE', 'MOMO')
+MOMO_ACCESS_KEY   = os.getenv('MOMO_ACCESS_KEY', '')
+MOMO_SECRET_KEY   = os.getenv('MOMO_SECRET_KEY', '') # để lý HMACSHA256 -> không được để lộ ra client
 MOMO_API_ENDPOINT = 'https://test-payment.momo.vn/v2/gateway/api/create'
-MOMO_REDIRECT_URL = 'https://dreamier-alana-cokelike.ngrok-free.dev/orders/payment/momo/return/'
-MOMO_IPN_URL      = 'https://dreamier-alana-cokelike.ngrok-free.dev/orders/payment/momo/ipn/'
+MOMO_REDIRECT_URL = os.getenv('MOMO_REDIRECT_URL', '')
+MOMO_IPN_URL      = os.getenv('MOMO_IPN_URL', '')
+
+# ── Django Unfold (giao diện admin hiện đại) ─────────────────
+UNFOLD = {
+    "SITE_TITLE": _("DUNE Admin"),
+    "SITE_HEADER": _("DUNE"),
+    "SITE_SUBHEADER": _("Quản trị cửa hàng"),
+    "SITE_URL": "/",
+    "SITE_SYMBOL": "storefront",
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": True,
+    "SHOW_BACK_BUTTON": False,
+    "ENVIRONMENT": "dashboard.views.environment_callback",
+    "DASHBOARD_CALLBACK": "dashboard.views.dashboard_callback",
+    "COLORS": {
+        # Tông warm-brown gần với brand storefront #8B7355
+        "primary": {
+            "50":  "oklch(97% .01 65)",
+            "100": "oklch(94% .02 65)",
+            "200": "oklch(88% .04 65)",
+            "300": "oklch(80% .06 65)",
+            "400": "oklch(70% .07 65)",
+            "500": "oklch(60% .08 65)",
+            "600": "oklch(52% .08 65)",
+            "700": "oklch(44% .07 65)",
+            "800": "oklch(36% .06 65)",
+            "900": "oklch(29% .04 65)",
+            "950": "oklch(22% .03 65)",
+        },
+    },
+    "SIDEBAR": {
+        "show_search": True,
+        "command_search": True,
+        "show_all_applications": True,
+        "navigation": [
+            {
+                "title": _("Điều hướng"),
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Bảng điều khiển"),
+                        "icon": "dashboard",
+                        "link": reverse_lazy("admin:index"),
+                        # Chỉ superuser mới thấy Dashboard
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": _("Trang cửa hàng"),
+                        "icon": "home",
+                        "link": "/",
+                    },
+                ],
+            },
+            {
+                "title": _("Bán hàng"),
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Sản phẩm"),
+                        "icon": "inventory_2",
+                        "link": reverse_lazy("admin:products_product_changelist"),
+                        "permission": lambda request: request.user.has_perm("products.view_product"),
+                    },
+                    {
+                        "title": _("Danh mục"),
+                        "icon": "category",
+                        "link": reverse_lazy("admin:products_category_changelist"),
+                        "permission": lambda request: request.user.has_perm("products.view_category"),
+                    },
+                    {
+                        "title": _("Đơn hàng"),
+                        "icon": "receipt_long",
+                        "link": reverse_lazy("admin:orders_order_changelist"),
+                        "permission": lambda request: request.user.has_perm("orders.view_order"),
+                    },
+                    {
+                        "title": _("Mã giảm giá"),
+                        "icon": "local_offer",
+                        "link": reverse_lazy("admin:coupon_coupon_changelist"),
+                        "permission": lambda request: request.user.has_perm("coupon.view_coupon"),
+                    },
+                ],
+            },
+            {
+                "title": _("Hệ thống"),
+                "separator": True,
+                "collapsible": True,
+                # Toàn bộ nhóm Hệ thống chỉ hiển thị cho superuser
+                "items": [
+                    {
+                        "title": _("Người dùng"),
+                        "icon": "people",
+                        "link": reverse_lazy("admin:auth_user_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": _("Nhóm quyền"),
+                        "icon": "groups",
+                        "link": reverse_lazy("admin:auth_group_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                ],
+            },
+        ],
+    },
+    "COMMAND": {
+        "search_models": True,
+        "show_history": True,
+    },
+}

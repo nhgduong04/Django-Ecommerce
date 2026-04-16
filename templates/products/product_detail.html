@@ -4,23 +4,41 @@
 {% load description_filters %}
 {% block title %}{{ product.name }}{% endblock %}
 {% block content %}
+{% block extra_css_libs %}
+<link href="{% static 'lib/owlcarousel/assets/owl.carousel.min.css' %}" rel="stylesheet">
+{% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 <link href="{% static 'custom/pages/products.css' %}" rel="stylesheet">
+<style>
+    .policy-toggle-btn[aria-expanded="true"] .policy-icon {
+        transform: rotate(180deg);
+    }
+
+    .policy-icon {
+        transition: transform 0.3s ease;
+    }
+</style>
 {% endblock %}
 
-<!-- Page Header Start -->
-<div class="container-fluid bg-secondary mb-5">
-    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
-        <h1 class="font-weight-semi-bold text-uppercase mb-3">Shop Detail</h1>
-        <div class="d-inline-flex">
-            <p class="m-0"><a href="/">Home</a></p>
-            <p class="m-0 px-2">-</p>
-            <p class="m-0">Shop Detail</p>
-        </div>
+{% block extra_js_libs %}
+<script src="{% static 'lib/owlcarousel/owl.carousel.min.js' %}" defer></script>
+{% endblock %}
+
+<!-- Breadcrumb Start -->
+<nav class="product-breadcrumb" aria-label="breadcrumb">
+    <div class="container-fluid px-xl-5">
+        <ol class="product-breadcrumb__list">
+            <li><a href="{% url 'home' %}">Trang chủ</a></li>
+            <li class="sep">/</li>
+            <li><a href="{% url 'category' product.category.slug %}">{{ product.category.name }}</a></li>
+            <li class="sep">/</li>
+            <li class="active">{{ product.name }}</li>
+        </ol>
     </div>
-</div>
-<!-- Page Header End -->
+</nav>
+<!-- Breadcrumb End -->
 
 
 <!-- Shop Detail Start -->
@@ -28,32 +46,11 @@
     <div class="row px-xl-5">
         <div class="col-lg-5 pb-5">
             <div class="product-gallery-container">
-                <!-- Thumbs Slider -->
-                <div class="swiper gallery-thumbs">
-                    <div class="swiper-wrapper">
-                        <!-- Main product image as first thumb -->
-                        <div class="swiper-slide">
-                            <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy">
-                        </div>
-                        <!-- Additional gallery images -->
-                        {% for img in product.images.all %}
-                        <div class="swiper-slide">
-                            <img src="{{ img.image.url }}" alt="{{ product.name }} image {{ forloop.counter }}" loading="lazy">
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                
-                <!-- Main Slider -->
+                <!-- Main Slider (top) -->
                 <div class="swiper gallery-main">
                     <div class="swiper-wrapper">
-                        <!-- Main product image -->
-                        <div class="swiper-slide">
-                            <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy">
-                        </div>
-                        <!-- Additional gallery images -->
                         {% for img in product.images.all %}
-                        <div class="swiper-slide" {% if img.variation and img.variation.variation_category == 'color' %}data-gallery-color="{{ img.variation.variation_value }}"{% endif %}>
+                        <div class="swiper-slide" {% if img.variation and img.variation.variation_category == 'color' %}data-gallery-color="{{ img.variation.variation_value }}" {% endif %}>
                             <img src="{{ img.image.url }}" alt="{{ product.name }} image {{ forloop.counter }}" loading="lazy">
                         </div>
                         {% endfor %}
@@ -62,22 +59,48 @@
                     <div class="swiper-button-next"></div>
                     <div class="swiper-button-prev"></div>
                 </div>
+
+                <!-- Thumbs Slider (below) -->
+                <div class="swiper gallery-thumbs">
+                    <div class="swiper-wrapper">
+                        {% for img in product.images.all %}
+                        <div class="swiper-slide">
+                            <img src="{{ img.image.url }}" alt="{{ product.name }} image {{ forloop.counter }}" loading="lazy">
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
             </div>
         </div>
 
         <div class="col-lg-7 pb-5">
-            <h3 class="font-weight-semi-bold">{{ product.name }}</h3>
-            <div class="d-flex mb-4 align-items-center">
+            <!-- Category tag -->
+            <span class="pcard__tag mb-3 d-inline-block">{{ product.category.name }}</span>
+
+            <h3 class="font-weight-semi-bold mb-2">{{ product.name }}</h3>
+            <div class="d-flex mb-3 review-rating-display align-items-center">
+                <div class="text-primary mr-2">
+                    {% if average_rating >= 1 %}<i class="fas fa-star"></i>{% elif average_rating >= 0.5 %}<i class="fas fa-star-half-alt"></i>{% else %}<i class="far fa-star"></i>{% endif %}
+                    {% if average_rating >= 2 %}<i class="fas fa-star"></i>{% elif average_rating >= 1.5 %}<i class="fas fa-star-half-alt"></i>{% else %}<i class="far fa-star"></i>{% endif %}
+                    {% if average_rating >= 3 %}<i class="fas fa-star"></i>{% elif average_rating >= 2.5 %}<i class="fas fa-star-half-alt"></i>{% else %}<i class="far fa-star"></i>{% endif %}
+                    {% if average_rating >= 4 %}<i class="fas fa-star"></i>{% elif average_rating >= 3.5 %}<i class="fas fa-star-half-alt"></i>{% else %}<i class="far fa-star"></i>{% endif %}
+                    {% if average_rating >= 5 %}<i class="fas fa-star"></i>{% elif average_rating >= 4.5 %}<i class="fas fa-star-half-alt"></i>{% else %}<i class="far fa-star"></i>{% endif %}
+                </div>
+                <small class="pt-1">({{ review_count }} Đánh giá)</small>
+            </div>
+
+            <!-- Price block -->
+            <div class="d-flex mb-4 align-items-center flex-wrap">
                 {% if product.get_discount_percentage > 0 %}
                 <h4 class="text-muted mb-0 mr-3" id="product-original-price">
                     <del>{{ product.get_original_price|floatformat:0|intcomma }}đ</del>
                 </h4>
-                <h3 class="font-weight-semi-bold mb-0 text-danger" id="product-price">
+                <h3 class="font-weight-semi-bold mb-0" style="color: var(--warm-brown);" id="product-price">
                     {{ product.get_price|floatformat:0|intcomma }}đ
                 </h3>
-                <h4 class="text-danger ml-3 mb-0" id="product-discount-percent">
+                <span class="detail-discount-badge" id="product-discount-percent">
                     -{{ product.get_discount_percentage|floatformat:0 }}%
-                </h4>
+                </span>
                 {% else %}
                 <h4 class="text-muted mb-0 mr-3" id="product-original-price" style="display: none;">
                     <del>{{ product.get_original_price|floatformat:0|intcomma }}đ</del>
@@ -85,18 +108,20 @@
                 <h3 class="font-weight-semi-bold mb-0" id="product-price">
                     {{ product.get_price|floatformat:0|intcomma }}đ
                 </h3>
-                <h4 class="text-danger ml-3 mb-0" id="product-discount-percent" style="display: none;"></h4>
+                <span class="detail-discount-badge" id="product-discount-percent" style="display: none;"></span>
                 {% endif %}
             </div>
+
             <div class="mb-4 product-description" id="product-description">{{ product.description|format_description }}</div>
+
             <form id="add-to-cart-form" action="{% url 'add_to_cart' product.id %}" method="POST">
                 {% csrf_token %}
                 <input type="hidden" name="variant_id" id="selected-variant-id" value="">
 
                 {% if product.variations.sizes %}
-                <div class="d-flex mb-3 align-items-center justify-content-between">
-                    <div class="d-flex align-items-center">
-                        <p class="text-dark font-weight-medium mb-0 mr-3">Sizes:</p>
+                <div class="d-flex mb-3 align-items-start">
+                    <span class="variant-label mt-1 mr-3">Size</span>
+                    <div class="flex-grow-1">
                         <div class="d-flex flex-wrap">
                             {% for variation in product.variations.sizes %}
                             <div class="swatch-option mr-2 mb-2">
@@ -108,28 +133,23 @@
                             </div>
                             {% endfor %}
                         </div>
-                    </div>
-                    <div class="mb-2">
-                        <a href="javascript:void(0);" data-toggle="modal" data-target="#sizeChartModal" class="text-muted" style="text-decoration: underline; font-size: 0.9rem;">size & fit</a>
+                        <a href="javascript:void(0);" data-toggle="modal" data-target="#sizeChartModal"
+                            class="text-muted" style="font-size: 0.78rem; text-decoration: underline;">Xem bảng size</a>
                     </div>
                 </div>
                 {% endif %}
 
                 {% if product.variations.colors %}
                 <div class="d-flex mb-4 align-items-center">
-                    <p class="text-dark font-weight-medium mb-0 mr-3">Colors:</p>
+                    <span class="variant-label mr-3">Màu</span>
                     <div class="d-flex flex-wrap">
                         {% for variation in product.variations.colors %}
                         <div class="swatch-option mr-2 mb-2">
                             <input type="radio" class="swatch-input" id="color-{{ variation.variation_value }}"
                                 name="color" value="{{ variation.variation_value }}">
-                            <label class="color-swatch" for="color-{{ variation.variation_value }}"
-                                {% if variation.color_image %}
-                                    style="background-image: url('{{ variation.color_image.url }}'); background-size: cover; background-position: center;"
-                                {% else %}
-                                    style="background-color: {{ variation.variation_value | lower }};"
-                                {% endif %}
-                                title="{{ variation.get_display_name }}"></label>
+                            <label class="color-swatch" for="color-{{ variation.variation_value }}" {% if variation.color_image %}
+                                style="background-image: url('{{ variation.color_image.url }}'); background-size: cover; background-position: center;"
+                                {% else %} style="background-color: {{ variation.variation_value | lower }};" {% endif %} title="{{ variation.get_display_name }}"></label>
                         </div>
                         {% endfor %}
                     </div>
@@ -137,84 +157,195 @@
                 {% endif %}
 
                 <div id="in-stock-controls">
-                    <div class="d-flex align-items-center mb-4 pt-2">
-                        <div class="d-flex align-items-center mr-3 bg-secondary"
-                            style="width: 130px; justify-content: space-between;">
-                            <button type="button" class="btn btn-primary custom-btn-minus" style="border-radius: 0;">
-                                <i class="fa fa-minus"></i>
-                            </button>
-                            <span id="custom-qty-display" class="font-weight-bold"
-                                style="font-size: 1.1rem; user-select: none;">1</span>
+                    <div class="d-flex align-items-center mb-4 pt-2" style="gap: 12px;">
+                        <div class="qty-control">
+                            <button type="button" class="qty-control__btn custom-btn-minus">−</button>
+                            <span id="custom-qty-display" class="qty-control__display">1</span>
                             <input type="hidden" name="quantity" id="custom-hidden-quantity" value="1">
-                            <button type="button" class="btn btn-primary custom-btn-plus" style="border-radius: 0;">
-                                <i class="fa fa-plus"></i>
-                            </button>
+                            <button type="button" class="qty-control__btn custom-btn-plus">+</button>
                         </div>
-                        <button type="submit" class="btn btn-primary px-3">
-                            <i class="fa fa-shopping-cart mr-1"></i> Thêm vào giỏ
+                        <button type="submit" class="btn btn-dune flex-grow-1" style="height: 44px;">
+                            <i class="fa fa-shopping-cart mr-2"></i> Thêm vào giỏ
                         </button>
                     </div>
                 </div>
             </form>
-            {% comment %} <button id="buy-now-btn" class="btn btn-primary px-3" style="width: 50%;"><i
-                    class="fa fa-check mr-1"></i> Mua ngay</button> {% endcomment %}
+
             <div id="out-of-stock-badge" style="display: none;">
-                <button type="button" class="btn btn-outline-dark px-5 py-2" style="font-weight: 600; cursor: default;"
-                    disabled>HẾT HÀNG</button>
+                <button type="button" class="btn-dune-out-of-stock" disabled>HẾT HÀNG</button>
             </div>
+
+            <!-- Return Policy Collapse Start -->
+            <div class="mt-5">
+                <a class="text-dark d-flex justify-content-between align-items-center policy-toggle-btn"
+                    data-toggle="collapse" href="#returnPolicy" aria-expanded="false" aria-controls="returnPolicy"
+                    style="text-decoration: none; cursor: pointer;">
+                    <span style="font-size: 1.35rem; font-weight: 700;">Chính sách đổi trả</span>
+                    <i class="fa fa-angle-down policy-icon" style="font-size: 1.5rem;"></i>
+                </a>
+                <div class="collapse" id="returnPolicy">
+                    <div class="pt-3 mt-3" style="border-top: 1px solid #333;">
+                        <p class="font-weight-bold mb-3" style="font-size: 1rem; color: #000;">CHÍNH SÁCH ĐỔI TRẢ VỚI
+                            SẢN PHẨM MUA HÀNG ONLINE</p>
+                        <div style="font-size: 0.95rem; color: #111; line-height: 1.8;">
+                            <p class="mb-3">1. Sản phẩm đổi trả trong vòng 3 ngày kể từ ngày mua hàng được in trên hoá
+                                đơn hoặc bắt đầu ngày nhận hàng.</p>
+                            <p class="mb-3">2. Sản phẩm ở trạng thái ban đầu, chưa tháo tag, kèm hoá đơn của sản phẩm đó
+                                khi đổi trả tại cửa hàng.</p>
+                            <p class="mb-3">3. Khách hàng có thể đổi trả qua bưu cục sau khi được cung cấp thông tin và
+                                địa chỉ từ chúng tôi.</p>
+                            <p class="mb-0">4. Trong trường hợp đổi địa chỉ nhận hàng sẽ chịu các phí vận chuyển phát
+                                sinh.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Return Policy Collapse End -->
         </div>
     </div>
+
+    <!-- Review Section Start -->
+    <div class="row px-xl-5 mt-5 pt-4" style="border-top: 2px solid var(--beige);">
+        <div class="col-md-6 mb-5">
+            <span class="section-label">Đánh giá</span>
+            <p class="section-title-main">{{ review_count }} đánh giá cho "{{ product.name }}"</p>
+
+            {% if user_pending_reviews %}
+                {% for review in user_pending_reviews %}
+                <div class="review-item">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="review-user">{{ review.user.username }} <span class="pending-badge">Chờ duyệt</span></div>
+                        <div class="review-date">{{ review.updated_at|date:"d/m/Y" }}</div>
+                    </div>
+                    <div class="review-rating mb-2">
+                        {% for i in "12345" %}
+                            {% if i|add:0 <= review.rating %}
+                                <i class="fas fa-star"></i>
+                            {% else %}
+                                <i class="far fa-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <p class="mb-1 font-weight-bold" style="font-size: 0.9rem;">{{ review.subject }}</p>
+                    <p class="mb-0" style="font-size: 0.88rem; color: #555;">{{ review.review }}</p>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            {% for review in reviews %}
+            <div class="review-item">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="review-user">{{ review.user.username }}</div>
+                    <div class="review-date">{{ review.updated_at|date:"d/m/Y" }}</div>
+                </div>
+                <div class="review-rating mb-2">
+                    {% for i in "12345" %}
+                        {% if i|add:0 <= review.rating %}
+                            <i class="fas fa-star"></i>
+                        {% else %}
+                            <i class="far fa-star"></i>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <p class="mb-1 font-weight-bold" style="font-size: 0.9rem;">{{ review.subject }}</p>
+                <p class="mb-0" style="font-size: 0.88rem; color: #555;">{{ review.review }}</p>
+            </div>
+            {% empty %}
+                {% if not user_pending_reviews %}
+                <p class="text-muted" style="font-size: 0.88rem;">Chưa có đánh giá nào cho sản phẩm này.</p>
+                {% endif %}
+            {% endfor %}
+        </div>
+        <div class="col-md-6 mb-5">
+            <span class="section-label">Viết đánh giá</span>
+            <p class="section-title-main">Chia sẻ cảm nhận của bạn</p>
+            {% if user.is_authenticated %}
+                <form action="{% url 'submit_review' product.id %}" method="POST">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label class="mb-1" style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dark-charcoal);">Xếp hạng *</label>
+                        <div class="star-rating-input" id="star-rating-input">
+                            <input type="hidden" name="rating" id="rating-value" value="" required>
+                            <i class="fa fa-star star-pick" data-value="1"></i>
+                            <i class="fa fa-star star-pick" data-value="2"></i>
+                            <i class="fa fa-star star-pick" data-value="3"></i>
+                            <i class="fa fa-star star-pick" data-value="4"></i>
+                            <i class="fa fa-star star-pick" data-value="5"></i>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="subject" style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dark-charcoal);">Tiêu đề</label>
+                        <input type="text" class="form-control detail-form-control" name="subject" id="subject" placeholder="Tóm tắt cảm nhận của bạn">
+                    </div>
+                    <div class="form-group">
+                        <label for="review" style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dark-charcoal);">Nội dung</label>
+                        <textarea id="review" name="review" cols="30" rows="5" class="form-control detail-form-control" placeholder="Chia sẻ chi tiết hơn về sản phẩm..."></textarea>
+                    </div>
+                    <div class="form-group mb-0">
+                        <button type="submit" class="btn btn-dune px-4">Gửi đánh giá</button>
+                    </div>
+                </form>
+            {% else %}
+                <p style="font-size: 0.88rem;">Vui lòng <a href="{% url 'account_login' %}?next={{ request.path }}" style="color: var(--warm-brown); font-weight: 600;">đăng nhập</a> để gửi đánh giá.</p>
+            {% endif %}
+        </div>
+    </div>
+    <!-- Review Section End -->
 </div>
 <!-- Shop Detail End -->
 
 
-<!-- Products Start -->
-<div class="container-fluid py-5">
-    <div class="text-center mb-4">
-        <h2 class="section-title px-5"><span class="px-2">You May Also Like</span></h2>
+<!-- Related Products Start -->
+<div class="container-fluid py-5" style="border-top: 2px solid var(--beige);">
+    <div class="px-xl-5 mb-4">
+        <span class="section-label">Gợi ý cho bạn</span>
+        <p class="section-title-main mb-0">Có thể bạn cũng thích</p>
     </div>
     <div class="row px-xl-5">
         <div class="col">
+            {% if related_products %}
             <div class="owl-carousel related-carousel">
                 {% for item in related_products %}
-                <div class="card product-item border-0">
-                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100"
-                            src="{% if item.image %}{{ item.image.url }}{% else %}{% static 'img/product-1.jpg' %}{% endif %}"
-                            alt="{{ item.name }}">
+                <article class="pcard">
+                    <div class="pcard__media">
+                        {% if item.get_discount_percentage > 0 %}
+                        <span class="pcard__badge">-{{ item.get_discount_percentage|floatformat:0 }}%</span>
+                        {% endif %}
+                        <a href="{% url 'product_detail' item.slug %}" class="pcard__img-link" tabindex="-1" aria-hidden="true">
+                            <img class="pcard__img" src="{% if item.image %}{{ item.image.url }}{% else %}{% static 'img/product-1.jpg' %}{% endif %}" alt="{{ item.name }}" loading="lazy" decoding="async" width="400" height="400">
+                        </a>
+                        <div class="pcard__overlay" aria-hidden="true">
+                            <div class="pcard__actions">
+                                <a href="{% url 'product_detail' item.slug %}" class="pcard__action-btn" title="Xem chi tiết"><i class="fas fa-eye"></i></a>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">{{ item.name }}</h6>
-                        <div class="d-flex justify-content-center">
-                            <h6>{{ item.get_price|floatformat:0|intcomma }}đ</h6>
+                    <div class="pcard__info">
+                        {% if item.category %}<span class="pcard__tag">{{ item.category.name }}</span>{% endif %}
+                        <a href="{% url 'product_detail' item.slug %}" class="pcard__name-link">
+                            <h3 class="pcard__name">{{ item.name }}</h3>
+                        </a>
+                        <div class="pcard__price-row">
+                            <span class="pcard__price-sale">{{ item.get_price|floatformat:0|intcomma }}đ</span>
                             {% if item.get_discount_percentage > 0 %}
-                            <h6 class="text-muted ml-2"><del>{{ item.get_original_price|floatformat:0|intcomma }}đ</del>
-                            </h6>
+                            <span class="pcard__price-original">{{ item.get_original_price|floatformat:0|intcomma }}đ</span>
                             {% endif %}
                         </div>
                     </div>
-                    <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="{% url 'product_detail' item.slug %}" class="btn btn-sm text-dark p-0">
-                            <i class="fas fa-eye text-primary mr-1"></i>View Detail
-                        </a>
-                        <a href="{% url 'product_detail' item.slug %}" class="btn btn-sm text-dark p-0">
-                            <i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart
-                        </a>
-                    </div>
-                </div>
-                {% empty %}
-                <div class="text-center w-100 py-4">
-                    <p class="mb-0 text-muted">No related products found in this category.</p>
-                </div>
+                </article>
                 {% endfor %}
             </div>
+            {% else %}
+            <p class="text-muted" style="font-size: 0.88rem;">Không tìm thấy sản phẩm liên quan.</p>
+            {% endif %}
         </div>
     </div>
 </div>
-<!-- Products End -->
+<!-- Related Products End -->
 
 <!-- Size Chart Modal -->
-<div class="modal fade" id="sizeChartModal" tabindex="-1" role="dialog" aria-labelledby="sizeChartModalLabel" aria-hidden="true">
+<div class="modal fade" id="sizeChartModal" tabindex="-1" role="dialog" aria-labelledby="sizeChartModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header border-0 pb-0">
@@ -259,34 +390,25 @@
             {% endfor %}
         ];
 
-        // Init Swiper
-        const swiperThumbs = new Swiper('.gallery-thumbs', {
-            spaceBetween: 10,
-            slidesPerView: 4,
-            freeMode: true,
-            watchSlidesProgress: true,
-            direction: window.innerWidth >= 992 ? 'vertical' : 'horizontal',
-        });
+    // Init Swiper — horizontal thumbs below main image
+    const swiperThumbs = new Swiper('.gallery-thumbs', {
+        direction: 'horizontal',
+        spaceBetween: 8,
+        slidesPerView: 'auto',
+        freeMode: true,
+        watchSlidesProgress: true,
+    });
 
-        window.swiperMain = new Swiper('.gallery-main', {
-            spaceBetween: 10,
-            navigation: {
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
-            },
-            thumbs: {
-                swiper: swiperThumbs
-            }
-        });
-
-        // Update direction on resize
-        window.addEventListener('resize', () => {
-            if (window.innerWidth >= 992) {
-                swiperThumbs.changeDirection('vertical');
-            } else {
-                swiperThumbs.changeDirection('horizontal');
-            }
-        });
+    window.swiperMain = new Swiper('.gallery-main', {
+        spaceBetween: 0,
+        navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+        },
+        thumbs: {
+            swiper: swiperThumbs,
+        },
+    });
 
     const btnMinus = document.querySelector(".custom-btn-minus");
     const btnPlus = document.querySelector(".custom-btn-plus");
@@ -345,21 +467,21 @@
         {% comment %} const buyNowBtn = document.getElementById('buy-now-btn'); {% endcomment %}
         const outOfStockBadge = document.getElementById('out-of-stock-badge');
 
+        // Automatic slide to matched color image
+        if (selectedOptions['color'] && window.swiperMain) {
+            const colorVal = selectedOptions['color'];
+            const slides = document.querySelectorAll('.gallery-main .swiper-slide');
+            for (let i = 0; i < slides.length; i++) {
+                if (slides[i].getAttribute('data-gallery-color') === colorVal) {
+                    swiperMain.slideTo(i);
+                    break;
+                }
+            }
+        }
+
         if (matchedVariant) {
             if (variantIdInput) variantIdInput.value = matchedVariant.id;
             if (priceDisplay) priceDisplay.textContent = new Intl.NumberFormat('vi-VN').format(matchedVariant.price) + 'đ';
-
-            // Automatic slide to matched color image
-            if (selectedOptions['color'] && window.swiperMain) {
-                const colorVal = selectedOptions['color'];
-                const slides = document.querySelectorAll('.gallery-main .swiper-slide');
-                for (let i = 0; i < slides.length; i++) {
-                    if (slides[i].getAttribute('data-gallery-color') === colorVal) {
-                        swiperMain.slideTo(i);
-                        break;
-                    }
-                }
-            }
 
             const originalPriceDisplay = document.getElementById('product-original-price');
             const discountPercentDisplay = document.getElementById('product-discount-percent');
@@ -369,16 +491,13 @@
                     originalPriceDisplay.style.display = 'block';
                     originalPriceDisplay.innerHTML = '<del>' + new Intl.NumberFormat('vi-VN').format(matchedVariant.original_price) + 'đ</del>';
 
-                    priceDisplay.classList.add('text-danger');
-
                     if (discountPercentDisplay) {
                         const discount = Math.round((matchedVariant.original_price - matchedVariant.price) / matchedVariant.original_price * 100);
-                        discountPercentDisplay.style.display = 'block';
+                        discountPercentDisplay.style.display = '';
                         discountPercentDisplay.textContent = '-' + discount + '%';
                     }
                 } else {
                     originalPriceDisplay.style.display = 'none';
-                    priceDisplay.classList.remove('text-danger');
 
                     if (discountPercentDisplay) {
                         discountPercentDisplay.style.display = 'none';
@@ -484,7 +603,12 @@
 
                 if (response.ok && data.success) {
                     const cartBadge = document.getElementById('cart-badge');
-                    if (cartBadge) cartBadge.innerText = data.cart_quantity;
+                    if (cartBadge) {
+                        cartBadge.innerText = data.cart_quantity;
+                        if (data.cart_quantity > 0) {
+                            cartBadge.classList.remove('site-action-badge--hidden');
+                        }
+                    }
                     showToast('Đã thêm sản phẩm vào giỏ hàng thành công!', 'success');
                     return;
                 }
@@ -497,6 +621,73 @@
                 showToast(data.message || data.error || 'Không thể thêm vào giỏ hàng.', 'danger');
             } catch (err) {
                 console.error(err);
+                showToast('Không thể kết nối server.', 'danger');
+            }
+        });
+    }
+
+    // ----- Star Rating Input -----
+    const stars = document.querySelectorAll('.star-pick');
+    const ratingInput = document.getElementById('rating-value');
+
+    if (stars.length) {
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                const val = parseInt(this.dataset.value);
+                ratingInput.value = val;
+                stars.forEach(s => {
+                    s.classList.toggle('active', parseInt(s.dataset.value) <= val);
+                });
+            });
+
+            star.addEventListener('mouseenter', function() {
+                const val = parseInt(this.dataset.value);
+                stars.forEach(s => {
+                    s.classList.toggle('hover', parseInt(s.dataset.value) <= val);
+                });
+            });
+
+            star.addEventListener('mouseleave', function() {
+                stars.forEach(s => s.classList.remove('hover'));
+            });
+        });
+    }
+
+    const reviewForm = document.querySelector('form[action*="submit_review"]');
+    if (reviewForm) {
+        reviewForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            if (!ratingInput.value) {
+                showToast('Vui lòng chọn số sao đánh giá.', 'warning');
+                return;
+            }
+
+            const formData = new FormData(reviewForm);
+            const url = reviewForm.getAttribute('action');
+            const csrftoken = getCookie('csrftoken');
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    showToast(data.message || 'Có lỗi xảy ra', 'danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
                 showToast('Không thể kết nối server.', 'danger');
             }
         });

@@ -11,7 +11,7 @@ def format_description(value):
         return ''
     
     raw = value.strip()
-    parts = [s.strip() for s in re.split(r'[\\/]', raw) if s.strip()]
+    parts = [s.strip() for s in re.split(r'[.\']', raw) if s.strip()]
     
     if len(parts) <= 1:
         escaped_html = escape(raw).replace('\n', '<br>')

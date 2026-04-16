@@ -1,81 +1,196 @@
 {% extends 'base.html' %}
-
 {% load static %}
 
-{% block title %}Contact Us - MyShop{% endblock %}
+{% block title %}Liên hệ – DUNE{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'custom/pages/contact.css' %}" rel="stylesheet">
+{% endblock %}
 
 {% block content %}
 
-<!-- Page Header Start -->
-<div class="container-fluid bg-secondary mb-5">
-    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
-        <h1 class="font-weight-semi-bold text-uppercase mb-3">Contact Us</h1>
-        <div class="d-inline-flex">
-            <p class="m-0"><a href="{% url 'home' %}">Home</a></p>
-            <p class="m-0 px-2">-</p>
-            <p class="m-0">Contact</p>
-        </div>
+<!-- Page Hero -->
+<div class="contact-hero">
+    <div class="contact-hero-inner">
+        <h1>Contact</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="contact-breadcrumb">
+                <li><a href="{% url 'home' %}">Home</a></li>
+                <li class="contact-breadcrumb-sep">/</li>
+                <li>Contact</li>
+            </ol>
+        </nav>
     </div>
 </div>
-<!-- Page Header End -->
 
-<!-- Contact Start -->
-<div class="container-fluid pt-5">
-    <div class="text-center mb-4">
-        <h2 class="section-title px-5"><span class="px-2">Contact For Any Queries</span></h2>
-    </div>
-    <div class="row px-xl-5">
-        <div class="col-lg-7 mb-5">
-            <div class="contact-form">
+<!-- Contact Page Body -->
+<div class="contact-page">
+    <div class="contact-layout">
+
+        <!-- ===== Left: Contact Form ===== -->
+        <div class="contact-form-card">
+            <div class="contact-card-head">Send Message</div>
+            <div class="contact-card-body">
+
+                <!-- Response message -->
                 <div id="success"></div>
-                <form name="sentMessage" id="contactForm" novalidate="novalidate" method="post" action="{% url 'contact' %}">
+
+                <form name="sentMessage" id="contactForm" novalidate="novalidate" method="post"
+                    action="{% url 'contact' %}">
                     {% csrf_token %}
-                    <div class="control-group">
-                        <input type="text" class="form-control" id="name" placeholder="Your Name"
-                            required="required" data-validation-required-message="Please enter your name" />
-                        <p class="help-block text-danger"></p>
+
+                    <div class="contact-field-group">
+                        <label class="contact-field-label" for="name">Full Name</label>
+                        <div class="control-group">
+                            <input type="text" class="contact-field" id="name" name="name" placeholder="John Doe"
+                                required="required" data-validation-required-message="Please enter your name." />
+                            <p class="contact-field-error help-block text-danger"></p>
+                        </div>
                     </div>
-                    <div class="control-group">
-                        <input type="email" class="form-control" id="email" placeholder="Your Email"
-                            required="required" data-validation-required-message="Please enter your email" />
-                        <p class="help-block text-danger"></p>
+
+                    <div class="contact-field-group">
+                        <label class="contact-field-label" for="email">Email</label>
+                        <div class="control-group">
+                            <input type="email" class="contact-field" id="email" name="email"
+                                placeholder="email@example.com" required="required"
+                                data-validation-required-message="Please enter your email address." />
+                            <p class="contact-field-error help-block text-danger"></p>
+                        </div>
                     </div>
-                    <div class="control-group">
-                        <input type="text" class="form-control" id="subject" placeholder="Subject"
-                            required="required" data-validation-required-message="Please enter a subject" />
-                        <p class="help-block text-danger"></p>
+
+                    <div class="contact-field-group">
+                        <label class="contact-field-label" for="subject">Subject</label>
+                        <div class="control-group">
+                            <input type="text" class="contact-field" id="subject" name="subject"
+                                placeholder="Topic you want to ask..." required="required"
+                                data-validation-required-message="Please enter a subject." />
+                            <p class="contact-field-error help-block text-danger"></p>
+                        </div>
                     </div>
-                    <div class="control-group">
-                        <textarea class="form-control" rows="6" id="message" placeholder="Message"
-                            required="required"
-                            data-validation-required-message="Please enter your message"></textarea>
-                        <p class="help-block text-danger"></p>
+
+                    <div class="contact-field-group">
+                        <label class="contact-field-label" for="message">Message</label>
+                        <div class="control-group">
+                            <textarea class="contact-field" id="message" name="message" rows="6"
+                                placeholder="Enter your message..." required="required"
+                                data-validation-required-message="Please enter your message."></textarea>
+                            <p class="contact-field-error help-block text-danger"></p>
+                        </div>
                     </div>
-                    <div>
-                        <button class="btn btn-primary py-2 px-4" type="submit" id="sendMessageButton">Send
-                            Message</button>
-                    </div>
+
+                    <button class="contact-submit-btn" type="submit" id="sendMessageButton">
+                        <i class="fas fa-paper-plane" style="font-size:0.82rem;"></i>
+                        Send Message
+                    </button>
                 </form>
+
             </div>
         </div>
-        <div class="col-lg-5 mb-5">
-            <h5 class="font-weight-semi-bold mb-3">Get In Touch</h5>
-            <p>Justo sed diam ut sed amet duo amet lorem amet stet sea ipsum, sed duo amet et. Est elitr dolor elitr erat sit sit. Dolor diam et erat clita ipsum justo sed.</p>
-            <div class="d-flex flex-column mb-3">
-                <h5 class="font-weight-semi-bold mb-3">Store 1</h5>
-                <p class="mb-2"><i class="fa fa-map-marker-alt text-primary mr-3"></i>123 Street, New York, USA</p>
-                <p class="mb-2"><i class="fa fa-envelope text-primary mr-3"></i>info@example.com</p>
-                <p class="mb-2"><i class="fa fa-phone-alt text-primary mr-3"></i>+012 345 67890</p>
+
+        <!-- ===== Right: Contact Info ===== -->
+        <aside class="contact-info-card">
+            <div class="contact-card-head">Contact Information</div>
+            <div class="contact-card-body">
+
+                <p class="contact-info-intro">
+                    Do you have questions about products, orders, or want to collaborate? We are always ready to listen
+                    and support you as soon as possible.
+                </p>
+
+                <!-- Store info -->
+                <div class="contact-info-section">
+                    <div class="contact-info-section-title">DUNE Store</div>
+
+                    <div class="contact-info-item">
+                        <div class="contact-info-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div>
+                            <div class="contact-info-text-label">Address</div>
+                            <div class="contact-info-text-val">218 Linh Nam, Hoang Mai, Ha Noi</div>
+                        </div>
+                    </div>
+
+                    <div class="contact-info-item">
+                        <div class="contact-info-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div>
+                            <div class="contact-info-text-label">Email</div>
+                            <div class="contact-info-text-val">
+                                <a href="mailto:hoanggduongg2004@gmail.com">hoanggduongg2004@gmail.com</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="contact-info-item">
+                        <div class="contact-info-icon">
+                            <i class="fas fa-phone-alt"></i>
+                        </div>
+                        <div>
+                            <div class="contact-info-text-label">Phone</div>
+                            <div class="contact-info-text-val">
+                                <a href="tel:+01234567890">+0347113353</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Opening hours -->
+                <div class="contact-info-section">
+                    <div class="contact-info-section-title">Working Hours</div>
+                    <table class="contact-hours">
+                        <tr>
+                            <td>Monday – Friday</td>
+                            <td>8:00 – 21:00</td>
+                        </tr>
+                        <tr>
+                            <td>Saturday – Sunday</td>
+                            <td>9:00 – 22:00</td>
+                        </tr>
+                        <tr>
+                            <td>Holidays</td>
+                            <td>10:00 – 20:00</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Social -->
+                <div class="contact-info-section">
+                    <div class="contact-info-section-title">Social Media</div>
+                    <div class="contact-info-item">
+                        <div class="contact-info-icon">
+                            <i class="fab fa-facebook-f"></i>
+                        </div>
+                        <div>
+                            <div class="contact-info-text-label">Facebook</div>
+                            <div class="contact-info-text-val">
+                                <a href="#">facebook.com/dune.fashion</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="contact-info-item">
+                        <div class="contact-info-icon">
+                            <i class="fab fa-instagram"></i>
+                        </div>
+                        <div>
+                            <div class="contact-info-text-label">Instagram</div>
+                            <div class="contact-info-text-val">
+                                <a href="#">@dune.fashion</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-            <div class="d-flex flex-column">
-                <h5 class="font-weight-semi-bold mb-3">Store 2</h5>
-                <p class="mb-2"><i class="fa fa-map-marker-alt text-primary mr-3"></i>123 Street, New York, USA</p>
-                <p class="mb-2"><i class="fa fa-envelope text-primary mr-3"></i>info@example.com</p>
-                <p class="mb-0"><i class="fa fa-phone-alt text-primary mr-3"></i>+012 345 67890</p>
-            </div>
-        </div>
+        </aside>
+
     </div>
 </div>
-<!-- Contact End -->
 
 {% endblock content %}
+
+{% block extra_js %}
+<script src="{% static 'mail/jqBootstrapValidation.min.js' %}"></script>
+<script src="{% static 'mail/contact.js' %}"></script>
+{% endblock %}

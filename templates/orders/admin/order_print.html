@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Hóa đơn #{{ order.order_number }}</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        .invoice-box {
+            max-width: 210mm;
+            margin: 20px auto;
+            padding: 15mm;
+            border: 1px solid #eee;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+            font-size: 16px;
+            background: #fff;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        .company-info h1 {
+            margin: 0;
+            color: #1a1f36;
+            font-size: 32px;
+        }
+        .invoice-details {
+            text-align: right;
+        }
+        .section {
+            margin-bottom: 15px;
+        }
+        .section-title {
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+            display: inline-block;
+        }
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        table th {
+            background: #f4f4f4;
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .totals {
+            float: right;
+            width: 300px;
+        }
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+        }
+        .grand-total {
+            font-weight: bold;
+            font-size: 18px;
+            border-top: 1px solid #333;
+            margin-top: 5px;
+            padding-top: 5px;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 13px;
+            color: #777;
+        }
+        .signature-area {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-around;
+        }
+        .signature-box {
+            text-align: center;
+            width: 180px;
+        }
+        .signature-line {
+            margin-top: 40px;
+            border-top: 1px dashed #333;
+        }
+
+        @media print {
+            body {
+                padding: 0;
+                margin: 0;
+                background: #fff;
+            }
+            .invoice-box {
+                box-shadow: none;
+                border: none;
+                max-width: none;
+                width: 100%;
+                margin: 0;
+                padding: 10mm;
+            }
+            .no-print {
+                display: none;
+            }
+            @page {
+                size: A4;
+                margin: 10mm;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="text-align: center; margin-bottom: 20px;">
+        <button onclick="window.print()" style="padding: 10px 20px; background: #d32f2f; color: #fff; border: none; cursor: pointer; border-radius: 4px;">In hóa đơn</button>
+        <button onclick="window.close()" style="padding: 10px 20px; background: #777; color: #fff; border: none; cursor: pointer; border-radius: 4px; margin-left: 10px;">Đóng</button>
+    </div>
+
+    <div class="invoice-box">
+        <div class="header">
+            <div class="company-info">
+                <h1>{{ company_name }}</h1>
+                <p>
+                    {{ company_address }}<br>
+                    SĐT: {{ company_phone }}<br>
+                    Website: www.duneshop.com
+                </p>
+            </div>
+            <div class="invoice-details">
+                <h2>HÓA ĐƠN BÁN HÀNG</h2>
+                <p>
+                    Mã đơn hàng: <strong>#{{ order.order_number }}</strong><br>
+                    Ngày đặt: {{ order.created_at|date:"d/m/Y H:i" }}<br>
+                    Trạng thái: {{ order.get_status_display }}
+                </p>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="details-grid">
+                <div>
+                    <div class="section-title">Thông tin khách hàng</div>
+                    <p>
+                        <strong>Tên:</strong> {{ order.full_name }}<br>
+                        <strong>SĐT:</strong> {{ order.phone }}<br>
+                        <strong>Email:</strong> {{ order.email }}
+                    </p>
+                </div>
+                <div>
+                    <div class="section-title">Địa chỉ giao hàng</div>
+                    <p>
+                        {{ order.address }}<br>
+                        {{ order.ward }}, {{ order.district }}, {{ order.province }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Chi tiết đơn hàng</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sản phẩm</th>
+                        <th>Biến thể</th>
+                        <th class="text-right">Đơn giá</th>
+                        <th class="text-right">Số lượng</th>
+                        <th class="text-right">Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order_items %}
+                    <tr>
+                        <td>{{ item.product.name }}</td>
+                        <td>{{ item.variant.name|default:"-" }}</td>
+                        <td class="text-right">{{ item.product_price|floatformat:0 }}đ</td>
+                        <td class="text-right">{{ item.quantity }}</td>
+                        <td class="text-right">{% widthratio item.product_price 1 item.quantity %}đ</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="totals">
+                <div class="totals-row">
+                    <span>Tổng tiền hàng:</span>
+                    <span>{{ order.order_total|floatformat:0 }}đ</span>
+                </div>
+                <div class="totals-row">
+                    <span>Phí vận chuyển:</span>
+                    <span>+{{ order.shipping_fee|floatformat:0 }}đ</span>
+                </div>
+                {% if order.discount_amount > 0 %}
+                <div class="totals-row">
+                    <span>Giảm giá:</span>
+                    <span>-{{ order.discount_amount|floatformat:0 }}đ</span>
+                </div>
+                {% endif %}
+                <div class="totals-row grand-total">
+                    <span>TỔNG CỘNG:</span>
+                    <span>{{ order.grand_total|floatformat:0 }}đ</span>
+                </div>
+                <div class="totals-row" style="margin-top: 10px; font-style: italic; color: #555;">
+                    <span>Thanh toán:</span>
+                    <span>{{ order.payment_method }} ({{ order.payment_status }})</span>
+                </div>
+            </div>
+            <div style="clear: both;"></div>
+        </div>
+
+        {% if order.order_note %}
+        <div class="section">
+            <div class="section-title">Ghi chú</div>
+            <p>{{ order.order_note }}</p>
+        </div>
+        {% endif %}
+
+        <div class="signature-area">
+            <div class="signature-box">
+                <strong>Người mua hàng</strong><br>
+                <em>(Ký và ghi rõ họ tên)</em>
+                <div class="signature-line"></div>
+            </div>
+            <div class="signature-box">
+                <strong>Người lập hóa đơn</strong><br>
+                <em>(Ký và ghi rõ họ tên)</em>
+                <div class="signature-line"></div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Cảm ơn quý khách đã mua sắm tại {{ company_name }}!</p>
+            <p>Vui lòng giữ lại hóa đơn để đối chiếu khi cần thiết.</p>
+        </div>
+    </div>
+
+    <script>
+        // Tự động mở hộp thoại in khi trang đã load xong
+        window.onload = function() {
+            setTimeout(function() {
+                window.print();
+            }, 500);
+        }
+    </script>
+</body>
+</html>

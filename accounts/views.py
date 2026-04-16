@@ -33,6 +33,15 @@ def login(request):
                 form.add_error(None, 'Tài khoản đã bị vô hiệu hóa.')
             else:
                 auth_login(request, user)
+                
+                # Check remember me and set session expiry
+                remember_me = request.POST.get('remember_me')
+                if remember_me:
+                    # Nếu người dùng chọn "Remember me", giữ phiên đăng nhập 14 ngày (1209600 giây)
+                    request.session.set_expiry(1209600) # 14 days in seconds
+                else:
+                    # Nếu không chọn, phiên đăng nhập sẽ kết thúc khi đóng trình duyệt
+                    request.session.set_expiry(3600)
             
             # Check if there's a next path
             next_url = request.POST.get('next') or request.GET.get('next') # request.POST.get('next') or request.GET.get('next')

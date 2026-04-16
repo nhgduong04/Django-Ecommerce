@@ -1,79 +1,87 @@
-{% extends 'base.html' %}
+{% extends 'accounts/auth_base.html' %}
 
-{% block title %}Register - EShopper{% endblock %}
+{% block page_title %}Create Account — DUNE{% endblock %}
+{% block brand_heading %}Join DUNE.{% endblock %}
+{% block brand_sub %}Create your account and discover fashion crafted with care.{% endblock %}
 
-{% block content %}
-<!-- Page Header Start -->
-<div class="container-fluid bg-secondary mb-5">
-    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 150px">
-        <h1 class="font-weight-semi-bold text-uppercase mb-3">Register</h1>
-        <div class="d-inline-flex">
-            <p class="m-0"><a href="{% url 'home' %}">Home</a></p>
-            <p class="m-0 px-2">-</p>
-            <p class="m-0">Register</p>
+{% block auth_content %}
+<h1 class="auth-title">Create account</h1>
+<p class="auth-subtitle">Fill in your details to get started with DUNE.</p>
+
+{% if form.non_field_errors %}
+<div class="auth-error-banner">
+    <i class="fas fa-exclamation-circle"></i>&nbsp;{{ form.non_field_errors|striptags }}
+</div>
+{% endif %}
+
+<form method="POST" action="{% url 'register' %}">
+    {% csrf_token %}
+
+    <!-- First name + Last name (2-column) -->
+    <div class="auth-field-row">
+        <div class="auth-field {% if form.first_name.errors %}has-error{% endif %}">
+            <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+            {{ form.first_name }}
+            {% if form.first_name.errors %}
+            <span class="auth-field-error">{{ form.first_name.errors|striptags }}</span>
+            {% endif %}
+        </div>
+
+        <div class="auth-field {% if form.last_name.errors %}has-error{% endif %}">
+            <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+            {{ form.last_name }}
+            {% if form.last_name.errors %}
+            <span class="auth-field-error">{{ form.last_name.errors|striptags }}</span>
+            {% endif %}
         </div>
     </div>
-</div>
-<!-- Page Header End -->
 
-<!-- Register Form Start -->
-<div class="container-fluid pt-5">
-    <div class="row px-xl-5 justify-content-center">
-        <div class="col-lg-6 mb-5">
-            <div class="card border-0 shadow-sm p-4">
-                <div class="card-body">
-                    <h4 class="font-weight-bold mb-4 text-center">Create an Account</h4>
-
-                    {# Messages are now handled globally via toast notifications in base.html #}
-
-                    <form method="POST" action="{% url 'register' %}">
-                        {% csrf_token %}
-
-                        <!-- Display non-field errors: lỗi logic toàn form không thuộc riêng field nào -->
-                        <!-- dùng non field errors khi dùng clean để validate dữ liệu 2 trường -->
-                        <!-- UserCreationForm đã validate riêng các field nên sẽ không render lỗi ở đây -->
-                        {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {{ form.non_field_errors }}
-                        </div>
-                        {% endif %}
-
-                        <!-- Django trả về BoundField: -->
-                        <!-- BoundField chứa:
-                            HTML input
-                            label
-                            errors
-                            help_text
-                            value hiện tại
-                         -->
-                        {% for field in form %}
-                        <div class="form-group mb-3">
-                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                            {{ field }}
-                            {% if field.help_text %}
-                            <small class="form-text text-muted">{{ field.help_text|safe }}</small>
-                            {% endif %}
-                            {% if field.errors %}
-                            <div class="text-danger mt-1 small">
-                                {{ field.errors|striptags }} <!-- striptags để loại bỏ thẻ HTML từ lỗi -->
-                            </div>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-
-                        <div>
-                            <button class="btn btn-primary btn-block py-3 font-weight-bold" type="submit">Register</button>
-                        </div>
-                    </form>
-                    <div class="text-center mt-4">
-                        <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- Username -->
+    <div class="auth-field {% if form.username.errors %}has-error{% endif %}">
+        <label for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+        {{ form.username }}
+        {% if form.username.help_text %}
+        <span class="auth-field-help">{{ form.username.help_text|safe }}</span>
+        {% endif %}
+        {% if form.username.errors %}
+        <span class="auth-field-error">{{ form.username.errors|striptags }}</span>
+        {% endif %}
     </div>
-</div>
-<!-- Register Form End -->
 
+    <!-- Email -->
+    <div class="auth-field {% if form.email.errors %}has-error{% endif %}">
+        <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+        {{ form.email }}
+        {% if form.email.errors %}
+        <span class="auth-field-error">{{ form.email.errors|striptags }}</span>
+        {% endif %}
+    </div>
+
+    <!-- Password -->
+    <div class="auth-field {% if form.password1.errors %}has-error{% endif %}">
+        <label for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
+        {{ form.password1 }}
+        {% if form.password1.help_text %}
+        <span class="auth-field-help">{{ form.password1.help_text|safe }}</span>
+        {% endif %}
+        {% if form.password1.errors %}
+        <span class="auth-field-error">{{ form.password1.errors|striptags }}</span>
+        {% endif %}
+    </div>
+
+    <!-- Confirm Password -->
+    <div class="auth-field {% if form.password2.errors %}has-error{% endif %}">
+        <label for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
+        {{ form.password2 }}
+        {% if form.password2.errors %}
+        <span class="auth-field-error">{{ form.password2.errors|striptags }}</span>
+        {% endif %}
+    </div>
+
+    <button type="submit" class="auth-btn">Create Account</button>
+</form>
+
+<div class="auth-footer">
+    Already have an account? <a href="{% url 'login' %}">Sign in</a>
+</div>
 {% endblock %}
-

@@ -1,9 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.core.paginator import Paginator
 from django.http import JsonResponse
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, Avg
+from django.contrib import messages
 from django.template.loader import render_to_string
-from .models import Product, Category, Variation
+from .models import Product, Category, Variation, Review
+from .forms import ReviewForm
 
 SORT_OPTIONS = {
     'latest': '-created_at',
@@ -24,7 +27,12 @@ def _apply_sort(queryset, sort_key):
 # Create your views here.
 def home(request):
     products = Product.objects.select_related('category').order_by('-created_at')[:4]
-    return render(request, 'home.html', {'products': products})
+    best_sellers = (
+        Product.objects.select_related('category')
+        .annotate(total_sold=Sum('orderitem__quantity', filter=Q(orderitem__is_ordered=True)))
+        .order_by('-total_sold', '-created_at')[:4]
+    )
+    return render(request, 'home.html', {'products': products, 'best_sellers': best_sellers})
 
 def category_list(request, slug):
     category = get_object_or_404(Category, slug=slug)
@@ -176,11 +184,78 @@ def product_detail(request, slug):
         .order_by('-created_at')[:4]
     )
 
+    # Dùng select_related('user') để tránh N+1 khi render review.user.username trong template
+    reviews = (
+        Review.objects
+        .filter(product=product, status=True)
+        .select_related('user')
+        .order_by('-created_at')
+    )
+    average_rating = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+    review_count = reviews.count()
+
+    user_pending_reviews = []
+    if request.user.is_authenticated:
+        user_pending_reviews = (
+            Review.objects
+            .filter(product=product, user=request.user, status=False)
+            .select_related('user')
+            .order_by('-created_at')
+        )
+
     context = {
         'product': product,
         'related_products': related_products,
+        'reviews': reviews,
+        'user_pending_reviews': user_pending_reviews,
+        'average_rating': average_rating,
+        'review_count': review_count,
     }
     return render(request, 'products/product_detail.html', context)
+
+def submit_review(request, product_id):
+    # Fallback URL an toàn nếu Referer bị browser/proxy xoá
+    product = get_object_or_404(Product, id=product_id)
+    url = request.META.get('HTTP_REFERER') or reverse('product_detail', args=[product.slug])
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+    # ── Auth guard ────────────────────────────────────────────────────
+    if not request.user.is_authenticated:
+        if is_ajax:
+            return JsonResponse({'success': False, 'message': 'Vui lòng đăng nhập để đánh giá.'}, status=401)
+        messages.error(request, 'Vui lòng đăng nhập để đánh giá.')
+        return redirect(url)
+
+    if request.method != 'POST':
+        return redirect(url)
+
+    # ── Cập nhật review cũ hoặc tạo mới ──────────────────────────────
+    existing = Review.objects.filter(user=request.user, product=product).first()
+    if existing:
+        form = ReviewForm(request.POST, instance=existing)
+        msg = "Cảm ơn bạn! Đánh giá của bạn đã được cập nhật và đang chờ duyệt."
+    else:
+        form = ReviewForm(request.POST)
+        msg = "Cảm ơn bạn! Đánh giá của bạn đã được gửi và đang chờ duyệt."
+
+    if form.is_valid():
+        review_obj = form.save(commit=False)
+        review_obj.ip     = request.META.get('REMOTE_ADDR', '')
+        review_obj.product = product
+        review_obj.user   = request.user
+        review_obj.status = False  # Luôn chờ duyệt sau mỗi lần gửi/cập nhật
+        review_obj.save()
+
+        if is_ajax:
+            return JsonResponse({'success': True, 'message': msg})
+        messages.success(request, msg)
+        return redirect(url)
+
+    # Form không hợp lệ
+    if is_ajax:
+        return JsonResponse({'success': False, 'errors': form.errors.as_json()}, status=400)
+    messages.error(request, 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.')
+    return redirect(url)
 
 
 def product_quick_view(request, slug):

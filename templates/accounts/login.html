@@ -1,77 +1,66 @@
-{% extends 'base.html' %}
+{% extends 'accounts/auth_base.html' %}
+{% load socialaccount %}
 
-{% block title %}Login - EShopper{% endblock %}
+{% block page_title %}Sign In — DUNE{% endblock %}
+{% block brand_heading %}Welcome back.{% endblock %}
+{% block brand_sub %}Sign in to continue your journey with DUNE.{% endblock %}
 
-{% block content %}
-<!-- Page Header Start -->
-<div class="container-fluid bg-secondary mb-5">
-    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 150px">
-        <h1 class="font-weight-semi-bold text-uppercase mb-3">Login</h1>
-        <div class="d-inline-flex">
-            <p class="m-0"><a href="{% url 'home' %}">Home</a></p>
-            <p class="m-0 px-2">-</p>
-            <p class="m-0">Login</p>
-        </div>
-    </div>
+{% block auth_content %}
+<h1 class="auth-title">Sign in</h1>
+<p class="auth-subtitle">Enter your credentials to access your account.</p>
+
+{% if form.non_field_errors %}
+<div class="auth-error-banner">
+    <i class="fas fa-exclamation-circle"></i>&nbsp;{{ form.non_field_errors|striptags }}
 </div>
-<!-- Page Header End -->
+{% endif %}
 
-<!-- Login Form Start -->
-<div class="container-fluid pt-5">
-    <div class="row px-xl-5 justify-content-center">
-        <div class="col-lg-6 mb-5">
-            <div class="card border-0 shadow-sm p-4">
-                <div class="card-body">
-                    <h4 class="font-weight-bold mb-4 text-center">Sign In</h4>
+<form method="POST" action="{% url 'login' %}">
+    {% csrf_token %}
+    {% if request.GET.next %}
+    <input type="hidden" name="next" value="{{ request.GET.next }}">
+    {% endif %}
 
-                    {# Messages are now handled globally via toast notifications in base.html #}
-
-                    <form method="POST" action="{% url 'login' %}">
-                        {% csrf_token %}
-                        {% if request.GET.next %}
-                        <input type="hidden" name="next" value="{{ request.GET.next }}">
-                        {% endif %}
-
-                        {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {{ form.non_field_errors|striptags }}
-                        </div>
-                        {% endif %}
-
-                        {% for field in form %}
-                        <div class="form-group mb-3">
-                            <label>{{ field.label }}</label>
-                            {{ field }}
-                            {% if field.errors %}
-                            <div class="text-danger mt-1 small">
-                                {{ field.errors|striptags }}
-                            </div>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-
-                        <div class="form-group mb-3 d-flex justify-content-between align-items-center">
-                            <div class="custom-control custom-checkbox">
-                                <input type="checkbox" class="custom-control-input" id="rememberMe" name="remember_me">
-                                <label class="custom-control-label" for="rememberMe">Remember Me</label>
-                            </div>
-                            <div>
-                                <a href="{% url 'password_reset' %}">Forgot Password?</a>
-                            </div>
-                        </div>
-
-                        <div>
-                            <button class="btn btn-primary btn-block py-3 font-weight-bold" type="submit">Login</button>
-                        </div>
-                    </form>
-
-                    <div class="text-center mt-4">
-                        <p>Don't have an account? <a href="{% url 'register' %}">Register now</a></p>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- Email / Username -->
+    <div class="auth-field {% if form.username.errors %}has-error{% endif %}">
+        <label for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+        {{ form.username }}
+        {% if form.username.errors %}
+        <span class="auth-field-error">{{ form.username.errors|striptags }}</span>
+        {% endif %}
     </div>
+
+    <!-- Password -->
+    <div class="auth-field {% if form.password.errors %}has-error{% endif %}">
+        <label for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+        {{ form.password }}
+        {% if form.password.errors %}
+        <span class="auth-field-error">{{ form.password.errors|striptags }}</span>
+        {% endif %}
+    </div>
+
+    <!-- Remember me + Forgot password -->
+    <div class="auth-check-row">
+        <label class="auth-check-label">
+            <input type="checkbox" name="remember_me" id="rememberMe">
+            Remember me
+        </label>
+        <a href="{% url 'password_reset' %}" class="auth-forgot-link">Forgot password?</a>
+    </div>
+
+    <button type="submit" class="auth-btn">Sign In</button>
+</form>
+
+<div class="auth-divider">
+    <span class="auth-divider-text">or</span>
 </div>
-<!-- Login Form End -->
+
+<a href="{% provider_login_url 'google' process='login' next=request.GET.next %}"
+   class="auth-btn-google">
+    <i class="fab fa-google"></i> Continue with Google
+</a>
+
+<div class="auth-footer">
+    Don't have an account? <a href="{% url 'register' %}">Create one</a>
+</div>
 {% endblock %}

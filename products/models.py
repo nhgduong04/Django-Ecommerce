@@ -133,7 +133,7 @@ class ProductVariant(models.Model):
         return self.product.image
 
     def __str__(self):
-        return f"{self.product.name} - {', '.join([f'{v.variation_category}: {v.variation_value}' for v in self.variations.all()])}"
+        return self.sku if self.sku else f"ID: {self.id}"
 
 class Promotion(models.Model):
     name = models.CharField(max_length=255)
@@ -158,7 +158,7 @@ class ProductGallery(models.Model):
     )
     image = models.ImageField(upload_to='gallery/')
     alt_text = models.CharField(max_length=255, blank=True) #SEO-friendly alt text
-    order = models.PositiveIntegerField(default=0)
+    order = models.PositiveIntegerField(default=0, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -167,3 +167,16 @@ class ProductGallery(models.Model):
     
     def __str__(self):
         return f"Image for {self.product.name}"
+class Review(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    subject = models.CharField(max_length=100, blank=True)
+    review = models.TextField(max_length=500, blank=True)
+    rating = models.FloatField()
+    ip = models.CharField(max_length=20, blank=True)
+    status = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.subject if self.subject else f"Review by {self.user.username}"

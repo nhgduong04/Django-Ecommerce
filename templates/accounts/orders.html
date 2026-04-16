@@ -1,132 +1,146 @@
 {% extends 'accounts/profile_base.html' %}
-{% load static %}
+{% load humanize %}
 
 {% block profile_content %}
-{% block extra_css %}
-<link href="{% static 'custom/pages/orders.css' %}" rel="stylesheet">
-{% endblock %}
 
-
-<!-- Order Status Tabs -->
-<div class="order-tabs">
-    <a href="{% url 'orders' %}?status=pending"
-       class="order-tab {% if active_tab == 'pending' %}active{% endif %}">Current</a>
-    <a href="{% url 'orders' %}?status=processing"
-       class="order-tab {% if active_tab == 'processing' %}active{% endif %}">Processing Orders</a>
-    <a href="{% url 'orders' %}?status=completed"
-       class="order-tab {% if active_tab == 'completed' %}active{% endif %}">Completed Orders</a>
+<div class="pf-content-head">
+    <span class="pf-content-num"><i class="fas fa-box" style="font-size:0.55rem;"></i></span>
+    <span class="pf-content-title">Đơn hàng của bạn</span>
 </div>
 
-{% if orders %}
-    {% for order in orders %}
-    <!-- Order Card -->
-    <div class="order-card">
-        <div class="order-header">
-            <div class="order-header-info">
-                <h6>Order #: {{ order.order_number }}</h6>
-                <p>
-                    {{ order.order_products.all|length }} Product{{ order.order_products.all|length|pluralize }}
-                    | By {{ order.full_name }}
-                    | {{ order.created_at|date:"H:i, M d, Y" }}
-                </p>
-            </div>
-            <div>
-                <button class="btn btn-order-action btn-sm px-3">
-                    <i class="fas fa-download mr-2"></i> Download Invoice
-                </button>
-                <button class="btn btn-order-action btn-sm ml-2 px-2">
-                    <i class="fas fa-ellipsis-v px-1"></i>
-                </button>
-            </div>
-        </div>
-        <div class="order-body">
-            <div class="order-meta">
-                <div class="order-meta-item">
-                    <div class="order-meta-label">Status:</div>
-                    <div class="order-meta-value font-weight-bold
-                        {% if order.status == 'PENDING' %}status-pending
-                        {% elif order.status == 'PROCESSING' %}status-processing
-                        {% elif order.status == 'COMPLETED' %}status-completed
-                        {% elif order.status == 'CANCELLED' %}status-cancelled
-                        {% endif %}">
-                        {{ order.get_status_display }}
-                    </div>
+<div class="pf-content-body">
+
+    <!-- Status Tabs -->
+    <div class="order-tabs">
+        <a href="{% url 'orders' %}?status=pending"
+           class="order-tab {% if active_tab == 'pending' %}active{% endif %}">
+            Đang chờ
+        </a>
+        <a href="{% url 'orders' %}?status=processing"
+           class="order-tab {% if active_tab == 'processing' %}active{% endif %}">
+            Đang xử lý
+        </a>
+        <a href="{% url 'orders' %}?status=completed"
+           class="order-tab {% if active_tab == 'completed' %}active{% endif %}">
+            Hoàn thành
+        </a>
+    </div>
+
+    {% if orders %}
+        {% for order in orders %}
+        <div class="order-card">
+
+            <!-- Card Header -->
+            <div class="order-header">
+                <div class="order-header-info">
+                    <h6>Đơn hàng #{{ order.order_number }}</h6>
+                    <p>
+                        {{ order.order_products.all|length }} sản phẩm
+                        &nbsp;·&nbsp; {{ order.created_at|date:"H:i, d/m/Y" }}
+                    </p>
                 </div>
-                <div class="order-meta-item">
-                    <div class="order-meta-label">Date of delivery:</div>
-                    <div class="order-meta-value">{{ order.created_at|date:"D, d M, Y" }}</div>
-                </div>
-                <div class="order-meta-item">
-                    <div class="order-meta-label">Delivered to:</div>
-                    <div class="order-meta-value">{{ order.address }}, {{ order.ward }}, {{ order.district }}, {{ order.province }}</div>
-                </div>
-                <div class="order-meta-item">
-                    <div class="order-meta-label">Payment:</div>
-                    <div class="order-meta-value">{{ order.payment_method }} — {{ order.payment_status|title }}</div>
-                </div>
-                <div class="order-meta-item">
-                    <div class="order-meta-label">Subtotal:</div>
-                    <div class="order-meta-value">{{ order.order_total|floatformat:0 }} ₫</div>
-                </div>
-                <div class="order-meta-item">
-                    <div class="order-meta-label">Shipping:</div>
-                    <div class="order-meta-value">{{ order.shipping_fee|floatformat:0 }} ₫</div>
-                </div>
-                {% if order.discount_amount > 0 %}
-                <div class="order-meta-item">
-                    <div class="order-meta-label">Discount:</div>
-                    <div class="order-meta-value text-success">-{{ order.discount_amount|floatformat:0 }} ₫</div>
-                </div>
-                {% endif %}
-                {% if order.shipping_saved > 0 %}
-                <div class="order-meta-item">
-                    <div class="order-meta-label">Shipping Discount:</div>
-                    <div class="order-meta-value text-success">-{{ order.shipping_saved|floatformat:0 }} ₫</div>
-                </div>
-                {% endif %}
-                <div class="order-meta-item">
-                    <div class="order-meta-label">Total:</div>
-                    <div class="order-meta-value font-weight-bold">{{ order.grand_total|floatformat:0 }} ₫</div>
-                </div>
+                <span class="order-status-pill
+                    {% if order.status == 'PENDING' %}status-pending
+                    {% elif order.status == 'PROCESSING' %}status-processing
+                    {% elif order.status == 'COMPLETED' %}status-completed
+                    {% elif order.status == 'CANCELLED' %}status-cancelled
+                    {% endif %}">
+                    <i class="fas fa-circle" style="font-size:0.4rem;"></i>
+                    {{ order.get_status_display }}
+                </span>
             </div>
 
-            <!-- Order Items -->
-            <div class="order-product-grid">
-                {% for item in order.order_products.all %}
-                <div class="order-product-item">
-                    <div class="order-product-img">
-                        {% if item.variant and item.variant.get_image %}
-                            <img src="{{ item.variant.get_image.url }}" alt="{{ item.product.name }}">
-                        {% elif item.product.image %}
-                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
-                        {% else %}
-                            <i class="fas fa-image" style="color: #ccc; font-size: 24px;"></i>
-                        {% endif %}
+            <!-- Card Body -->
+            <div class="order-body">
+
+                <!-- Meta grid -->
+                <div class="order-meta">
+                    <div class="order-meta-item">
+                        <span class="order-meta-label">Giao đến</span>
+                        <span class="order-meta-value">
+                            {% if order.address %}{{ order.address }}, {% endif %}
+                            {% if order.ward %}{{ order.ward }}, {% endif %}
+                            {% if order.district %}{{ order.district }}, {% endif %}
+                            {{ order.province }}
+                        </span>
                     </div>
-                    <div class="order-product-info">
-                        <h6>{{ item.product.name }}</h6>
-                        <p>Quantity: {{ item.quantity }}x = {{ item.product_price|floatformat:0 }} ₫</p>
-                        {% if item.variant %}
-                            {% for variation in item.variant.variations.all %}
-                                {% if forloop.first %}<p>{% endif %}
-                                {{ variation.variation_category|title }}: {{ variation.get_display_name }}
-                                {% if not forloop.last %}<br>{% endif %}
-                                {% if forloop.last %}</p>{% endif %}
-                            {% endfor %}
-                        {% endif %}
+                    <div class="order-meta-item">
+                        <span class="order-meta-label">Thanh toán</span>
+                        <span class="order-meta-value">
+                            {{ order.payment_method }}
+                            &nbsp;—&nbsp;
+                            {% if order.payment_status == 'paid' %}
+                            <span style="color:#16a34a;font-weight:700;">Đã thanh toán</span>
+                            {% else %}
+                            <span style="color:#b45309;">Chưa thanh toán</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="order-meta-item">
+                        <span class="order-meta-label">Tạm tính</span>
+                        <span class="order-meta-value">{{ order.order_total|floatformat:0|intcomma }}đ</span>
+                    </div>
+                    <div class="order-meta-item">
+                        <span class="order-meta-label">Phí ship</span>
+                        <span class="order-meta-value">{{ order.shipping_fee|floatformat:0|intcomma }}đ</span>
+                    </div>
+                    {% if order.discount_amount > 0 %}
+                    <div class="order-meta-item">
+                        <span class="order-meta-label">Giảm giá</span>
+                        <span class="order-meta-value text-success">-{{ order.discount_amount|floatformat:0|intcomma }}đ</span>
+                    </div>
+                    {% endif %}
+                    {% if order.shipping_saved > 0 %}
+                    <div class="order-meta-item">
+                        <span class="order-meta-label">Miễn ship</span>
+                        <span class="order-meta-value text-success">-{{ order.shipping_saved|floatformat:0|intcomma }}đ</span>
+                    </div>
+                    {% endif %}
+                    <div class="order-meta-item">
+                        <span class="order-meta-label">Tổng cộng</span>
+                        <span class="order-meta-value" style="font-size:0.95rem;font-weight:800;color:var(--warm-brown);">
+                            {{ order.grand_total|floatformat:0|intcomma }}đ
+                        </span>
                     </div>
                 </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-    {% endfor %}
-{% else %}
-    <!-- Empty State -->
+
+                <!-- Product items -->
+                <div class="order-product-grid">
+                    {% for item in order.order_products.all %}
+                    <div class="order-product-item">
+                        <div class="order-product-img">
+                            {% if item.variant and item.variant.get_image %}
+                                <img src="{{ item.variant.get_image.url }}" alt="{{ item.product.name }}">
+                            {% elif item.product.image %}
+                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                            {% else %}
+                                <i class="fas fa-image" style="color:var(--beige);font-size:1.2rem;"></i>
+                            {% endif %}
+                        </div>
+                        <div class="order-product-info">
+                            <h6>{{ item.product.name }}</h6>
+                            <p>{{ item.quantity }}x &nbsp;·&nbsp; {{ item.product_price|floatformat:0|intcomma }}đ</p>
+                            {% if item.variant %}
+                                {% for variation in item.variant.variations.all %}
+                                <p style="margin:0;">{{ variation.get_display_name }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+            </div><!-- /.order-body -->
+        </div><!-- /.order-card -->
+        {% endfor %}
+
+    {% else %}
     <div class="empty-orders">
-        <i class="fas fa-box-open d-block"></i>
+        <i class="fas fa-box-open"></i>
         <p>Không có đơn hàng nào trong mục này.</p>
     </div>
-{% endif %}
+    {% endif %}
+
+</div><!-- /.pf-content-body -->
 
 {% endblock %}

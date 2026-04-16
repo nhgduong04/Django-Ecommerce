@@ -1,38 +1,81 @@
 {% load humanize %}
-<div class="col-lg-4 col-md-6 col-sm-12 pb-1">
-    <div class="card product-item border-0 mb-4">
-        <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-            {% if product.image %}
-                <img class="img-fluid w-100" src="{{ product.image.url }}" alt="{{ product.name }}">
-            {% else %}
-                <img class="img-fluid w-100" src="" alt="{{ product.name }}">
+<div class="col-lg-4 col-md-6 col-sm-12 mb-4">
+    <article class="pcard">
+
+        {# ── Image zone ──────────────────────────────────────── #}
+        <div class="pcard__media">
+
+            {% with pct=product.get_discount_percentage %}
+            {% if pct > 0 %}
+            <span class="pcard__badge">-{{ pct|floatformat:0 }}%</span>
             {% endif %}
-        </div>
-        <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-            <h6 class="text-truncate mb-3">{{ product.name }}</h6>
-            <div class="d-flex justify-content-center">
-                {% if product.get_discount_percentage > 0 %}
-                <h6 class="text-muted">
-                    <del>{{ product.get_original_price|floatformat:0|intcomma }}đ</del>
-                </h6>
-                <h6 class="text-danger ml-2">{{ product.get_price|floatformat:0|intcomma }}đ
-                </h6>
-                <h6 class="text-danger ml-2">-{{ product.get_discount_percentage|floatformat:0 }}%</h6>
+            {% endwith %}
+
+            <a href="{% url 'product_detail' product.slug %}" class="pcard__img-link" tabindex="-1" aria-hidden="true">
+                {% if product.image %}
+                <img
+                    class="pcard__img"
+                    src="{{ product.image.url }}"
+                    alt="{{ product.name }}"
+                    loading="lazy"
+                    decoding="async"
+                    width="400"
+                    height="400"
+                >
                 {% else %}
-                <h6>{{ product.get_price|floatformat:0|intcomma }}đ</h6>
-                <h6 class="text-muted ml-2" style="display: none;"><del>{{ product.get_original_price|floatformat:0|intcomma }}đ</del></h6>
+                <img
+                    class="pcard__img pcard__img--placeholder"
+                    src=""
+                    alt="{{ product.name }}"
+                    loading="lazy"
+                    decoding="async"
+                    width="400"
+                    height="400"
+                >
+                {% endif %}
+            </a>
+
+            <div class="pcard__overlay" aria-hidden="true">
+                <div class="pcard__actions">
+                    <a
+                        href="{% url 'product_detail' product.slug %}"
+                        class="pcard__action-btn"
+                        title="View detail"
+                    >
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    <button
+                        type="button"
+                        class="pcard__action-btn js-quick-add-btn"
+                        data-quick-url="{% url 'product_quick_view' product.slug %}"
+                        title="Add to bag"
+                    >
+                        <i class="fas fa-shopping-bag"></i>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        {# ── Info zone ────────────────────────────────────────── #}
+        <div class="pcard__info">
+
+            {% if product.category %}
+            <span class="pcard__tag">{{ product.category.name }}</span>
+            {% endif %}
+
+            <a href="{% url 'product_detail' product.slug %}" class="pcard__name-link">
+                <h3 class="pcard__name">{{ product.name }}</h3>
+            </a>
+
+            <div class="pcard__price-row">
+                <span class="pcard__price-sale">{{ product.get_price|floatformat:0|intcomma }}đ</span>
+                {% if product.get_discount_percentage > 0 %}
+                <span class="pcard__price-original">{{ product.get_original_price|floatformat:0|intcomma }}đ</span>
                 {% endif %}
             </div>
+
         </div>
-        <div class="card-footer d-flex justify-content-between bg-light border">
-            <a href="{% url 'product_detail' product.slug %}" class="btn btn-sm text-dark p-0">
-                <i class="fas fa-eye text-primary mr-1"></i>View Detail
-            </a>
-            <a href="{% url 'product_detail' product.slug %}"
-               class="btn btn-sm text-dark p-0 js-quick-add-btn"
-               data-quick-url="{% url 'product_quick_view' product.slug %}">
-                <i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart
-            </a>
-        </div>
-    </div>
+
+    </article>
 </div>

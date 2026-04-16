@@ -1,4 +1,19 @@
 $(function () {
+    var $contactForm = $("#contactForm");
+
+    if (!$contactForm.length) {
+        return;
+    }
+
+    function getCsrfToken($form) {
+        var formToken = $form.find("input[name='csrfmiddlewaretoken']").val();
+        if (formToken) {
+            return formToken;
+        }
+
+        var cookieMatch = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/);
+        return cookieMatch ? decodeURIComponent(cookieMatch[1]) : "";
+    }
 
     $("#contactForm input, #contactForm textarea").jqBootstrapValidation({
         preventSubmit: true,
@@ -6,45 +21,56 @@ $(function () {
         },
         submitSuccess: function ($form, event) {
             event.preventDefault();
+
             var name = $("input#name").val();
             var email = $("input#email").val();
             var subject = $("input#subject").val();
             var message = $("textarea#message").val();
+            var endpoint = $form.attr("action");
+            var csrfToken = getCsrfToken($form);
+            var $button = $("#sendMessageButton");
 
-            $this = $("#sendMessageButton");
-            $this.prop("disabled", true);
+            $button.prop("disabled", true);
 
             $.ajax({
-                url: "contact.php",
+                url: endpoint,
                 type: "POST",
+                dataType: "json",
+                cache: false,
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                    "X-CSRFToken": csrfToken
+                },
                 data: {
+                    csrfmiddlewaretoken: csrfToken,
                     name: name,
                     email: email,
                     subject: subject,
                     message: message
                 },
-                cache: false,
-                success: function () {
+                success: function (response) {
+                    var successMessage = (response && response.message) || "Your message has been sent.";
+
                     $('#success').html("<div class='alert alert-success'>");
                     $('#success > .alert-success').html("<button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;")
-                            .append("</button>");
-                    $('#success > .alert-success')
-                            .append("<strong>Your message has been sent. </strong>");
-                    $('#success > .alert-success')
-                            .append('</div>');
+                        .append("</button>");
+                    $('#success > .alert-success').append($("<strong>").text(successMessage));
+                    $('#success > .alert-success').append('</div>');
                     $('#contactForm').trigger("reset");
                 },
-                error: function () {
+                error: function (xhr) {
+                    var responseMessage = xhr.responseJSON && xhr.responseJSON.message;
+                    var defaultMessage = "Sorry " + name + ", it seems that our mail server is not responding. Please try again later!";
+
                     $('#success').html("<div class='alert alert-danger'>");
                     $('#success > .alert-danger').html("<button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;")
-                            .append("</button>");
-                    $('#success > .alert-danger').append($("<strong>").text("Sorry " + name + ", it seems that our mail server is not responding. Please try again later!"));
+                        .append("</button>");
+                    $('#success > .alert-danger').append($("<strong>").text(responseMessage || defaultMessage));
                     $('#success > .alert-danger').append('</div>');
-                    $('#contactForm').trigger("reset");
                 },
                 complete: function () {
                     setTimeout(function () {
-                        $this.prop("disabled", false);
+                        $button.prop("disabled", false);
                     }, 1000);
                 }
             });
@@ -58,8 +84,8 @@ $(function () {
         e.preventDefault();
         $(this).tab("show");
     });
-});
 
-$('#name').focus(function () {
-    $('#success').html('');
+    $('#name').focus(function () {
+        $('#success').html('');
+    });
 });

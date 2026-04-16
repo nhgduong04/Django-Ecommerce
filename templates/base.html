@@ -5,7 +5,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>{% block title %}EShopper - Bootstrap Shop Template{% endblock %}</title>
+    <title>{% block title %}DUNE - Modern Shop{% endblock %}</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="Free HTML Templates" name="keywords">
     <meta content="Free HTML Templates" name="description">
@@ -14,18 +14,20 @@
     <link href="{% static 'img/favicon.ico' %}" rel="icon">
 
     <!-- Google Web Fonts -->
-    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
 
     <!-- Font Awesome -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
 
     <!-- Libraries Stylesheet -->
-    <link href="{% static 'lib/owlcarousel/assets/owl.carousel.min.css' %}" rel="stylesheet">
+    {% block extra_css_libs %}{% endblock %}
 
     <!-- Customized Bootstrap Stylesheet -->
-    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    <link href="{% static 'css/style.min.css' %}" rel="stylesheet">
 
     <!-- Custom Styles: base, components, overrides -->
     <link href="{% static 'custom/base.css' %}" rel="stylesheet">
@@ -34,211 +36,308 @@
 
     <!-- Page-specific CSS -->
     {% block extra_css %}{% endblock %}
-
-
 </head>
 
 <body>
-    <!-- Topbar Start -->
-    <div class="container-fluid">
-        <div class="row align-items-center py-3 px-xl-5">
-            <div class="col-lg-3 d-none d-lg-block">
-                <a href="{% url 'home' %}" class="text-decoration-none">
-                    <h1 class="m-0 display-5 font-weight-semi-bold"><span
-                            class="text-primary font-weight-bold border px-3 mr-1">E</span>Shopper</h1>
+    {% csrf_token %}
+
+    <!-- ===== Site Header ===== -->
+    <header class="site-header" id="site-header">
+        <div class="site-header-inner">
+
+            <!-- Left: Logo + Desktop Nav -->
+            <div class="site-header-left">
+                <a href="{% url 'home' %}" class="site-logo">
+                    <svg class="dune-logo-mark" viewBox="0 0 60 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 32 L30 12 L52 32" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                            fill="none" />
+                        <path d="M15 32 L30 18 L45 32" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                            fill="none" opacity="0.5" />
+                        <circle cx="30" cy="12" r="2.5" fill="currentColor" />
+                    </svg>
+                    <span class="dune-logo-text">DUNE</span>
                 </a>
+
+                <nav class="site-nav d-none d-lg-flex">
+                    <a href="{% url 'home' %}" class="site-nav-link">Home</a>
+                    <a href="{% url 'products' %}" class="site-nav-link">Shop</a>
+
+                    <!-- Categories dropdown -->
+                    <div class="dropdown site-nav-dropdown">
+                        <button class="site-nav-link site-nav-dropdown-toggle" data-toggle="dropdown"
+                            aria-haspopup="true" aria-expanded="false">
+                            Categories <i class="fas fa-chevron-down site-nav-chevron"></i>
+                        </button>
+                        <div class="dropdown-menu site-categories-menu">
+                            {% for category in categories %}
+                            <a href="{{ category.get_absolute_url }}" class="dropdown-item site-category-item">
+                                {{ category.name }}
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <a href="{% url 'contact' %}" class="site-nav-link">Contact</a>
+                </nav>
             </div>
-            <div class="col-lg-6 col-6 text-left">
-                <div class="search-wrapper">
+
+            <!-- Right: Search + Actions + Mobile toggler -->
+            <div class="site-header-right">
+
+                <div class="site-search search-wrapper">
                     <form action="{% url 'products' %}" onsubmit="return this.keyword.value.trim() !== ''"
                         autocomplete="off">
-                        <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Search for products" name="keyword"
+                        <div class="site-search-inner">
+                            <input type="text" class="site-search-input" placeholder="Search products…" name="keyword"
                                 id="search-input">
-                            <div class="input-group-append">
-                                <span class="input-group-text bg-transparent text-primary"
-                                    onclick="if(this.closest('form').keyword.value.trim() !== '') this.closest('form').submit()"
-                                    style="cursor: pointer;">
-                                    <i class="fa fa-search"></i>
-                                </span>
-                            </div>
+                            <button type="submit" class="site-search-btn" aria-label="Search">
+                                <i class="fas fa-search"></i>
+                            </button>
                         </div>
                     </form>
                     <div class="search-dropdown" id="search-dropdown"></div>
                 </div>
-            </div>
-            <div class="col-lg-3 col-6 text-right">
-                <a href="" class="btn border">
-                    <i class="fas fa-heart text-primary"></i>
-                    <span class="badge">0</span>
-                </a>
-                <a href="{% url 'cart' %}" class="btn border">
-                    <i class="fas fa-shopping-cart text-primary"></i>
-                    <span class="badge" id="cart-badge">{{ cart_count }}</span>
-                </a>
-            </div>
-        </div>
-    </div>
-    <!-- Topbar End -->
 
+                <div class="site-actions">
 
-    <!-- Navbar Start -->
-    <div class="container-fluid mb-5">
-        <div class="row border-top px-xl-5">
-            <div class="col-lg-3 d-none d-lg-block">
-                <a class="btn shadow-none d-flex align-items-center justify-content-between bg-primary text-white w-100"
-                    data-toggle="collapse" href="#navbar-vertical"
-                    style="height: 65px; margin-top: -1px; padding: 0 30px;">
-                    <h6 class="m-0">Categories</h6>
-                    <i class="fa fa-angle-down text-dark"></i>
-                </a>
-                <nav class="collapse show navbar navbar-vertical navbar-light align-items-start p-0 border border-top-0 border-bottom-0"
-                    id="navbar-vertical">
-                    <div class="navbar-nav w-100 overflow-hidden">
-                        {% for category in categories %}
-                        <a href="{{ category.get_absolute_url }}" class="nav-item nav-link">{{ category.name }}</a>
-                        {% endfor %}
-                    </div>
-                </nav>
-            </div>
-            <div class="col-lg-9">
-                <nav class="navbar navbar-expand-lg bg-light navbar-light py-3 py-lg-0 px-0">
-                    <a href="" class="text-decoration-none d-block d-lg-none">
-                        <h1 class="m-0 display-5 font-weight-semi-bold"><span
-                                class="text-primary font-weight-bold border px-3 mr-1">E</span>Shopper</h1>
-                    </a>
-                    <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-                    <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
-                        <div class="navbar-nav mr-auto py-0">
-                            <a href="/" class="nav-item nav-link active">Home</a>
-                            <a href="{% url 'products' %}" class="nav-item nav-link">Shop</a>
-                            <a href="{% url 'contact' %}" class="nav-item nav-link">Contact</a>
-                        </div>
-                        {% if user.is_authenticated %}
-                        <a href="{% url 'profile' %}" class="nav-item nav-link font-weight-bold text-primary">
-                            Hi, {{ user.username }}
-                        </a>
-                        <a href="{% url 'logout' %}" class="nav-item nav-link">Logout</a>
+                    <!-- Cart -->
+                    <a href="{% url 'cart' %}" class="site-action-btn" title="Cart">
+                        <i class="fas fa-shopping-bag"></i>
+                        {% if cart_count > 0 %}
+                        <span class="site-action-badge" id="cart-badge">{{ cart_count }}</span>
                         {% else %}
-                        <a href="{% url 'login' %}" class="nav-item nav-link">Login</a>
-                        <a href="{% url 'register' %}" class="nav-item nav-link">Register</a>
+                        <span class="site-action-badge site-action-badge--hidden" id="cart-badge">0</span>
                         {% endif %}
+                    </a>
+
+                    <!-- User -->
+                    {% if user.is_authenticated %}
+                    <div class="dropdown site-user-dropdown">
+                        <button class="site-action-btn" data-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false" title="{{ user.username }}">
+                            <i class="fas fa-user-circle site-user-icon"></i>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-right site-user-menu">
+                            <div class="site-user-menu-header">{{ user.username }}</div>
+                            <div class="dropdown-divider"></div>
+                            <a href="{% url 'profile' %}" class="dropdown-item">
+                                <i class="fas fa-user mr-2" style="font-size:0.8rem;opacity:0.6;"></i>My Profile
+                            </a>
+                            <a href="{% url 'orders' %}" class="dropdown-item">
+                                <i class="fas fa-box mr-2" style="font-size:0.8rem;opacity:0.6;"></i>My Orders
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a href="{% url 'logout' %}" class="dropdown-item site-logout-item">
+                                <i class="fas fa-sign-out-alt mr-2" style="font-size:0.8rem;opacity:0.7;"></i>Logout
+                            </a>
+                        </div>
                     </div>
-                </nav>
+                    {% else %}
+                    <a href="{% url 'login' %}" class="site-auth-link">Login</a>
+                    <a href="{% url 'register' %}" class="site-auth-link site-auth-link--primary">Register</a>
+                    {% endif %}
+
+                </div>
+
+                <!-- Mobile toggler -->
+                <button class="site-toggler d-lg-none" data-toggle="collapse" data-target="#mobile-nav"
+                    aria-controls="mobile-nav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="site-toggler-bar"></span>
+                    <span class="site-toggler-bar"></span>
+                    <span class="site-toggler-bar"></span>
+                </button>
+
+            </div>
+
+        </div>
+
+        <!-- Mobile Nav Collapse -->
+        <div class="collapse site-mobile-nav" id="mobile-nav">
+            <div class="container-fluid px-xl-5 py-3">
+                <a href="{% url 'home' %}" class="site-mobile-link">Home</a>
+                <a href="{% url 'products' %}" class="site-mobile-link">Shop</a>
+                <a href="{% url 'contact' %}" class="site-mobile-link">Contact</a>
+
+                <hr class="site-mobile-divider">
+                <p
+                    style="font-size:0.72rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--hdr-ink-faint);margin-bottom:0.25rem;">
+                    Categories</p>
+                {% for category in categories %}
+                <a href="{{ category.get_absolute_url }}" class="site-mobile-link site-mobile-link--category">
+                    {{ category.name }}
+                </a>
+                {% endfor %}
+
+                <hr class="site-mobile-divider">
+                {% if user.is_authenticated %}
+                <a href="{% url 'profile' %}" class="site-mobile-link">My Profile</a>
+                <a href="{% url 'orders' %}" class="site-mobile-link">My Orders</a>
+                <a href="{% url 'logout' %}" class="site-mobile-link" style="color:#c0392b;">Logout</a>
+                {% else %}
+                <a href="{% url 'login' %}" class="site-mobile-link">Login</a>
+                <a href="{% url 'register' %}" class="site-mobile-link"
+                    style="color:var(--hdr-rose);font-weight:600;">Register</a>
+                {% endif %}
             </div>
         </div>
-    </div>
-    <!-- Navbar End -->
+    </header>
+    <!-- /Site Header -->
+
 
     {% block content %}
     {% endblock %}
 
-    <!-- Footer Start -->
-    <div class="container-fluid bg-secondary text-dark mt-5 pt-5">
-        <div class="row px-xl-5 pt-5">
-            <div class="col-lg-4 col-md-12 mb-5 pr-3 pr-xl-5">
-                <a href="{% url 'home' %}" class="text-decoration-none">
-                    <h1 class="mb-4 display-5 font-weight-semi-bold">
-                        <span class="text-primary font-weight-bold border border-white px-3 mr-1">E</span>Shopper
-                    </h1>
-                </a>
-                <p>Dolore erat dolor sit lorem vero amet. Sed sit lorem magna, ipsum no sit erat lorem et magna ipsum
-                    dolore amet erat.</p>
-                <p class="mb-2"><i class="fa fa-map-marker-alt text-primary mr-3"></i>218 Linh Nam, Hoang Mai, Ha Noi
-                </p>
-                <p class="mb-2"><i class="fa fa-envelope text-primary mr-3"></i>hoanggduongg2004@gmail.com</p>
-                <p class="mb-0"><i class="fa fa-phone-alt text-primary mr-3"></i>+012 345 67890</p>
+
+    <!-- ===== Site Footer ===== -->
+    <footer class="site-footer">
+        <div class="container-fluid px-xl-5">
+            <div class="row pb-4">
+
+                <!-- Col 1: Logo + description -->
+                <div class="col-lg-3 col-md-6 mb-5 pr-xl-5">
+                    <a href="{% url 'home' %}" class="site-logo mb-4 d-inline-flex">
+                        <svg class="dune-logo-mark" viewBox="0 0 60 40" fill="none" xmlns="http://www.w3.org/2000/svg"
+                            style="height: 32px; width: auto; margin-right: 10px;">
+                            <path d="M8 32 L30 12 L52 32" stroke="currentColor" stroke-width="2.5"
+                                stroke-linecap="round" fill="none" />
+                            <path d="M15 32 L30 18 L45 32" stroke="currentColor" stroke-width="1.8"
+                                stroke-linecap="round" fill="none" opacity="0.5" />
+                            <circle cx="30" cy="12" r="2.5" fill="currentColor" />
+                        </svg>
+                        <span class="dune-logo-text">DUNE</span>
+                    </a>
+                    <p class="mt-3">We provide quality products, dedicated services, and the best online shopping
+                        experience for you.</p>
+                </div>
+
+                <!-- Col 2: Address -->
+                <div class="col-lg-3 col-md-6 mb-5">
+                    <h5 class="site-footer-title">
+                        <i class="fas fa-map-marker-alt"></i> Store Address
+                    </h5>
+                    <div class="site-footer-contact-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>218 Linh Nam, Hoang Mai, Ha Noi</span>
+                    </div>
+                    <div class="site-footer-contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <span>hoanggduongg2004@gmail.com</span>
+                    </div>
+                    <div class="site-footer-contact-item">
+                        <i class="fas fa-phone-alt"></i>
+                        <span>+0347113353</span>
+                    </div>
+                </div>
+
+                <!-- Col 3: Quick Links -->
+                <div class="col-lg-3 col-md-6 mb-5">
+                    <h5 class="site-footer-title">
+                        <i class="fas fa-link"></i> Quick Links
+                    </h5>
+                    <a href="{% url 'home' %}" class="site-footer-link">
+                        <i class="fas fa-chevron-right"></i> Home
+                    </a>
+                    <a href="{% url 'products' %}" class="site-footer-link">
+                        <i class="fas fa-chevron-right"></i> Shop
+                    </a>
+                    <a href="{% url 'contact' %}" class="site-footer-link">
+                        <i class="fas fa-chevron-right"></i> Contact
+                    </a>
+                </div>
+
+                <!-- Col 4: Social -->
+                <div class="col-lg-3 col-md-6 mb-5">
+                    <h5 class="site-footer-title">
+                        <i class="fas fa-share-alt"></i> Follow Us
+                    </h5>
+                    <div class="site-footer-social">
+                        <a href="#" class="site-footer-social-btn" title="Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="site-footer-social-btn" title="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                    </div>
+                </div>
+
             </div>
-            <div class="col-lg-8 col-md-12">
-                <div class="row">
-                    <div class="col-md-4 mb-5">
-                        <h5 class="font-weight-bold text-dark mb-4">Quick Links</h5>
-                        <div class="d-flex flex-column justify-content-start">
-                            <a class="text-dark mb-2" href="index.html"><i class="fa fa-angle-right mr-2"></i>Home</a>
-                            <a class="text-dark mb-2" href="shop.html"><i class="fa fa-angle-right mr-2"></i>Our
-                                Shop</a>
-                            <a class="text-dark mb-2" href="detail.html"><i class="fa fa-angle-right mr-2"></i>Shop
-                                Detail</a>
-                            <a class="text-dark mb-2" href="cart.html"><i class="fa fa-angle-right mr-2"></i>Shopping
-                                Cart</a>
-                            <a class="text-dark mb-2" href="checkout.html"><i
-                                    class="fa fa-angle-right mr-2"></i>Checkout</a>
-                            <a class="text-dark" href="contact.html"><i class="fa fa-angle-right mr-2"></i>Contact
-                                Us</a>
+        </div>
+
+        <!-- Copyright bar -->
+        <div class="site-footer-bottom">
+            <div class="container-fluid px-xl-5">
+                &copy; <a href="#">DUNE</a>. All Rights Reserved. Designed by
+                <a href="https://github.com/nhgduong04">Nguyễn Hoàng Dương &amp; Hoàng Đăng Thái Duy</a>
+            </div>
+        </div>
+    </footer>
+    <!-- /Site Footer -->
+
+
+    <!-- Chatbot Widget Start -->
+    <div class="chatbot-widget" id="chatbot-widget" aria-live="polite">
+        <button class="chatbot-toggle" id="chatbot-toggle" type="button" aria-haspopup="dialog"
+            aria-controls="chatbot-panel" aria-expanded="false" title="Chat with Assistant">
+            <i class="fas fa-comment-dots"></i>
+        </button>
+
+        <div class="chatbot-panel" id="chatbot-panel" role="dialog" aria-modal="false" aria-label="Chatbot">
+            <div class="chatbot-header">
+                <div>
+                    <p class="chatbot-title mb-0">DUNE Assistant</p>
+                    <p class="chatbot-subtitle mb-0">Quick shopping Q&amp;A</p>
+                </div>
+                <button class="chatbot-close" id="chatbot-close" type="button" aria-label="Close">&times;</button>
+            </div>
+
+            <div class="chatbot-messages" id="chatbot-messages">
+                <div class="chatbot-msg bot">
+                    <div class="bubble">
+                        Hello! How can I help you today?
+                        <div class="mt-2" style="font-size:12px; opacity:.85;">
+                            Hint: "shipping fee?", "return policy?", "MoMo payment guide"
                         </div>
-                    </div>
-                    <div class="col-md-4 mb-5">
-                        <h5 class="font-weight-bold text-dark mb-4">Quick Links</h5>
-                        <div class="d-flex flex-column justify-content-start">
-                            <a class="text-dark mb-2" href="index.html"><i class="fa fa-angle-right mr-2"></i>Home</a>
-                            <a class="text-dark mb-2" href="shop.html"><i class="fa fa-angle-right mr-2"></i>Our
-                                Shop</a>
-                            <a class="text-dark mb-2" href="detail.html"><i class="fa fa-angle-right mr-2"></i>Shop
-                                Detail</a>
-                            <a class="text-dark mb-2" href="cart.html"><i class="fa fa-angle-right mr-2"></i>Shopping
-                                Cart</a>
-                            <a class="text-dark mb-2" href="checkout.html"><i
-                                    class="fa fa-angle-right mr-2"></i>Checkout</a>
-                            <a class="text-dark" href="contact.html"><i class="fa fa-angle-right mr-2"></i>Contact
-                                Us</a>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-5">
-                        <h5 class="font-weight-bold text-dark mb-4">Newsletter</h5>
-                        <form action="">
-                            <div class="form-group">
-                                <input type="text" class="form-control border-0 py-4" placeholder="Your Name"
-                                    required="required" />
-                            </div>
-                            <div class="form-group">
-                                <input type="email" class="form-control border-0 py-4" placeholder="Your Email"
-                                    required="required" />
-                            </div>
-                            <div>
-                                <button class="btn btn-primary btn-block border-0 py-3" type="submit">Subscribe
-                                    Now</button>
-                            </div>
-                        </form>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="row border-top border-light mx-xl-5 py-4">
-            <div class="col-md-6 px-xl-0">
-                <p class="mb-md-0 text-center text-md-left text-dark">
-                    &copy; <a class="text-dark font-weight-semi-bold" href="#">Your Site Name</a>. All Rights Reserved.
-                    Designed
-                    by
-                    <a class="text-dark font-weight-semi-bold" href="https://htmlcodex.com">HTML Codex</a><br>
-                    Distributed By <a href="https://themewagon.com" target="_blank">ThemeWagon</a>
-                </p>
-            </div>
-            <div class="col-md-6 px-xl-0 text-center text-md-right">
-                <img class="img-fluid" src="{% static 'img/payments.png' %}" alt="">
+
+            <div class="chatbot-footer">
+                <form class="chatbot-form" id="chatbot-form" autocomplete="off">
+                    <input class="chatbot-input" id="chatbot-input" type="text" name="message"
+                        placeholder="Enter your question..." maxlength="500" />
+                    <button class="chatbot-send" id="chatbot-send" type="submit" aria-label="Send">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
             </div>
         </div>
     </div>
-    <!-- Footer End -->
-
-
-    <!-- Back to Top -->
-    <a href="#" class="btn btn-primary back-to-top"><i class="fa fa-angle-double-up"></i></a>
+    <!-- Chatbot Widget End -->
 
 
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
-    <script src="{% static 'lib/easing/easing.min.js' %}"></script>
-    <script src="{% static 'lib/owlcarousel/owl.carousel.min.js' %}"></script>
-
-    <!-- Contact Javascript File -->
-    <script src="{% static 'mail/jqBootstrapValidation.min.js' %}"></script>
-    <script src="{% static 'mail/contact.js' %}"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js" defer></script>
+    <script src="{% static 'lib/easing/easing.min.js' %}" defer></script>
+    {% block extra_js_libs %}{% endblock %}
 
     <!-- Template Javascript -->
-    <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/main.js' %}" defer></script>
+    <script src="{% static 'js/chatbot.js' %}" defer></script>
+
+    <!-- Page-specific JS -->
+    {% block extra_js %}{% endblock %}
+
+    <!-- Scroll shadow on header -->
+    <script>
+        (function () {
+            var hdr = document.getElementById('site-header');
+            if (!hdr) return;
+            window.addEventListener('scroll', function () {
+                hdr.classList.toggle('site-header--scrolled', window.scrollY > 8);
+            }, { passive: true });
+        })();
+    </script>
 
     <!-- Toast Notification Container -->
     <div class="toast-container" id="toast-container"></div>
@@ -268,7 +367,6 @@
 
             container.appendChild(toast);
 
-            // Trigger reflow then animate in
             toast.offsetHeight;
             toast.classList.add('show');
 
@@ -284,17 +382,25 @@
     </script>
 
     {% if messages %}
+    <div id="django-messages" class="d-none">
+        {% for message in messages %}
+        <div class="django-message" data-text="{{ message|escapejs }}"
+            data-tag="{% if message.tags == 'error' %}danger{% elif message.tags %}{{ message.tags }}{% else %}info{% endif %}">
+        </div>
+        {% endfor %}
+    </div>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            {% for message in messages %}
-            showToast(
-                '{{ message|escapejs }}',
-                '{% if message.tags == "error" %}danger{% elif message.tags %}{{ message.tags }}{% else %}info{% endif %}'
-            );
-            {% endfor %}
+            var container = document.getElementById('django-messages');
+            if (!container || typeof showToast !== 'function') return;
+            var nodes = container.querySelectorAll('.django-message');
+            nodes.forEach(function (node) {
+                showToast(node.getAttribute('data-text') || '', node.getAttribute('data-tag') || 'info');
+            });
         });
     </script>
     {% endif %}
+
 </body>
 
 </html>

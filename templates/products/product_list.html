@@ -1,83 +1,110 @@
 {% extends "base.html" %}
 {% load static %}
 {% load humanize %}
-{% block title %}{% if category %}{{ category.name }}{% else %}Tất cả sản phẩm{% endif %}{% endblock %}
+{% block title %}{% if category %}{{ category.name }}{% else %}All Products{% endif %}{% endblock %}
 {% block content %}
 {% block extra_css %}
 <link href="{% static 'custom/pages/products.css' %}" rel="stylesheet">
 {% endblock %}
 
-<!-- Page Header Start -->
-<div class="container-fluid bg-secondary mb-5">
-    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
-        <h1 class="font-weight-semi-bold text-uppercase mb-3">{% if category %}{{ category.name }}{% else %}Tất cả sản
-            phẩm{% endif %}</h1>
-        <div class="d-inline-flex">
-            <p class="m-0"><a href="/">Home</a></p>
-            <p class="m-0 px-2">-</p>
-            <p class="m-0">{% if category %}{{ category.name }}{% else %}Shop{% endif %}</p>
+<!-- Street Vibe Banner Start -->
+<div class="street-banner mb-5">
+    <div class="street-banner__noise"></div>
+    <div class="container-fluid px-xl-5 position-relative">
+        <div class="row align-items-end">
+            <div class="col-lg-8 col-md-7">
+                <span class="street-banner__label">
+                    <span class="street-banner__dot"></span>
+                    {% if category %}{{ category.name }}{% else %}NEW DROP{% endif %}
+                </span>
+                <h1 class="street-banner__heading">
+                    {% if category %}{{ category.name }}{% else %}All<br>Products{% endif %}
+                </h1>
+                <p class="street-banner__sub">Explore street culture — redefine your vibe.</p>
+            </div>
+            <div class="col-lg-4 col-md-5 mt-3 mt-md-0">
+                <nav aria-label="breadcrumb">
+                    <ol class="street-banner__breadcrumb mb-0">
+                        <li><a href="{% url 'home' %}">Home</a></li>
+                        <li><span class="street-banner__sep">//</span></li>
+                        <li><a href="{% url 'products' %}">Shop</a></li>
+                        <li><span class="street-banner__sep">//</span></li>
+                        {% if category %}
+                        <li class="street-banner__crumb-active" aria-current="page">{{ category.name }}</li>
+                        {% else %}
+                        <li class="street-banner__crumb-active" aria-current="page">All</li>
+                        {% endif %}
+                    </ol>
+                </nav>
+            </div>
         </div>
     </div>
 </div>
-<!-- Page Header End -->
+<!-- Street Vibe Banner End -->
 
 
 <!-- Shop Start -->
-<div class="container-fluid pt-5">
+<div class="container-fluid shop-layout">
     <div class="row px-xl-5">
         <!-- Shop Sidebar Start -->
         <div class="col-lg-3 col-md-12">
-            <!-- Price Start -->
-            <div class="border-bottom mb-4 pb-4">
-                <h5 class="font-weight-semi-bold mb-4">Filter by price</h5>
-                <div class="price-range-slider">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span id="price-min-label" class="font-weight-bold">0đ</span>
-                        <span id="price-max-label" class="font-weight-bold">2,000,000đ</span>
+            <aside class="shop-sidebar">
+
+                <!-- Price filter -->
+                <div class="filter-group">
+                    <h2 class="filter-group__title">Price</h2>
+                    <div class="filter-group__content">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span id="price-min-label" class="filter-price-label">0đ</span>
+                            <span id="price-max-label" class="filter-price-label">2,000,000đ</span>
+                        </div>
+                        <div class="price-slider-track"
+                            style="position:relative;height:4px;background:var(--beige);border-radius:2px;margin:18px 0 4px;">
+                            <div id="price-slider-range"
+                                style="position:absolute;height:100%;background:var(--warm-brown);border-radius:2px;"></div>
+                            <input type="range" id="price-min" min="0" max="2000000" value="0" step="10000"
+                                style="position:absolute;width:100%;top:-7px;pointer-events:none;-webkit-appearance:none;appearance:none;background:none;height:18px;">
+                            <input type="range" id="price-max" min="0" max="2000000" value="2000000" step="10000"
+                                style="position:absolute;width:100%;top:-7px;pointer-events:none;-webkit-appearance:none;appearance:none;background:none;height:18px;">
+                        </div>
                     </div>
-                    <div class="price-slider-track"
-                        style="position:relative;height:6px;background:#ddd;border-radius:3px;margin:16px 0;">
-                        <div id="price-slider-range"
-                            style="position:absolute;height:100%;background:var(--primary);border-radius:3px;"></div>
-                        <input type="range" id="price-min" min="0" max="2000000" value="0" step="10000"
-                            style="position:absolute;width:100%;top:-6px;pointer-events:none;-webkit-appearance:none;appearance:none;background:none;height:18px;">
-                        <input type="range" id="price-max" min="0" max="2000000" value="2000000" step="10000"
-                            style="position:absolute;width:100%;top:-6px;pointer-events:none;-webkit-appearance:none;appearance:none;background:none;height:18px;">
+                </div>
+
+                <!-- Color filter -->
+                <div class="filter-group">
+                    <h2 class="filter-group__title">Colors</h2>
+                    <div class="filter-group__content">
+                        {% for color in all_colors %}
+                        <label class="filter-check">
+                            <input type="checkbox" class="filter-check__input filter-color"
+                                value="{{ color }}" {% if color in selected_colors %}checked{% endif %}>
+                            <span class="filter-check__box"></span>
+                            <span class="filter-check__label">{{ color }}</span>
+                        </label>
+                        {% empty %}
+                        <p class="filter-empty">No colors available</p>
+                        {% endfor %}
                     </div>
-
                 </div>
-            </div>
-            <!-- Price End -->
 
-            <!-- Color Start -->
-            <div class="border-bottom mb-4 pb-4">
-                <h5 class="font-weight-semi-bold mb-4">Filter by color</h5>
-                {% for color in all_colors %}
-                <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-                    <input type="checkbox" class="custom-control-input filter-color" id="color-{{ forloop.counter }}"
-                        value="{{ color }}" {% if color in selected_colors %}checked{% endif %}>
-                    <label class="custom-control-label" for="color-{{ forloop.counter }}">{{ color }}</label>
+                <!-- Size filter -->
+                <div class="filter-group filter-group--last">
+                    <h2 class="filter-group__title">Sizes</h2>
+                    <div class="filter-group__content">
+                        {% for size in all_sizes %}
+                        <label class="filter-check">
+                            <input type="checkbox" class="filter-check__input filter-size"
+                                value="{{ size }}" {% if size in selected_sizes %}checked{% endif %}>
+                            <span class="filter-check__box"></span>
+                            <span class="filter-check__label">{{ size }}</span>
+                        </label>
+                        {% empty %}
+                        <p class="filter-empty">No sizes available</p>
+                        {% endfor %}
+                    </div>
                 </div>
-                {% empty %}
-                <p class="text-muted">No colors available</p>
-                {% endfor %}
-            </div>
-            <!-- Color End -->
 
-            <!-- Size Start -->
-            <div class="mb-5">
-                <h5 class="font-weight-semi-bold mb-4">Filter by size</h5>
-                {% for size in all_sizes %}
-                <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-                    <input type="checkbox" class="custom-control-input filter-size" id="size-{{ forloop.counter }}"
-                        value="{{ size }}" {% if size in selected_sizes %}checked{% endif %}>
-                    <label class="custom-control-label" for="size-{{ forloop.counter }}">{{ size }}</label>
-                </div>
-                {% empty %}
-                <p class="text-muted">No sizes available</p>
-                {% endfor %}
-            </div>
-            <!-- Size End -->
+            </aside>
         </div>
         <!-- Shop Sidebar End -->
 
@@ -85,30 +112,24 @@
         <!-- Shop Product Start -->
         <div class="col-lg-9 col-md-12">
             <div class="row pb-3">
-                <div class="col-12 pb-1">
-                    <div class="d-flex align-items-center justify-content-between mb-4">
-                        <div class="input-group" style="max-width:300px">
-                            <input type="text" class="form-control" placeholder="Search by name" id="search-keyword"
-                                value="{{ keyword|default:'' }}">
-                            <div class="input-group-append">
-                                <span class="input-group-text bg-transparent text-primary" id="search-btn"
-                                    style="cursor: pointer;">
-                                    <i class="fa fa-search"></i>
-                                </span>
-                            </div>
+                <div class="col-12">
+                    <div class="shop-toolbar">
+                        <div class="shop-toolbar__search">
+                            <i class="fa fa-search shop-toolbar__search-icon"></i>
+                            <input type="text" class="shop-toolbar__search-input" id="search-keyword"
+                                placeholder="Search products..." value="{{ keyword|default:'' }}">
                         </div>
-                        <div class="dropdown ml-4">
-                            <button class="btn border dropdown-toggle" type="button" id="triggerId"
+                        <div class="dropdown">
+                            <button class="shop-toolbar__sort-btn" type="button" id="triggerId"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                Sort by
+                                <span>Sort by</span>
+                                <i class="fas fa-chevron-down shop-toolbar__sort-icon"></i>
                             </button>
-                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="triggerId">
-                                <a class="dropdown-item sort-option active" href="#" data-sort="latest">Latest</a>
-                                <a class="dropdown-item sort-option" href="#" data-sort="popularity">Popularity</a>
-                                <a class="dropdown-item sort-option" href="#" data-sort="price_asc">Price: Low to
-                                    High</a>
-                                <a class="dropdown-item sort-option" href="#" data-sort="price_desc">Price: High to
-                                    Low</a>
+                            <div class="dropdown-menu dropdown-menu-right shop-toolbar__dropdown" aria-labelledby="triggerId">
+                                <a class="shop-toolbar__sort-item sort-option active" href="#" data-sort="latest">Latest</a>
+                                <a class="shop-toolbar__sort-item sort-option" href="#" data-sort="popularity">Popularity</a>
+                                <a class="shop-toolbar__sort-item sort-option" href="#" data-sort="price_asc">Price: Low to High</a>
+                                <a class="shop-toolbar__sort-item sort-option" href="#" data-sort="price_desc">Price: High to Low</a>
                             </div>
                         </div>
                     </div>
@@ -129,7 +150,7 @@
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header border-0 pb-2">
-                <h5 class="modal-title font-weight-semi-bold" id="quickAddModalLabel">Thêm nhanh vào giỏ</h5>
+                <h5 class="modal-title font-weight-semi-bold" id="quickAddModalLabel">Quick Add to Cart</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -137,476 +158,13 @@
             <div class="modal-body pt-0" id="quick-add-modal-body">
                 <!-- Filled via AJAX -->
                 <div class="text-center py-4 text-muted small d-none" id="quick-add-loading">
-                    <span class="spinner-border spinner-border-sm mr-2"></span>Đang tải sản phẩm...
+                    <span class="spinner-border spinner-border-sm mr-2"></span>Loading product...
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // ===== Price Slider =====
-        var minSlider = document.getElementById('price-min');
-        var maxSlider = document.getElementById('price-max');
-        var minLabel = document.getElementById('price-min-label');
-        var maxLabel = document.getElementById('price-max-label');
-        var range = document.getElementById('price-slider-range');
-        var sliderMax = 2000000;
-
-        function formatPrice(val) {
-            return parseInt(val).toLocaleString('vi-VN') + 'đ';
-        }
-
-        function updateSliderUI() {
-            var minVal = parseInt(minSlider.value);
-            var maxVal = parseInt(maxSlider.value);
-            if (minVal > maxVal) {
-                var tmp = minVal;
-                minSlider.value = maxVal;
-                maxSlider.value = tmp;
-                minVal = parseInt(minSlider.value);
-                maxVal = parseInt(maxSlider.value);
-            }
-            minLabel.textContent = formatPrice(minVal);
-            maxLabel.textContent = formatPrice(maxVal);
-            // tỉ lệ phần trăm để vẽ thanh màu
-            var percentMin = (minVal / sliderMax) * 100;
-            var percentMax = (maxVal / sliderMax) * 100;
-            range.style.left = percentMin + '%';
-            range.style.width = (percentMax - percentMin) + '%';
-        }
-        var sliderTimeout = null;
-        function handleSliderInput() {
-            updateSliderUI();
-            clearTimeout(sliderTimeout);
-            sliderTimeout = setTimeout(function() {
-                applyFilters();
-            }, 1000);
-        }
-        minSlider.addEventListener('input', handleSliderInput);
-        maxSlider.addEventListener('input', handleSliderInput);
-
-        // ===== Gather current filters from UI =====
-        function getFilters() {
-            var params = new URLSearchParams();
-            // Keyword
-            var kw = document.getElementById('search-keyword').value.trim();
-            if (kw) params.set('keyword', kw);
-            // Price
-            var minVal = parseInt(minSlider.value);
-            var maxVal = parseInt(maxSlider.value);
-            if (minVal > maxVal) { var t = minVal; minVal = maxVal; maxVal = t; }
-            if (minVal > 0) params.set('min_price', minVal);
-            if (maxVal < sliderMax) params.set('max_price', maxVal);
-            // Colors
-            document.querySelectorAll('.filter-color:checked').forEach(function (cb) {
-                params.append('color', cb.value);
-            });
-            // Sizes
-            document.querySelectorAll('.filter-size:checked').forEach(function (cb) {
-                params.append('size', cb.value);
-            });
-            // Sort
-            var activeSort = document.querySelector('.sort-option.active');
-            var sortVal = activeSort ? activeSort.getAttribute('data-sort') : 'latest';
-            if (sortVal && sortVal !== 'latest') params.set('sort', sortVal);
-            return params;
-        }
-
-        // ===== Format number with commas (vi-VN) =====
-        function intcomma(val) {
-            return parseInt(val).toLocaleString('vi-VN');
-        }
-
-        // ===== AJAX fetch =====
-        var fetchController = null;
-        function fetchProducts(params, pushState) {
-            if (fetchController) fetchController.abort();
-            fetchController = new AbortController(); // API của JS để hủy request cũ nếu có
-
-            var qs = params.toString();
-            var basePath = window.location.pathname;
-            var url = basePath + (qs ? '?' + qs : '');
-
-            // Push browser history so back/forward works
-            if (pushState !== false) {
-                history.pushState(null, '', url);
-            }
-
-            fetch(url, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                signal: fetchController.signal
-            })
-                .then(function (res) { return res.json(); })
-                .then(function (data) {
-                    document.getElementById('filtered-products-container').innerHTML = data.html;
-                    bindPaginationEvents();
-                })
-                .catch(function (err) {
-                    if (err.name !== 'AbortError') console.error(err);
-                });
-        }
-
-        // ===== Trigger filter (resets to page 1) =====
-        function applyFilters() {
-            var params = getFilters();
-            fetchProducts(params);
-        }
-
-
-        // ===== Event: Color / Size checkboxes =====
-        document.querySelectorAll('.filter-color, .filter-size').forEach(function (cb) {
-            cb.addEventListener('change', applyFilters);
-        });
-
-        // ===== Event: Search =====
-        document.getElementById('search-btn').addEventListener('click', applyFilters);
-        document.getElementById('search-keyword').addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') { e.preventDefault(); applyFilters(); }
-        });
-
-        // ===== Event: Sort dropdown =====
-        var SORT_LABELS = { latest: 'Latest', popularity: 'Popularity', price_asc: 'Price: Low to High', price_desc: 'Price: High to Low' };
-        document.querySelectorAll('.sort-option').forEach(function (item) {
-            item.addEventListener('click', function (e) {
-                e.preventDefault();
-                document.querySelectorAll('.sort-option').forEach(function (el) { el.classList.remove('active'); });
-                this.classList.add('active');
-                document.getElementById('triggerId').textContent = SORT_LABELS[this.getAttribute('data-sort')] || 'Sort by';
-                applyFilters();
-            });
-        });
-
-        // ===== Event: Pagination (delegated) =====
-        function bindPaginationEvents() {
-            document.querySelectorAll('.page-nav').forEach(function (link) {
-                link.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    var page = this.getAttribute('data-page');
-                    var params = getFilters();
-                    params.set('page', page);
-                    fetchProducts(params);
-                });
-            });
-        }
-        bindPaginationEvents();
-
-        // ===== Browser back/forward =====
-        window.addEventListener('popstate', function () {
-            syncUIFromURL();
-            var params = new URLSearchParams(window.location.search);
-            fetchProducts(params, false);
-        });
-
-        // ===== Sync UI controls from URL params =====
-        function syncUIFromURL() {
-            var params = new URLSearchParams(window.location.search);
-            // Keyword
-            document.getElementById('search-keyword').value = params.get('keyword') || '';
-            // Price sliders
-            minSlider.value = params.get('min_price') || 0;
-            maxSlider.value = params.get('max_price') || sliderMax;
-            updateSliderUI();
-            // Colors
-            var selColors = params.getAll('color');
-            document.querySelectorAll('.filter-color').forEach(function (cb) {
-                cb.checked = selColors.includes(cb.value);
-            });
-            // Sizes
-            var selSizes = params.getAll('size');
-            document.querySelectorAll('.filter-size').forEach(function (cb) {
-                cb.checked = selSizes.includes(cb.value);
-            });
-            // Sort
-            var sortVal = params.get('sort') || 'latest';
-            document.querySelectorAll('.sort-option').forEach(function (el) {
-                el.classList.toggle('active', el.getAttribute('data-sort') === sortVal);
-            });
-            var SORT_LABELS = { latest: 'Latest', popularity: 'Popularity', price_asc: 'Price: Low to High', price_desc: 'Price: High to Low' };
-            document.getElementById('triggerId').textContent = SORT_LABELS[sortVal] || 'Sort by';
-        }
-
-        // ===== Init from URL on page load =====
-        syncUIFromURL();
-
-        // ===== Quick Add To Cart Modal Logic =====
-        function getCookie(name) {
-            if (!document.cookie) return null;
-            const cookies = document.cookie.split(';')
-                .map(c => c.trim())
-                .filter(c => c.startsWith(name + '='));
-            if (!cookies.length) return null;
-            return decodeURIComponent(cookies[0].split('=')[1]);
-        }
-
-        const productsContainer = document.getElementById('filtered-products-container');
-        const quickModal = document.getElementById('quickAddModal');
-        const quickModalBody = document.getElementById('quick-add-modal-body');
-        const quickLoading = document.getElementById('quick-add-loading');
-
-        function initQuickAddModalInteractions() {
-            if (!quickModalBody) return;
-            const root = quickModalBody.querySelector('#quick-add-root');
-            if (!root) return;
-
-            const variantsScript = root.querySelector('#quick-variants-json');
-            let variantsData = [];
-            if (variantsScript) {
-                try {
-                    variantsData = JSON.parse(variantsScript.textContent || '[]');
-                } catch (e) {
-                    console.error('Invalid variants JSON', e);
-                }
-            }
-
-            const btnMinus = root.querySelector('.quick-btn-minus');
-            const btnPlus = root.querySelector('.quick-btn-plus');
-            const qtyDisplay = root.querySelector('#quick-qty-display');
-            const hiddenInput = root.querySelector('#quick-hidden-quantity');
-            const form = root.querySelector('#quick-add-to-cart-form');
-            const variantIdInput = root.querySelector('#quick-selected-variant-id');
-            const priceDisplay = root.querySelector('#quick-product-price');
-
-            const optionNames = new Set();
-            root.querySelectorAll('.swatch-input').forEach(function (input) {
-                optionNames.add(input.name);
-            });
-
-            let currentMaxStock = null;
-
-            function resetQuantity() {
-                if (hiddenInput) hiddenInput.value = '1';
-                if (qtyDisplay) qtyDisplay.textContent = '1';
-            }
-
-            function updateSelectedVariant() {
-                const selectedOptions = {};
-                root.querySelectorAll('.swatch-input:checked').forEach(function (input) {
-                    selectedOptions[input.name] = input.value;
-                });
-
-                let matchedVariant = null;
-                if (Object.keys(selectedOptions).length > 0 && Object.keys(selectedOptions).length === optionNames.size) {
-                    matchedVariant = variantsData.find(function (v) {
-                        for (const key in selectedOptions) {
-                            if (Object.prototype.hasOwnProperty.call(selectedOptions, key)) {
-                                if (v.options[key] !== selectedOptions[key]) return false;
-                            }
-                        }
-                        return true;
-                    });
-                } else if (optionNames.size === 0 && variantsData.length > 0) {
-                    matchedVariant = variantsData[0];
-                }
-
-                const newStock = matchedVariant ? matchedVariant.stock : null;
-                if (newStock !== currentMaxStock) {
-                    currentMaxStock = newStock;
-                    resetQuantity();
-                }
-
-                const inStockControls = root.querySelector('#quick-in-stock-controls');
-                const outOfStockBadge = root.querySelector('#quick-out-of-stock-badge');
-
-                if (matchedVariant) {
-                    if (variantIdInput) variantIdInput.value = matchedVariant.id;
-                    if (priceDisplay) {
-                        priceDisplay.textContent = new Intl.NumberFormat('vi-VN').format(matchedVariant.price) + 'đ';
-                    }
-
-                    const originalPriceDisplay = root.querySelector('#quick-product-original-price');
-                    const discountPercentDisplay = root.querySelector('#quick-product-discount-percent');
-
-                    if (originalPriceDisplay) {
-                        if (matchedVariant.original_price > matchedVariant.price) {
-                            originalPriceDisplay.style.display = 'block';
-                            originalPriceDisplay.innerHTML = '<del>' + new Intl.NumberFormat('vi-VN').format(matchedVariant.original_price) + 'đ</del>';
-
-                            priceDisplay && priceDisplay.classList.add('text-danger');
-
-                            if (discountPercentDisplay) {
-                                const discount = Math.round((matchedVariant.original_price - matchedVariant.price) / matchedVariant.original_price * 100);
-                                discountPercentDisplay.style.display = 'block';
-                                discountPercentDisplay.textContent = '-' + discount + '%';
-                            }
-                        } else {
-                            originalPriceDisplay.style.display = 'none';
-                            priceDisplay && priceDisplay.classList.remove('text-danger');
-
-                            if (discountPercentDisplay) {
-                                discountPercentDisplay.style.display = 'none';
-                            }
-                        }
-                    }
-
-                    if (matchedVariant.stock <= 0) {
-                        if (inStockControls) inStockControls.style.display = 'none';
-                        if (outOfStockBadge) outOfStockBadge.style.display = 'block';
-                    } else {
-                        if (inStockControls) inStockControls.style.display = '';
-                        if (outOfStockBadge) outOfStockBadge.style.display = 'none';
-                    }
-                } else {
-                    if (variantIdInput) variantIdInput.value = '';
-                    const inStockControls = root.querySelector('#quick-in-stock-controls');
-                    const outOfStockBadge = root.querySelector('#quick-out-of-stock-badge');
-                    if (inStockControls) inStockControls.style.display = '';
-                    if (outOfStockBadge) outOfStockBadge.style.display = 'none';
-                }
-            }
-
-            root.querySelectorAll('.swatch-input').forEach(function (input) {
-                input.addEventListener('change', updateSelectedVariant);
-            });
-
-            root.querySelectorAll('.d-flex.flex-wrap').forEach(function (group) {
-                const radios = group.querySelectorAll('.swatch-input');
-                if (radios.length === 1) {
-                    radios[0].checked = true;
-                }
-            });
-
-            updateSelectedVariant();
-
-            if (btnMinus && btnPlus && qtyDisplay && hiddenInput) {
-                btnMinus.addEventListener('click', function () {
-                    let currentVal = parseInt(hiddenInput.value, 10) || 1;
-                    if (currentVal > 1) {
-                        currentVal--;
-                        hiddenInput.value = String(currentVal);
-                        qtyDisplay.textContent = String(currentVal);
-                    }
-                });
-
-                btnPlus.addEventListener('click', function () {
-                    let currentVal = parseInt(hiddenInput.value, 10) || 1;
-                    if (currentMaxStock !== null && currentVal >= currentMaxStock) {
-                        showToast('Bạn chỉ có thể mua tối đa ' + currentMaxStock + ' sản phẩm', 'warning');
-                        return;
-                    }
-                    currentVal++;
-                    hiddenInput.value = String(currentVal);
-                    qtyDisplay.textContent = String(currentVal);
-                });
-            }
-
-            if (form) {
-                form.addEventListener('submit', function (e) {
-                    if (!window.fetch) return;
-                    e.preventDefault();
-
-                    if (optionNames.size > 0 && (!variantIdInput || !variantIdInput.value)) {
-                        const selectedCount = root.querySelectorAll('.swatch-input:checked').length;
-                        if (selectedCount < optionNames.size) {
-                            showToast('Vui lòng chọn đầy đủ biến thể trước khi thêm vào giỏ.', 'warning');
-                        } else {
-                            showToast('Không tồn tại biến thể phù hợp với lựa chọn của bạn. Vui lòng thử lại.', 'danger');
-                        }
-                        return;
-                    }
-
-                    const url = form.getAttribute('action');
-                    const formData = new FormData(form);
-                    const csrftoken = getCookie('csrftoken');
-
-                    fetch(url, {
-                        method: 'POST',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            ...(csrftoken ? { 'X-CSRFToken': csrftoken } : {})
-                        },
-                        body: formData,
-                        credentials: 'same-origin'
-                    })
-                        .then(function (response) {
-                            return response.json().then(function (data) {
-                                return { ok: response.ok, status: response.status, data: data };
-                            }).catch(function () {
-                                return { ok: response.ok, status: response.status, data: null };
-                            });
-                        })
-                        .then(function (res) {
-                            const data = res.data;
-                            if (!data) {
-                                showToast('Có lỗi xảy ra.', 'danger');
-                                return;
-                            }
-
-                            if (res.ok && data.success) {
-                                const cartBadge = document.getElementById('cart-badge');
-                                if (cartBadge) cartBadge.innerText = data.cart_quantity;
-                                if (window.jQuery && $('#quickAddModal').modal) {
-                                    $('#quickAddModal').modal('hide');
-                                } else if (quickModal) {
-                                    quickModal.classList.remove('show');
-                                }
-                                showToast('Đã thêm sản phẩm vào giỏ hàng thành công!', 'success');
-                                return;
-                            }
-
-                            if (res.status === 409 && data.error === 'out_of_stock') {
-                                showToast('Sản phẩm đã hết hàng hoặc vượt quá tồn kho.', 'warning');
-                                return;
-                            }
-
-                            showToast(data.message || data.error || 'Không thể thêm vào giỏ hàng.', 'danger');
-                        })
-                        .catch(function (err) {
-                            console.error(err);
-                            showToast('Không thể kết nối server.', 'danger');
-                        });
-                });
-            }
-        }
-
-        function openQuickAddModal(url) {
-            if (!quickModal || !quickModalBody) return;
-
-            quickModalBody.innerHTML = '';
-            if (quickLoading) {
-                quickLoading.classList.remove('d-none');
-                quickModalBody.appendChild(quickLoading);
-            }
-
-            if (window.jQuery && $('#quickAddModal').modal) {
-                $('#quickAddModal').modal('show');
-            }
-
-            fetch(url, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
-            })
-                .then(function (res) { return res.json(); })
-                .then(function (data) {
-                    if (!data || !data.html) {
-                        throw new Error('Invalid response');
-                    }
-                    quickModalBody.innerHTML = data.html;
-                    initQuickAddModalInteractions();
-                })
-                .catch(function (err) {
-                    console.error(err);
-                    quickModalBody.innerHTML = '<p class="text-center text-danger mb-0">Không thể tải thông tin sản phẩm.</p>';
-                });
-        }
-
-        if (productsContainer) {
-            productsContainer.addEventListener('click', function (e) {
-                const btn = e.target.closest('.js-quick-add-btn');
-                if (!btn) return;
-                e.preventDefault();
-                const url = btn.getAttribute('data-quick-url');
-                if (!url) {
-                    const fallback = btn.getAttribute('href');
-                    if (fallback) {
-                        window.location.href = fallback;
-                    }
-                    return;
-                }
-                openQuickAddModal(url);
-            });
-        }
-    });
-</script>
+<script src="{% static 'js/product_filter.js' %}" defer></script>
 <!-- Shop End -->
 {% endblock %}

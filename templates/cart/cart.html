@@ -1,193 +1,199 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Giỏ hàng{% endblock %}
+{% block title %}Giỏ hàng – DUNE{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'custom/cart.css' %}" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
-<!-- Fullscreen Loading Overlay -->
-<div id="cart-loading-overlay" class="position-fixed d-none flex-column align-items-center justify-content-center"
-    style="top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.8); z-index: 9999;">
-    <div class="spinner-border text-primary mb-2" style="width: 3rem; height: 3rem;" role="status">
-        <span class="sr-only">Loading...</span>
-    </div>
-    <span class="font-weight-medium text-primary" style="font-size: 1.2rem;">Đang tải...</span>
+
+<!-- Loading Overlay -->
+<div id="cart-loading-overlay" class="cart-overlay">
+    <div class="cart-overlay-spinner"></div>
+    <span class="cart-overlay-text">Updating cart...</span>
 </div>
 
-<!-- Page Header Start -->
-<div class="container-fluid bg-secondary mb-5">
-    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
-        <h1 class="font-weight-semi-bold text-uppercase mb-3">Shopping Cart</h1>
-        <div class="d-inline-flex">
-            <p class="m-0"><a href="">Home</a></p>
-            <p class="m-0 px-2">-</p>
-            <p class="m-0">Shopping Cart</p>
-        </div>
+<!-- Page Hero -->
+<div class="cart-hero">
+    <div class="cart-hero-inner">
+        <h1>Cart</h1>
+        <nav class="cart-breadcrumb" aria-label="breadcrumb">
+            <a href="{% url 'home' %}">Home</a>
+            <span>/</span>
+            <span>Cart</span>
+        </nav>
     </div>
 </div>
-<!-- Page Header End -->
 
-
-<!-- Cart Start -->
-<div class="container-fluid pt-5">
+<!-- Cart Page Body -->
+<div class="cart-page">
     {% if cart_items %}
-    <div class="row px-xl-5">
-        <div class="col-lg-8 table-responsive mb-5">
-            <table class="table table-bordered text-center mb-0">
-                <thead class="bg-secondary text-dark">
-                    <tr>
-                        <th>Products</th>
-                        <th>Price</th>
-                        <th>Quantity</th>
-                        <th>Total</th>
-                        <th>Remove</th>
-                    </tr>
-                </thead>
-                <tbody class="align-middle">
-                    {% for cart_item in cart_items %}
-                    <tr id="row-{{ cart_item.id }}">
-                        <td class="align-middle">
-                            <a href="{% url 'product_detail' cart_item.product.slug %}">
-                                <img src="{{ cart_item.variant.get_image.url }}" alt="" style="width: 50px;">
-                                {{ cart_item.product.name }}
-                            </a>
-                            {% if cart_item.variations.all %}
-                            <div class="small text-muted">
-                                {% for v in cart_item.variations.all %}
-                                {{ v.variation_category|title }}: {{ v.variation_value }}{% if not forloop.last %} | {% endif %}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </td>
-                        <td class="align-middle">
-                            {% comment %} {% if cart_item.variant %}
-                            {% if cart_item.variant.get_discount_percentage > 0 %}
-                            <div class="d-flex flex-column align-items-center">
-                                <del class="text-muted small">{{
-                                    cart_item.variant.get_original_price|floatformat:0|intcomma }}đ</del>
-                                <span>{{ cart_item.variant.get_price|floatformat:0|intcomma }}đ</span>
-                            </div>
-                            {% else %}
-                            {{ cart_item.variant.get_price|floatformat:0|intcomma }}đ
-                            {% endif %}
-                            {% else %}
-                            {% if cart_item.product.get_discount_percentage > 0 %}
-                            <div class="d-flex flex-column align-items-center">
-                                <del class="text-muted small">{{
-                                    cart_item.product.get_original_price|floatformat:0|intcomma }}đ</del>
-                                <span>{{ cart_item.product.get_price|floatformat:0|intcomma }}đ</span>
-                            </div>
-                            {% else %}
-                            {{ cart_item.product.get_price|floatformat:0|intcomma }}đ
-                            {% endif %}
-                            {% endif %} {% endcomment %}
+    <div class="cart-layout">
 
-                            {% with item=cart_item.variant|default:cart_item.product %}
-                            {% if item.get_discount_percentage > 0 %}
-                            <div class="d-flex flex-column align-items-center">
-                                <del class="text-muted small">
-                                    {{ item.get_original_price|floatformat:0|intcomma }}đ
-                                </del>
-                                <span>{{ item.get_price|floatformat:0|intcomma }}đ</span>
-                            </div>
-                            {% else %}
-                            {{ item.get_price|floatformat:0|intcomma }}đ
-                            {% endif %}
-                            {% endwith %}
-                        </td>
-                        <td class="align-middle">
-                            <div class="input-group quantity mx-auto" style="width: 100px;">
-                                <div class="input-group-btn">
-                                    <button type="button" class="btn btn-sm btn-primary btn-minus"
-                                        onclick="updateCart({{ cart_item.id }}, 'remove')">
-                                        <i class="fa fa-minus"></i>
-                                    </button>
-                                </div>
-                                <input type="text" id="quantity-{{ cart_item.id }}"
-                                    class="form-control form-control-sm bg-secondary text-center"
-                                    value="{{ cart_item.quantity }}">
-                                <div class="input-group-btn">
-                                    <button type="button" class="btn btn-sm btn-primary btn-plus"
-                                        onclick="updateCart({{ cart_item.id }}, 'add')">
-                                        <i class="fa fa-plus"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="align-middle" id="sub-total-{{ cart_item.id }}">
-                            {{ cart_item.sub_total|floatformat:0|intcomma }}đ
-                        </td>
-                        <td class="align-middle">
-                            <button onclick="updateCart({{ cart_item.id }}, 'delete')" class="btn btn-sm btn-primary">
-                                <i class="fa fa-times"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div class="col-lg-4">
-            <!-- Coupon Form -->
-            <form id="coupon-form" class="mb-5" onsubmit="return false;">
-                {% csrf_token %}
-                <div class="input-group">
-                    <input type="text" id="coupon-input" class="form-control p-4" placeholder="Nhập mã giảm giá"
-                        value="{% if applied_coupon %}{{ applied_coupon.code }}{% endif %}">
-                    <div class="input-group-append">
+        <!-- ===== Left: Items Panel ===== -->
+        <div class="cart-panel">
+            <div class="cart-panel-header">
+                <span class="cart-panel-title">Product</span>
+                <span class="cart-panel-count">{{ cart_items|length }} items</span>
+            </div>
+
+            {% for cart_item in cart_items %}
+            <div class="cart-item" id="row-{{ cart_item.id }}">
+
+                <!-- Image -->
+                <div class="cart-item-img">
+                    <a href="{% url 'product_detail' cart_item.product.slug %}">
+                        <img src="{{ cart_item.variant.get_image.url }}" alt="{{ cart_item.product.name }}">
+                    </a>
+                </div>
+
+                <!-- Info -->
+                <div class="cart-item-info">
+                    <a href="{% url 'product_detail' cart_item.product.slug %}" class="cart-item-name">
+                        {{ cart_item.product.name }}
+                    </a>
+                    {% if cart_item.variations.all %}
+                    <div class="cart-item-variants">
+                        {% for v in cart_item.variations.all %}
+                        <span class="cart-variant-pill">{{ v.variation_category|title }}: {{ v.get_display_name }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Unit Price -->
+                <div class="cart-item-price">
+                    {% with item=cart_item.variant|default:cart_item.product %}
+                    {% if item.get_discount_percentage > 0 %}
+                    <span class="cart-price-was">{{ item.get_original_price|floatformat:0|intcomma }}đ</span>
+                    <span class="cart-price-now">{{ item.get_price|floatformat:0|intcomma }}đ</span>
+                    {% else %}
+                    <span class="cart-price-now">{{ item.get_price|floatformat:0|intcomma }}đ</span>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+
+                <!-- Qty Stepper -->
+                <div class="cart-qty">
+                    <button class="cart-qty-btn" type="button"
+                        onclick="updateCart({{ cart_item.id }}, 'remove')" aria-label="Decrease quantity">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                    <input type="text" class="cart-qty-val"
+                        id="quantity-{{ cart_item.id }}"
+                        value="{{ cart_item.quantity }}" readonly>
+                    <button class="cart-qty-btn" type="button"
+                        onclick="updateCart({{ cart_item.id }}, 'add')" aria-label="Increase quantity">
+                        <i class="fa fa-plus"></i>
+                    </button>
+                </div>
+
+                <!-- Subtotal + Remove -->
+                <div class="cart-item-actions">
+                    <span class="cart-item-subtotal" id="sub-total-{{ cart_item.id }}">
+                        {{ cart_item.sub_total|floatformat:0|intcomma }}đ
+                    </span>
+                    <button class="cart-remove-btn" type="button"
+                        onclick="updateCart({{ cart_item.id }}, 'delete')" aria-label="Remove item">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+
+            </div>
+            {% endfor %}
+        </div><!-- /cart-panel -->
+
+        <!-- ===== Right: Sidebar ===== -->
+        <aside class="cart-sidebar">
+
+            <!-- Coupon Box -->
+            <div class="coupon-box">
+                <div class="coupon-label">
+                    <i class="fas fa-tag"></i> Coupon Code
+                </div>
+                <form id="coupon-form" onsubmit="return false;">
+                    {% csrf_token %}
+                    <div class="coupon-row">
+                        <input type="text" id="coupon-input" class="coupon-field"
+                            placeholder="Enter code..."
+                            value="{% if applied_coupon %}{{ applied_coupon.code }}{% endif %}"
+                            {% if applied_coupon %}readonly{% endif %}>
                         {% if applied_coupon %}
-                        <button id="remove-coupon-btn" class="btn btn-danger">Xóa mã</button>
+                        <button id="remove-coupon-btn" class="coupon-remove-btn" type="button">Remove</button>
                         {% else %}
-                        <button id="apply-coupon-btn" class="btn btn-primary">Áp dụng</button>
+                        <button id="apply-coupon-btn" class="coupon-apply-btn" type="button">Apply</button>
                         {% endif %}
                     </div>
-                </div>
-                <small id="coupon-msg" class="mt-1 d-block"></small>
-            </form>
-            <div class="card border-secondary mb-5">
-                <div class="card-header bg-secondary border-0">
-                    <h4 class="font-weight-semi-bold m-0">Cart Summary</h4>
-                </div>
-                <div class="card-body">
-                    <div class="d-flex justify-content-between mb-3 pt-1">
-                        <h6 class="font-weight-medium">Subtotal</h6>
-                        <h6 class="font-weight-medium" id="cart-summary-subtotal">{{ total|floatformat:0|intcomma }}đ
-                        </h6>
+                    {% if applied_coupon %}
+                    <div class="coupon-applied-tag">
+                        <i class="fas fa-check-circle"></i> {{ applied_coupon.code }} is applied
                     </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <h6 class="font-weight-medium">Phí ship</h6>
-                        <h6 class="font-weight-medium" id="cart-shipping-fee">
-                            {{ shipping_fee|floatformat:0|intcomma }}đ
-                        </h6>
+                    {% endif %}
+                    <small id="coupon-msg"></small>
+                </form>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="summary-box">
+                <div class="summary-head">Order Summary</div>
+                <div class="summary-body">
+                    <div class="summary-row">
+                        <span class="summary-row-label">Subtotal</span>
+                        <span class="summary-row-val" id="cart-summary-subtotal">{{ total|floatformat:0|intcomma }}đ</span>
                     </div>
-                    <div class="d-flex justify-content-between mb-2" id="coupon-discount-row"
+                    <div class="summary-row">
+                        <span class="summary-row-label">Shipping Fee</span>
+                        <span class="summary-row-val" id="cart-shipping-fee">{{ shipping_fee|floatformat:0|intcomma }}đ</span>
+                    </div>
+                    <div class="summary-row summary-row--discount" id="coupon-discount-row"
                         style="{% if not applied_coupon %}display:none!important;{% endif %}">
-                        <h6 class="font-weight-medium text-success">Giảm giá</h6>
-                        <h6 class="font-weight-medium text-success" id="cart-discount-amount">
+                        <span class="summary-row-label">
+                            <i class="fas fa-tag" style="font-size:0.68rem;margin-right:3px;"></i>Discount
+                        </span>
+                        <span class="summary-row-val" id="cart-discount-amount">
                             {% if applied_coupon %}-{{ coupon_savings|floatformat:0|intcomma }}đ{% else %}0đ{% endif %}
-                        </h6>
+                        </span>
+                    </div>
+                    <hr class="summary-divider">
+                    <div class="summary-total">
+                        <span class="summary-total-label">Total</span>
+                        <span class="summary-total-val" id="cart-total">
+                            {{ grand_total|default:total|floatformat:0|intcomma }}đ
+                        </span>
                     </div>
                 </div>
-                <div class="card-footer border-secondary bg-transparent">
-                    <div class="d-flex justify-content-between mt-2">
-                        <h5 class="font-weight-bold">Total</h5>
-                        <h5 class="font-weight-bold" id="cart-total">{{ grand_total|default:total|floatformat:0|intcomma }}đ</h5>
-                    </div>
-                    <a href="{% url 'checkout' %}" class="btn btn-block btn-primary my-3 py-3">Proceed To Checkout</a>
+                <div class="summary-footer">
+                    <a href="{% url 'checkout' %}" class="btn-checkout">
+                        Proceed to Checkout
+                        <i class="fas fa-arrow-right" style="font-size:0.78rem;"></i>
+                    </a>
+                    <p class="summary-secure">
+                        <i class="fas fa-lock" style="font-size:0.65rem;"></i>
+                        Secure Payment
+                    </p>
                 </div>
             </div>
-        </div>
-    </div>
+
+        </aside>
+
+    </div><!-- /cart-layout -->
+
     {% else %}
-    <div class="row px-xl-5 text-center">
-        <div class="col-lg-12">
-            <img src="{% static 'img/cart_empty.webp' %}" alt="Empty Cart" class="img-fluid mb-4" style="width: 295px;">
-            <h3>“Hổng” có gì trong giỏ hết</h3>
-            <p>Về trang cửa hàng để chọn mua sản phẩm bạn nhé!!</p>
-            <a href="{% url 'products' %}" class="btn btn-primary py-2 px-4">Mua sắm ngay</a>
-        </div>
+
+    <!-- Empty Cart -->
+    <div class="cart-empty">
+        <img src="{% static 'img/cart_empty.webp' %}" alt="Empty Cart" class="cart-empty-img">
+        <h3>Your cart is empty</h3>
+        <p>Return to the shop to discover our latest products!</p>
+        <a href="{% url 'products' %}" class="btn-shop">
+            <i class="fas fa-shopping-bag"></i> Shop Now
+        </a>
     </div>
+
     {% endif %}
-</div>
-<!-- Cart End -->
+</div><!-- /cart-page -->
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -201,8 +207,8 @@
                 const code = couponInput.value.trim();
                 if (!code) {
                     if (couponMsg) {
-                        couponMsg.innerText = "Vui lòng nhập mã giảm giá.";
-                        couponMsg.className = "mt-1 d-block text-danger";
+                        couponMsg.innerText = "Please enter a coupon code.";
+                        couponMsg.className = "text-danger";
                     }
                     return;
                 }
@@ -212,9 +218,7 @@
 
                 fetch("{% url 'apply_coupon' %}", {
                     method: "POST",
-                    headers: {
-                        "X-CSRFToken": getCookie("csrftoken")
-                    },
+                    headers: { "X-CSRFToken": getCookie("csrftoken") },
                     body: formData
                 })
                     .then(res => res.json())
@@ -224,7 +228,7 @@
                         } else {
                             if (couponMsg) {
                                 couponMsg.innerText = data.message;
-                                couponMsg.className = "mt-1 d-block text-danger";
+                                couponMsg.className = "text-danger";
                             }
                         }
                     })
@@ -236,33 +240,22 @@
             removeBtn.addEventListener("click", function () {
                 fetch("{% url 'remove_coupon' %}", {
                     method: "POST",
-                    headers: {
-                        "X-CSRFToken": getCookie("csrftoken")
-                    }
+                    headers: { "X-CSRFToken": getCookie("csrftoken") }
                 })
                     .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            window.location.reload();
-                        }
-                    })
+                    .then(data => { if (data.success) window.location.reload(); })
                     .catch(err => console.error(err));
             });
         }
     });
 
     function getCookie(name) {
-        if (!document.cookie) {
-            return null;
-        }
-        const xsrfCookies = document.cookie.split(';') // cắt cookie thành từng phần
-            .map(c => c.trim()) // loại bỏ khoảng trắng
-            .filter(c => c.startsWith(name + '=')); // tìm cookie có tên bắt đầu bằng tên truyền vào
-
-        if (xsrfCookies.length === 0) {
-            return null;
-        }
-        return decodeURIComponent(xsrfCookies[0].split('=')[1]); // trả về giá trị của csrftoken sau dấu '='
+        if (!document.cookie) return null;
+        const xsrfCookies = document.cookie.split(';')
+            .map(c => c.trim())
+            .filter(c => c.startsWith(name + '='));
+        if (xsrfCookies.length === 0) return null;
+        return decodeURIComponent(xsrfCookies[0].split('=')[1]);
     }
 
     function updateCart(cartItemId, action) {
@@ -270,75 +263,49 @@
         const csrftoken = getCookie('csrftoken');
         const overlay = document.getElementById('cart-loading-overlay');
 
-        if (overlay) {
-            overlay.classList.remove('d-none');
-            overlay.classList.add('d-flex');
-        }
+        if (overlay) overlay.classList.add('active');
 
-        // Gửi yêu cầu AJAX đến server
-        // Sử dụng Fetch API để gửi yêu cầu POST
-        // fetch là công cụ gửi HTTP request bầng JS 
         fetch(url, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json', // Định dạng dữ liệu gửi đi là JSON
-                'X-CSRFToken': csrftoken, // Thêm token CSRF vào header để bảo vệ khỏi tấn công CSRF
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
             },
-            body: JSON.stringify({ // Chuyển dữ liệu thành chuỗi JSON để gửi đi
-                'cart_item_id': cartItemId,
-                'action': action
-            })
+            body: JSON.stringify({ 'cart_item_id': cartItemId, 'action': action })
         })
             .then(async (response) => {
                 const data = await response.json().catch(() => null);
                 return { ok: response.ok, status: response.status, data };
             })
-            /*
-                ví dụ: Server trả về
-                {
-                    "success": true,
-                    "quantity": 2,
-                    "sub_total": 200000,
-                    "total": 500000
-                }
-            */
             .then(({ ok, status, data }) => {
-                if (!data) {
-                    console.error('Invalid JSON response');
-                    return;
-                }
+                if (!data) { console.error('Invalid JSON response'); return; }
 
                 if (ok && data.success) {
-                    if (data.cart_quantity === 0) {
-                        window.location.reload();
-                        return;
-                    }
+                    if (data.cart_quantity === 0) { window.location.reload(); return; }
 
                     if (data.quantity > 0) {
-                        // Update quantity input
-                        const quantityInput = document.getElementById(`quantity-${cartItemId}`); // HTML DOM 
+                        const quantityInput = document.getElementById(`quantity-${cartItemId}`);
                         if (quantityInput) quantityInput.value = data.quantity;
 
-                        // Update item subtotal
                         const subTotalElement = document.getElementById(`sub-total-${cartItemId}`);
-                        if (subTotalElement) subTotalElement.innerText = parseFloat(data.sub_total).toLocaleString('en-US') + 'đ';
+                        if (subTotalElement)
+                            subTotalElement.innerText = parseFloat(data.sub_total).toLocaleString('en-US') + 'đ';
                     } else {
-                        // Remove row
                         const row = document.getElementById(`row-${cartItemId}`);
                         if (row) row.remove();
                     }
 
-                    // Update totals
                     const cartTotal = document.getElementById('cart-total');
-                    if (cartTotal) cartTotal.innerText = parseFloat(data.grand_total || data.total).toLocaleString('en-US') + 'đ';
+                    if (cartTotal)
+                        cartTotal.innerText = parseFloat(data.grand_total || data.total).toLocaleString('en-US') + 'đ';
 
                     const summarySubtotal = document.getElementById('cart-summary-subtotal');
-                    if (summarySubtotal) summarySubtotal.innerText = parseFloat(data.total).toLocaleString('en-US') + 'đ';
+                    if (summarySubtotal)
+                        summarySubtotal.innerText = parseFloat(data.total).toLocaleString('en-US') + 'đ';
 
                     const shippingFee = document.getElementById('cart-shipping-fee');
-                    if (shippingFee && data.shipping_fee !== undefined) {
+                    if (shippingFee && data.shipping_fee !== undefined)
                         shippingFee.innerText = parseFloat(data.shipping_fee).toLocaleString('en-US') + 'đ';
-                    }
 
                     const discountAmount = document.getElementById('cart-discount-amount');
                     const discountRow = document.getElementById('coupon-discount-row');
@@ -353,20 +320,24 @@
                             if (discountRow) discountRow.style.setProperty("display", "flex", "important");
                         } else {
                             discountAmount.innerText = "0đ";
-                            // If coupon was removed or doesn't apply based on minimum Total condition
-                            if (discountRow && !document.getElementById('remove-coupon-btn')) {
+                            if (discountRow && !document.getElementById('remove-coupon-btn'))
                                 discountRow.style.setProperty("display", "none", "important");
-                            }
                         }
                     }
 
-                    // Update cart badge
                     const cartBadge = document.getElementById('cart-badge');
-                    if (cartBadge) cartBadge.innerText = data.cart_quantity;
+                    if (cartBadge) {
+                        cartBadge.innerText = data.cart_quantity;
+                        if (data.cart_quantity > 0) {
+                            cartBadge.classList.remove('site-action-badge--hidden');
+                        } else {
+                            cartBadge.classList.add('site-action-badge--hidden');
+                        }
+                    }
 
                 } else {
                     if (status === 409 && data.error === 'out_of_stock') {
-                        showToast('Sản phẩm đã hết hàng hoặc vượt quá tồn kho.', 'warning');
+                        showToast('The product is out of stock or exceeds available quantity.', 'warning');
                         return;
                     }
                     console.error('Error updating cart:', data.error || data);
@@ -375,11 +346,8 @@
             .catch(error => console.error('Error:', error))
             .finally(() => {
                 setTimeout(() => {
-                    if (overlay) {
-                        overlay.classList.remove('d-flex');
-                        overlay.classList.add('d-none');
-                    }
-                }, 200); // Thêm delay 200ms để hiệu ứng quay kéo dài hơn
+                    if (overlay) overlay.classList.remove('active');
+                }, 200);
             });
     }
 </script>

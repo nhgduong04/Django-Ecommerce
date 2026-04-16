@@ -60,3 +60,13 @@ def _do_rollback(order_pk: int) -> None:
     if order.status != 'CANCELLED':
         return
     rollback_coupon_usage(order)
+
+
+@receiver(pre_save, sender=Order)
+def sync_payment_status_on_completion(sender, instance, **kwargs):
+    """
+    Tự động cập nhật payment_status thành 'paid' nếu đơn hàng
+    được chuyển sang trạng thái 'COMPLETED'.
+    """
+    if instance.status == 'COMPLETED' and instance.payment_status != 'paid':
+        instance.payment_status = 'paid'

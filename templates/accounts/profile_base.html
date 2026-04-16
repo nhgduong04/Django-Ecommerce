@@ -1,64 +1,74 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Account - EShopper{% endblock %}
-
-{% block content %}
-<!-- Page Header Start -->
-<div class="container-fluid bg-secondary mb-5">
-    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 150px">
-        <h1 class="font-weight-semi-bold text-uppercase mb-3">Tài khoản</h1>
-        <div class="d-inline-flex">
-            <p class="m-0"><a href="{% url 'home' %}">Trang chủ</a></p>
-            <p class="m-0 px-2">-</p>
-            <p class="m-0">Tài khoản</p>
-        </div>
-    </div>
-</div>
-<!-- Page Header End -->
+{% block title %}Tài khoản{% endblock %}
 
 {% block extra_css %}
 <link href="{% static 'custom/pages/profile.css' %}" rel="stylesheet">
+<link href="{% static 'custom/pages/orders.css' %}" rel="stylesheet">
 {% endblock %}
 
+{% block content %}
 
-<!-- Profile Start -->
-<div class="container-fluid py-5">
-    <div class="row px-xl-5">
-        <!-- Sidebar -->
-        <div class="col-lg-3 col-md-4 profile-sidebar mb-4">
-            <h5 class="text-uppercase mb-2">Trang tài khoản</h5>
-            <p class="mb-4 text-dark">Xin chào, <strong style="color: #000;">{{ user.first_name }} {{ user.last_name }}
-                    !</strong></p>
-
-            <ul>
-                <li>
-                    <a class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}"
-                        href="{% url 'profile' %}">Thông tin tài khoản</a>
-                </li>
-                <li>
-                    <a class="nav-link {% if request.resolver_match.url_name == 'orders' %}active{% endif %}"
-                        href="{% url 'orders' %}">Đơn hàng của bạn</a>
-                </li>
-                <li>
-                    <a class="nav-link {% if request.resolver_match.url_name == 'change_password' %}active{% endif %}"
-                        href="{% url 'change_password' %}">Đổi mật khẩu</a>
-                </li>
-                <li>
-                    <a class="nav-link {% if request.resolver_match.url_name == 'addresses' %}active{% endif %}"
-                        href="{% url 'addresses' %}">Sổ địa chỉ (0)</a>
-                </li>
-            </ul>
-        </div>
-
-        <!-- Content -->
-        <div class="col-lg-9 col-md-8 profile-content" style="border-left: 1px solid #eee;">
-            <div class="pl-md-4">
-                {% block profile_content %}
-                {% endblock %}
-            </div>
-        </div>
+<!-- Page Hero -->
+<div class="pf-hero">
+    <div class="pf-hero-inner">
+        <nav class="pf-breadcrumb">
+            <a href="{% url 'home' %}">Trang chủ</a>
+            <span class="pf-breadcrumb-sep">/</span>
+            <span>Tài khoản</span>
+        </nav>
+        <h1>Tài khoản</h1>
     </div>
 </div>
-<!-- Profile End -->
+
+<!-- Page Body -->
+<div class="pf-page">
+    <div class="pf-layout">
+
+        <!-- Sidebar -->
+        <aside class="pf-sidebar">
+            <div class="pf-sidebar-card">
+                <div class="pf-avatar-block">
+                    <div class="pf-avatar">
+                        {% if user.first_name %}{{ user.first_name|first|upper }}{% else %}{{ user.email|first|upper }}{% endif %}
+                    </div>
+                    <div class="pf-avatar-name">
+                        {% if user.first_name or user.last_name %}
+                            {{ user.first_name }} {{ user.last_name }}
+                        {% else %}
+                            {{ user.email }}
+                        {% endif %}
+                    </div>
+                    <div class="pf-avatar-email">{{ user.email }}</div>
+                </div>
+
+                <nav class="pf-nav">
+                    <a href="{% url 'profile' %}"
+                       class="pf-nav-link {% if request.resolver_match.url_name == 'profile' %}pf-nav-link--active{% endif %}">
+                        <i class="fas fa-user"></i>
+                        Thông tin tài khoản
+                    </a>
+                    <a href="{% url 'orders' %}"
+                       class="pf-nav-link {% if request.resolver_match.url_name == 'orders' %}pf-nav-link--active{% endif %}">
+                        <i class="fas fa-box"></i>
+                        Đơn hàng của bạn
+                    </a>
+                    <a href="{% url 'change_password' %}"
+                       class="pf-nav-link {% if request.resolver_match.url_name == 'change_password' %}pf-nav-link--active{% endif %}">
+                        <i class="fas fa-lock"></i>
+                        Đổi mật khẩu
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="pf-content">
+            {% block profile_content %}{% endblock %}
+        </div>
+
+    </div>
+</div>
+
 {% endblock %}

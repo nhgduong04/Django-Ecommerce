@@ -25,6 +25,12 @@ class RegistrationForm(UserCreationForm):
                 'class': 'form-control border-0 bg-secondary',
                 'placeholder': f"{self.fields[field].label}"
             })
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("Email này đã được sử dụng.")
+        return email
 
 class LoginForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):

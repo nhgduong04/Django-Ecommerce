@@ -8,6 +8,156 @@
 /* ===== Price Range Slider =====
    Dùng ở: product_list.html (sidebar filter)
    ========================================= */
+/* ===== Street Vibe Banner =====
+   Dùng ở: product_list.html (breadcrumb header)
+   ========================================= */
+
+.street-banner {
+    position: relative;
+    background:
+        linear-gradient(to right,
+            rgba(13, 13, 13, 0.88) 35%,
+            rgba(13, 13, 13, 0.55) 100%),
+        url('../../img/banner_3.jpg') center center / cover no-repeat;
+    padding: 52px 0 72px;
+    overflow: hidden;
+    clip-path: polygon(0 0, 100% 0, 100% 82%, 0 100%);
+}
+
+.street-banner__noise {
+    position: absolute;
+    inset: 0;
+    background-image:
+        repeating-linear-gradient(0deg,
+            transparent,
+            transparent 2px,
+            rgba(255, 255, 255, .018) 2px,
+            rgba(255, 255, 255, .018) 4px),
+        repeating-linear-gradient(90deg,
+            transparent,
+            transparent 2px,
+            rgba(255, 255, 255, .012) 2px,
+            rgba(255, 255, 255, .012) 4px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.street-banner__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #0d0d0d;
+    background: var(--warm-brown);
+    padding: 4px 12px 4px 10px;
+    border-radius: 2px;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+}
+
+.street-banner__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #0d0d0d;
+    animation: street-dot-blink 1.4s ease-in-out infinite;
+    flex-shrink: 0;
+}
+
+@keyframes street-dot-blink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.25;
+    }
+}
+
+.street-banner__heading {
+    font-family: 'Poppins', sans-serif;
+    font-size: clamp(2.4rem, 6vw, 4.5rem);
+    font-weight: 900;
+    line-height: 1.0;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    color: #fff;
+    text-shadow:
+        2px 2px 0 var(--warm-brown),
+        0 8px 24px rgba(0, 0, 0, 0.2);
+    margin-bottom: 14px;
+    position: relative;
+    z-index: 1;
+}
+
+.street-banner__sub {
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.street-banner__breadcrumb {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    justify-content: flex-end;
+    position: relative;
+    z-index: 1;
+}
+
+.street-banner__breadcrumb li {
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.street-banner__breadcrumb a {
+    color: rgba(255, 255, 255, 0.45);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.street-banner__breadcrumb a:hover {
+    color: var(--warm-brown);
+}
+
+.street-banner__sep {
+    color: rgba(255, 255, 255, 0.2);
+    font-weight: 300;
+    user-select: none;
+}
+
+.street-banner__crumb-active {
+    color: var(--warm-brown);
+    font-weight: 700;
+}
+
+@media (max-width: 767px) {
+    .street-banner {
+        padding: 36px 0 56px;
+        clip-path: polygon(0 0, 100% 0, 100% 88%, 0 100%);
+    }
+
+    .street-banner__breadcrumb {
+        justify-content: flex-start;
+        margin-top: 12px;
+    }
+}
+
 #price-min,
 #price-max {
     pointer-events: none;
@@ -53,7 +203,8 @@
     line-height: 1.6;
     color: #555;
     font-size: 0.9rem;
-    margin-top: 0; /* Override default <p> margin-top if any */
+    margin-top: 0;
+    /* Override default <p> margin-top if any */
 }
 
 .product-description .desc-item::before {
@@ -67,49 +218,23 @@
 
 /* ===== Product Gallery (Swiper) =====
    Dùng ở: product_detail.html
+   Layout: Main image on top, horizontal thumbnail strip below
    ========================================= */
 .product-gallery-container {
     display: flex;
-    flex-direction: row;
-    gap: 15px;
-    height: 500px;
+    flex-direction: column;
+    gap: 10px;
+    height: auto;
 }
 
-/* Thumbs Swiper */
-.gallery-thumbs {
-    width: 85px;
-    flex-shrink: 0;
-}
-
-.gallery-thumbs .swiper-slide {
-    height: 100px;
-    opacity: 0.5;
-    cursor: pointer;
-    border: 1px solid var(--border-color, #dee2e6);
-    transition: all 0.3s ease;
-    background: #fff;
-    box-sizing: border-box;
-    overflow: hidden;
-}
-
-.gallery-thumbs .swiper-slide img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-.gallery-thumbs .swiper-slide-thumb-active {
-    opacity: 1;
-    border-color: var(--primary);
-}
-
-/* Main Swiper */
+/* Main Swiper — tall fashion ratio */
 .gallery-main {
-    flex-grow: 1;
-    width: calc(100% - 100px);
-    border: 1px solid var(--border-color, #dee2e6);
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    border: 1px solid var(--beige);
     background: #fff;
     position: relative;
+    overflow: hidden;
 }
 
 .gallery-main .swiper-slide {
@@ -126,35 +251,903 @@
 
 .gallery-main .swiper-button-next,
 .gallery-main .swiper-button-prev {
-    color: var(--primary);
+    color: var(--warm-brown);
+    --swiper-navigation-size: 20px;
+    background: rgba(255, 255, 255, 0.85);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(44, 44, 44, 0.12);
 }
 
-/* Responsive Layout */
+.gallery-main .swiper-button-next::after,
+.gallery-main .swiper-button-prev::after {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+/* Thumbs Swiper — horizontal strip */
+.gallery-thumbs {
+    width: 100%;
+    height: 80px;
+    flex-shrink: 0;
+}
+
+.gallery-thumbs .swiper-slide {
+    width: 72px !important;
+    height: 100%;
+    opacity: 0.5;
+    cursor: pointer;
+    border: 1.5px solid var(--beige);
+    transition: opacity 0.2s ease, border-color 0.2s ease;
+    background: #fff;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.gallery-thumbs .swiper-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.gallery-thumbs .swiper-slide-thumb-active {
+    opacity: 1;
+    border-color: var(--warm-brown);
+}
+
+/* ===== Product Breadcrumb =====
+   Dùng ở: product_detail.html (above main section)
+   ========================================= */
+.product-breadcrumb {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--beige);
+    margin-bottom: 0;
+}
+
+.product-breadcrumb__list {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex-wrap: wrap;
+}
+
+.product-breadcrumb__list li {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--taupe);
+}
+
+.product-breadcrumb__list a {
+    color: var(--taupe);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.product-breadcrumb__list a:hover {
+    color: var(--warm-brown);
+}
+
+.product-breadcrumb__list .active {
+    color: var(--dark-charcoal);
+    font-weight: 600;
+}
+
+.product-breadcrumb__list .sep {
+    color: var(--beige);
+    user-select: none;
+}
+
+/* ===== Quantity Control =====
+   Dùng ở: product_detail.html (add-to-cart row)
+   ========================================= */
+.qty-control {
+    display: inline-flex;
+    align-items: center;
+    border: 1.5px solid var(--beige);
+    border-radius: 3px;
+    overflow: hidden;
+    height: 44px;
+}
+
+.qty-control__btn {
+    width: 40px;
+    height: 100%;
+    background: transparent;
+    border: none;
+    color: var(--dark-charcoal);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.18s ease, color 0.18s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 1;
+}
+
+.qty-control__btn:hover {
+    background: var(--warm-brown);
+    color: #fff;
+}
+
+.qty-control__display {
+    min-width: 42px;
+    text-align: center;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--dark-charcoal);
+    user-select: none;
+    border-left: 1.5px solid var(--beige);
+    border-right: 1.5px solid var(--beige);
+    padding: 0 6px;
+    line-height: 44px;
+}
+
+/* ===== Variant Label (Size/Color headings) =====
+   Dùng ở: product_detail.html
+   ========================================= */
+.variant-label {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--warm-brown);
+    min-width: 56px;
+}
+
+/* ===== Discount Badge (product detail) =====
+   Dùng ở: product_detail.html
+   ========================================= */
+.detail-discount-badge {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 800;
+    background: #fee2e2;
+    color: #b91c1c;
+    padding: 3px 10px;
+    border-radius: 999px;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    margin-left: 10px;
+}
+
+/* ===== Section Label (review headings) =====
+   Dùng ở: product_detail.html
+   ========================================= */
+.section-label {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--warm-brown);
+    padding-left: 10px;
+    border-left: 3px solid var(--warm-brown);
+    line-height: 1;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.section-title-main {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--dark-charcoal);
+    margin-bottom: 24px;
+}
+
+/* ===== Detail Form Controls =====
+   Dùng ở: product_detail.html (review form)
+   ========================================= */
+.detail-form-control {
+    border: 1.5px solid var(--beige) !important;
+    border-radius: 3px !important;
+    transition: border-color 0.18s ease !important;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem;
+    color: var(--dark-charcoal);
+}
+
+.detail-form-control:focus {
+    border-color: var(--warm-brown) !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* ===== DUNE Premium Buttons =====
+   Dùng ở: product_detail.html
+   ========================================= */
+.btn-dune {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--warm-brown);
+    color: #fff !important;
+    border: none;
+    border-radius: 3px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 12px 28px;
+    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    box-shadow: 0 4px 12px rgba(139, 115, 85, 0.15);
+    cursor: pointer;
+}
+
+.btn-dune:hover {
+    background: var(--deep-brown);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(139, 115, 85, 0.25);
+    text-decoration: none;
+}
+
+.btn-dune:active {
+    transform: translateY(0);
+}
+
+.btn-dune i {
+    font-size: 0.9rem;
+    transition: transform 0.2s ease;
+}
+
+.btn-dune:hover i {
+    transform: scale(1.1);
+}
+
+.btn-dune-out-of-stock {
+    font-weight: 700;
+    cursor: default;
+    background: var(--beige-light);
+    color: var(--taupe);
+    border: 1.5px solid var(--beige);
+    border-radius: 3px;
+    letter-spacing: 0.12em;
+    font-size: 0.8rem;
+    padding: 10px 32px;
+    text-transform: uppercase;
+    opacity: 0.8;
+}
+
+/* ===== Review System ===== */
+.review-rating-display .fa-star,
+.review-rating-display .fa-star-half-alt {
+    color: #FFD700;
+}
+
+.review-item {
+    background: var(--beige-light);
+    border-radius: 6px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    border: none;
+}
+
+.review-item:last-child {
+    margin-bottom: 0;
+}
+
+.review-user {
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 2px;
+}
+
+.review-date {
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.review-rating {
+    color: #FFD700;
+    margin-bottom: 10px;
+}
+
+.pending-badge {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+    display: inline-block;
+    margin-left: 10px;
+}
+
+/* Star Rating Input */
+.star-rating-input {
+    display: flex;
+    gap: 4px;
+    padding: 8px 0;
+}
+
+.star-rating-input .star-pick {
+    font-size: 28px;
+    color: #ccc;
+    cursor: pointer;
+    transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.star-rating-input .star-pick:hover,
+.star-rating-input .star-pick.hover {
+    color: #deb217;
+    transform: scale(1.15);
+}
+
+.star-rating-input .star-pick.active {
+    color: #ffc700;
+}
+
+.star-rating-input .star-pick.active:hover,
+.star-rating-input .star-pick.active.hover {
+    color: #c59b08;
+}
+
+
+/* ============================================================
+   Shop Layout
+   ============================================================ */
+
+.shop-layout {
+    padding-top: 32px;
+    padding-bottom: 64px;
+}
+
+/* ============================================================
+   Shop Sidebar
+   ============================================================ */
+
+.shop-sidebar {
+    position: sticky;
+    top: 96px;
+    padding: 28px 24px;
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    border-radius: 20px;
+    box-shadow: 0 12px 48px 0 rgba(139, 115, 85, 0.12);
+    transform: translateY(-4px);
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    z-index: 10;
+}
+
+.shop-sidebar:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 64px 0 rgba(139, 115, 85, 0.18);
+    background: rgba(255, 255, 255, 0.35);
+}
+
+/* ── Filter group (each section) ───────────────────────────── */
+.filter-group {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    padding-bottom: 24px;
+    margin-bottom: 24px;
+}
+
+.filter-group--last {
+    border-bottom: none;
+}
+
+.filter-group__title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--warm-brown);
+    margin-bottom: 16px;
+    padding-left: 10px;
+    border-left: 3px solid var(--warm-brown);
+    line-height: 1;
+}
+
+.filter-group__content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* ── Price labels ───────────────────────────────────────────── */
+.filter-price-label {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--dark-charcoal);
+}
+
+/* ── Custom checkboxes ──────────────────────────────────────── */
+.filter-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    margin: 0;
+    padding: 2px 0;
+}
+
+.filter-check__input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.filter-check__box {
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid var(--beige);
+    border-radius: 3px;
+    flex-shrink: 0;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.16s ease, background 0.16s ease;
+}
+
+.filter-check__box::after {
+    content: '';
+    display: block;
+    width: 9px;
+    height: 5px;
+    border-left: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+    transform: rotate(-45deg) translateY(-1px);
+    opacity: 0;
+    transition: opacity 0.12s ease;
+}
+
+.filter-check__input:checked+.filter-check__box {
+    background: var(--warm-brown);
+    border-color: var(--warm-brown);
+}
+
+.filter-check__input:checked+.filter-check__box::after {
+    opacity: 1;
+}
+
+.filter-check__label {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--dark-charcoal);
+    transition: color 0.14s ease;
+    user-select: none;
+}
+
+.filter-check:hover .filter-check__label {
+    color: var(--warm-brown);
+}
+
+.filter-check:hover .filter-check__box {
+    border-color: var(--warm-brown);
+}
+
+.filter-empty {
+    font-size: 0.8rem;
+    color: var(--taupe);
+    margin: 0;
+}
+
+/* ============================================================
+   Shop Toolbar (search + sort)
+   ============================================================ */
+
+.shop-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--beige);
+}
+
+.shop-toolbar__search {
+    position: relative;
+    flex: 1;
+    max-width: 320px;
+}
+
+.shop-toolbar__search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--taupe);
+    font-size: 0.8rem;
+    pointer-events: none;
+}
+
+.shop-toolbar__search-input {
+    width: 100%;
+    height: 40px;
+    background: var(--beige-light);
+    border: 1.5px solid transparent;
+    border-radius: 3px;
+    padding: 0 14px 0 36px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.82rem;
+    color: var(--dark-charcoal);
+    outline: none;
+    transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.shop-toolbar__search-input::placeholder {
+    color: var(--taupe);
+}
+
+.shop-toolbar__search-input:focus {
+    border-color: var(--warm-brown);
+    background: #fff;
+}
+
+.shop-toolbar__sort-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 16px;
+    background: var(--beige-light);
+    border: 1.5px solid transparent;
+    border-radius: 3px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--dark-charcoal);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.shop-toolbar__sort-btn:hover,
+.shop-toolbar__sort-btn:focus {
+    border-color: var(--warm-brown);
+    background: #fff;
+    outline: none;
+    box-shadow: none;
+}
+
+.shop-toolbar__sort-icon {
+    font-size: 0.65rem;
+    color: var(--taupe);
+    transition: transform 0.2s ease;
+}
+
+.shop-toolbar__sort-btn[aria-expanded="true"] .shop-toolbar__sort-icon {
+    transform: rotate(180deg);
+}
+
+.shop-toolbar__dropdown {
+    border: 1px solid var(--beige);
+    border-radius: 3px;
+    box-shadow: 0 8px 24px rgba(44, 44, 44, 0.10);
+    padding: 6px 0;
+    min-width: 180px;
+}
+
+.shop-toolbar__sort-item {
+    display: block;
+    padding: 9px 18px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--dark-charcoal);
+    text-decoration: none;
+    transition: background 0.14s ease, color 0.14s ease;
+}
+
+.shop-toolbar__sort-item:hover,
+.shop-toolbar__sort-item.active {
+    background: var(--beige-light);
+    color: var(--warm-brown);
+    text-decoration: none;
+}
+
+/* ============================================================
+   Pagination
+   ============================================================ */
+
+#pagination-container .page-link {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--dark-charcoal);
+    border: 1.5px solid var(--beige);
+    border-radius: 2px !important;
+    padding: 7px 13px;
+    margin: 0 3px;
+    transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+}
+
+#pagination-container .page-link:hover {
+    background: var(--beige-light);
+    border-color: var(--warm-brown);
+    color: var(--warm-brown);
+}
+
+#pagination-container .page-item.active .page-link {
+    background: var(--warm-brown);
+    border-color: var(--warm-brown);
+    color: #fff;
+}
+
+#pagination-container .page-item.disabled .page-link {
+    color: var(--taupe);
+    border-color: var(--beige);
+}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+
 @media (max-width: 991px) {
-    .product-gallery-container {
-        flex-direction: column-reverse; /* Main image on top, thumbs on bottom */
-        height: auto;
+    .shop-sidebar {
+        position: static;
+        padding-right: 0;
+        padding-bottom: 0;
+        border-bottom: 2px solid var(--beige);
+        margin-bottom: 28px;
     }
-    
-    .gallery-main {
-        width: 100%;
-        aspect-ratio: 1/1; /* maintain square ratio */
-        height: auto;
-    }
-    
-    .gallery-thumbs {
-        width: 100%;
-        height: 80px; 
-    }
-    
-    .gallery-thumbs .swiper-slide {
-        height: 100%;
-        width: 80px; /* Swiper horizontal slide width */
+
+    .shop-layout {
+        padding-top: 20px;
     }
 }
 
-@media (min-width: 992px) {
-    .gallery-thumbs .swiper-slide {
-        width: 100% !important; /* Force width in vertical mode */
+
+/* ============================================================
+   .pcard — Street-Style Product Card Component
+   BEM: .pcard, .pcard__*, .pcard--*
+   Scope: products/snippets/product_card.html
+   ============================================================ */
+
+/* ── Block ─────────────────────────────────────────────────── */
+.pcard {
+    background: #fff;
+    border-radius: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition:
+        transform 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        box-shadow 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.pcard:hover {
+    transform: translateY(-6px);
+    box-shadow:
+        0 12px 32px rgba(44, 44, 44, 0.13),
+        0 4px 12px rgba(44, 44, 44, 0.08);
+}
+
+/* ── Media ──────────────────────────────────────────────────── */
+.pcard__media {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 1 / 1;
+    background: var(--beige-light);
+}
+
+.pcard__img-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.pcard__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.pcard__img--placeholder {
+    background: var(--beige-light);
+}
+
+.pcard:hover .pcard__img {
+    transform: scale(1.07);
+}
+
+/* ── Discount badge ─────────────────────────────────────────── */
+.pcard__badge {
+    position: absolute;
+    top: 12px;
+    left: 0;
+    z-index: 2;
+    background: var(--dark-charcoal);
+    color: #fff;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 4px 10px 4px 12px;
+    border-radius: 0 2px 2px 0;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* ── Hover overlay ──────────────────────────────────────────── */
+.pcard__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    background: linear-gradient(to top,
+            rgba(20, 17, 14, 0.82) 0%,
+            rgba(20, 17, 14, 0.35) 55%,
+            rgba(20, 17, 14, 0) 100%);
+    transform: translateY(100%);
+    transition: transform 0.38s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 20px;
+}
+
+.pcard:hover .pcard__overlay {
+    transform: translateY(0);
+}
+
+/* ── Action buttons ─────────────────────────────────────────── */
+.pcard__actions {
+    display: flex;
+    gap: 10px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+        opacity 0.22s ease 0.15s,
+        transform 0.22s ease 0.15s;
+}
+
+.pcard:hover .pcard__actions {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.pcard__action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    background: #fff;
+    color: var(--dark-charcoal);
+    border: none;
+    border-radius: 50%;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition:
+        background 0.18s ease,
+        color 0.18s ease,
+        transform 0.18s ease;
+    padding: 0;
+    line-height: 1;
+}
+
+.pcard__action-btn:hover,
+.pcard__action-btn:focus {
+    background: var(--warm-brown);
+    color: #fff;
+    transform: scale(1.1);
+    text-decoration: none;
+    outline: none;
+}
+
+/* ── Info zone ──────────────────────────────────────────────── */
+.pcard__info {
+    padding: 14px 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+}
+
+/* ── Category tag ───────────────────────────────────────────── */
+.pcard__tag {
+    display: inline-block;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--warm-brown);
+    border-bottom: 1.5px solid var(--warm-brown);
+    padding-bottom: 1px;
+    align-self: flex-start;
+    line-height: 1.2;
+}
+
+/* ── Product name ───────────────────────────────────────────── */
+.pcard__name-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.pcard__name-link:hover {
+    text-decoration: none;
+    color: var(--warm-brown);
+}
+
+.pcard__name {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--dark-charcoal);
+    margin: 0;
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    transition: color 0.18s ease;
+}
+
+.pcard__name-link:hover .pcard__name {
+    color: var(--warm-brown);
+}
+
+/* ── Price row ──────────────────────────────────────────────── */
+.pcard__price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 2px;
+}
+
+.pcard__price-sale {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--warm-brown);
+    letter-spacing: -0.01em;
+}
+
+.pcard__price-original {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: var(--taupe);
+    text-decoration: line-through;
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 575.98px) {
+    .pcard__info {
+        padding: 12px 12px 14px;
+    }
+
+    .pcard__name {
+        font-size: 0.85rem;
+    }
+
+    .pcard__price-sale {
+        font-size: 0.88rem;
+    }
+
+    /* Touch: keep overlay partially visible so actions are discoverable */
+    .pcard__overlay {
+        transform: translateY(75%);
+    }
+
+    .pcard__actions {
+        opacity: 0.9;
+        transform: translateY(0);
     }
 }

@@ -8,9 +8,10 @@ import logging
 import requests
 from django.db.models import F
 from django.conf import settings
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.db import transaction
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -255,7 +256,7 @@ def _send_order_received_email(order):
         'order_items': order_items,
     }
 
-    subject = f'EShopper - Xác nhận đơn hàng #{order.order_number}'
+    subject = f'DUNE - Xác nhận đơn hàng #{order.order_number}'
     html_message = render_to_string('orders/emails/order_received.html', context)
     plain_message = strip_tags(html_message)
 
@@ -612,3 +613,19 @@ def momo_check_status_view(request):
         return JsonResponse({'status': 'not_found'})
 
     return JsonResponse({'status': order.payment_status})
+
+
+@staff_member_required
+def admin_order_print(request, order_id):
+    """View dành cho admin để in hóa đơn của một đơn hàng."""
+    order = get_object_or_404(Order, id=order_id)
+    order_items = OrderItem.objects.filter(order=order).select_related('product', 'variant')
+    
+    context = {
+        'order': order,
+        'order_items': order_items,
+        'company_name': 'DUNE',
+        'company_address': '218, Linh Nam, Hoang Mai, Hà Nội',
+        'company_phone': '0347113353',
+    }
+    return render(request, 'orders/admin/order_print.html', context)

@@ -1,37 +1,290 @@
 /* ============================================================
    profile.css — Account / Profile Pages
-   Scope: accounts/profile_base.html
+   Direction: Warm editorial / street-youthful — clean sidebar,
+              strong typography, consistent with cart/checkout
+   Scope: accounts/profile_base.html and child templates
    ============================================================ */
 
-.profile-sidebar ul {
-    list-style: none;
-    padding: 0;
+/* --- Hero Strip --- */
+.pf-hero {
+    background: var(--pure-white);
+    border-bottom: 1px solid var(--beige);
+    padding: 1.75rem 0 1.5rem;
+}
+.pf-hero-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+.pf-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.72rem;
+    color: var(--taupe);
+    margin-bottom: 0.6rem;
+}
+.pf-breadcrumb a {
+    color: var(--taupe);
+    text-decoration: none;
+    transition: color 0.18s;
+}
+.pf-breadcrumb a:hover { color: var(--warm-brown); }
+.pf-breadcrumb-sep { color: var(--beige); }
+.pf-hero h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--dark-charcoal);
+    letter-spacing: -0.02em;
     margin: 0;
 }
 
-.profile-sidebar ul li {
-    margin-bottom: 10px;
+/* --- Page Body --- */
+.pf-page {
+    background: var(--cream);
+    padding: 2.5rem 0 5rem;
+    min-height: 55vh;
+}
+.pf-layout {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 1.75rem;
+    align-items: start;
 }
 
-.profile-sidebar .nav-link {
-    color: #333;
-    padding: 5px 0;
-    text-decoration: none;
-    display: block;
-    font-size: 15px;
-    transition: color 0.3s;
+/* --- Sidebar --- */
+.pf-sidebar {
+    position: sticky;
+    top: calc(var(--hdr-height) + 1.5rem);
+}
+.pf-sidebar-card {
+    background: var(--pure-white);
+    border: 1px solid var(--beige);
+    border-radius: 12px;
+    overflow: hidden;
 }
 
-.profile-sidebar .nav-link.active {
-    color: #D19C97 !important;
-    font-weight: 600;
+/* Avatar block */
+.pf-avatar-block {
+    padding: 1.5rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    border-bottom: 1px solid var(--beige);
+}
+.pf-avatar {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: var(--dark-charcoal);
+    color: var(--pure-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.8rem;
+    flex-shrink: 0;
+}
+.pf-avatar-name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--dark-charcoal);
+    line-height: 1.3;
+}
+.pf-avatar-email {
+    font-size: 0.68rem;
+    color: var(--taupe);
+    margin-top: 0.2rem;
+    word-break: break-all;
 }
 
-.profile-sidebar .nav-link:hover {
-    color: #D19C97 !important;
+/* Sidebar nav */
+.pf-nav {
+    padding: 0.5rem 0;
 }
-
-.profile-content h5 {
+.pf-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.72rem 1.25rem;
+    font-size: 0.8rem;
     font-weight: 500;
-    font-size: 18px;
+    color: var(--hdr-ink-mid);
+    text-decoration: none;
+    transition: all 0.18s;
+    border-left: 3px solid transparent;
+    line-height: 1;
+}
+.pf-nav-link i {
+    font-size: 0.78rem;
+    width: 14px;
+    flex-shrink: 0;
+    color: inherit;
+}
+.pf-nav-link:hover {
+    background: var(--cream);
+    color: var(--dark-charcoal);
+    text-decoration: none;
+}
+.pf-nav-link--active {
+    border-left-color: var(--warm-brown);
+    background: var(--beige-light);
+    color: var(--warm-brown);
+    font-weight: 700;
+}
+
+/* --- Content Card --- */
+.pf-content {
+    background: var(--pure-white);
+    border: 1px solid var(--beige);
+    border-radius: 12px;
+    overflow: hidden;
+}
+.pf-content-head {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--beige);
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+.pf-content-num {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--dark-charcoal);
+    color: var(--pure-white);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+.pf-content-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--dark-charcoal);
+}
+.pf-content-body {
+    padding: 1.5rem;
+}
+
+/* --- Profile Info Rows --- */
+.pf-info-list {
+    display: flex;
+    flex-direction: column;
+}
+.pf-info-row {
+    display: flex;
+    align-items: center;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--beige-light);
+}
+.pf-info-row:last-of-type {
+    border-bottom: none;
+}
+.pf-info-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--taupe);
+    letter-spacing: 0.04em;
+    width: 140px;
+    flex-shrink: 0;
+    text-transform: uppercase;
+}
+.pf-info-val {
+    font-size: 0.875rem;
+    color: var(--dark-charcoal);
+    font-weight: 500;
+}
+
+/* --- Actions Row --- */
+.pf-actions {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--beige-light);
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.pf-btn-logout {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1.1rem;
+    background: transparent;
+    border: 1.5px solid var(--beige);
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--taupe);
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+.pf-btn-logout:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.04);
+    text-decoration: none;
+}
+
+/* --- Coming Soon / Placeholder Content --- */
+.pf-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 3rem 1.5rem;
+    gap: 0.75rem;
+}
+.pf-placeholder-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--beige-light);
+    border: 1px solid var(--beige);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: var(--taupe);
+    margin-bottom: 0.25rem;
+}
+.pf-placeholder-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--dark-charcoal);
+    margin: 0;
+}
+.pf-placeholder-desc {
+    font-size: 0.8rem;
+    color: var(--taupe);
+    margin: 0;
+    max-width: 320px;
+    line-height: 1.6;
+}
+
+/* --- Responsive --- */
+@media (max-width: 1100px) {
+    .pf-layout { grid-template-columns: 220px 1fr; }
+}
+@media (max-width: 900px) {
+    .pf-layout { grid-template-columns: 1fr; }
+    .pf-sidebar { position: static; }
+}
+@media (max-width: 640px) {
+    .pf-layout { padding: 0 1rem; }
+    .pf-hero-inner { padding: 0 1rem; }
+    .pf-content-body { padding: 1.1rem 1rem; }
+    .pf-info-label { width: 110px; }
 }

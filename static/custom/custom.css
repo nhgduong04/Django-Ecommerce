@@ -1,7 +1,46 @@
 /* ============================================================
-   custom.css — Template Overrides
+   custom.css — Bootstrap & Template Overrides
    Scope: Override lại CSS của template gốc (style.css)
-   Chỉ đặt ở đây những rule cần ghi đè template gốc.
    ============================================================ */
 
-/* Thêm override vào đây khi cần */
+/* ===== Neutralise Bootstrap navbar defaults inside site-header ===== */
+
+/* Remove Bootstrap's default navbar padding and background so our
+   site-header-inner flex layout takes full control */
+.site-header .navbar {
+    padding: 0;
+    background: transparent !important;
+}
+
+.site-header .navbar-light .navbar-nav .nav-link {
+    padding: 0;
+    color: inherit;
+}
+
+/* Prevent Bootstrap's .dropdown-menu from getting a top margin
+   we don't want (we set it ourselves in base.css) */
+.site-header .dropdown-menu {
+    margin-top: 0;
+}
+
+/* Remove the default blue outline on Bootstrap buttons/inputs
+   inside the header */
+.site-header .btn:focus,
+.site-header button:focus,
+.site-header input:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+/* Ensure the old `.container-fluid.mb-5` navbar spacing is gone on
+   pages that still reference it (safety net) */
+body > .container-fluid.mb-5:first-of-type {
+    margin-bottom: 0 !important;
+}
+
+/* ===== Page content top spacing =====
+   The old layout had mb-5 on the navbar. With a sticky header the
+   first page section sits directly below it — no extra gap needed. */
+body > .container-fluid:not(.site-footer):not([class*="chatbot"]) {
+    /* intentionally empty — leave spacing to each page's own CSS */
+}

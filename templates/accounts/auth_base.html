@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <title>{% block page_title %}DUNE{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Design tokens (brand palette :root variables) -->
+    <link href="{% static 'custom/base.css' %}" rel="stylesheet">
+
+    <!-- Auth-specific styles -->
+    <link href="{% static 'custom/pages/auth.css' %}" rel="stylesheet">
+</head>
+<body>
+    {% csrf_token %}
+
+    <!-- Django messages as toast notifications -->
+    {% if messages %}
+    <div class="auth-toast-container">
+        {% for message in messages %}
+        <div class="auth-toast {{ message.tags }}">
+            {% if message.tags == 'success' %}<i class="fas fa-check-circle"></i>
+            {% elif message.tags == 'error' %}<i class="fas fa-exclamation-circle"></i>
+            {% else %}<i class="fas fa-info-circle"></i>
+            {% endif %}
+            <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="auth-shell">
+
+        <!-- ===== Brand Panel ===== -->
+        <div class="auth-brand">
+
+            <!-- Decorative background geometry -->
+            <svg class="auth-brand-deco" viewBox="0 0 400 700" fill="none"
+                 xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+                <circle cx="340" cy="80"  r="180" stroke="white" stroke-width="0.8" opacity="0.07"/>
+                <circle cx="340" cy="80"  r="110" stroke="white" stroke-width="0.8" opacity="0.06"/>
+                <circle cx="60"  cy="620" r="200" stroke="white" stroke-width="0.8" opacity="0.06"/>
+                <circle cx="60"  cy="620" r="130" stroke="white" stroke-width="0.8" opacity="0.05"/>
+                <path d="M0 280 Q 200 180 400 320" stroke="white" stroke-width="0.8" opacity="0.08" fill="none"/>
+                <path d="M0 320 Q 200 220 400 360" stroke="white" stroke-width="0.8" opacity="0.05" fill="none"/>
+                <path d="M0 360 Q 200 260 400 400" stroke="white" stroke-width="0.8" opacity="0.04" fill="none"/>
+                <!-- Dune mountain echo -->
+                <path d="M40 580 L200 420 L360 580" stroke="white" stroke-width="1"
+                      stroke-linecap="round" fill="none" opacity="0.06"/>
+                <path d="M80 580 L200 460 L320 580" stroke="white" stroke-width="0.7"
+                      stroke-linecap="round" fill="none" opacity="0.04"/>
+            </svg>
+
+            <!-- Brand content -->
+            <div class="auth-brand-content">
+                <a href="{% url 'home' %}" class="auth-brand-logo">
+                    <svg class="logo-mark" viewBox="0 0 60 40" fill="none"
+                         xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 32 L30 12 L52 32" stroke="currentColor"
+                              stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                        <path d="M15 32 L30 18 L45 32" stroke="currentColor"
+                              stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.5"/>
+                        <circle cx="30" cy="12" r="2.5" fill="currentColor"/>
+                    </svg>
+                    <span class="logo-text">DUNE</span>
+                </a>
+
+                <div class="auth-brand-rule"></div>
+
+                <div>
+                    <div class="auth-brand-heading">{% block brand_heading %}Fashion with intention.{% endblock %}</div>
+                    <div class="auth-brand-sub">{% block brand_sub %}Your destination for curated Vietnamese fashion.{% endblock %}</div>
+                </div>
+            </div>
+
+        </div>
+        <!-- /Brand Panel -->
+
+        <!-- ===== Form Panel ===== -->
+        <div class="auth-form-panel">
+            <div class="auth-form-inner">
+                {% block auth_content %}{% endblock %}
+            </div>
+        </div>
+        <!-- /Form Panel -->
+
+    </div>
+</body>
+</html>
